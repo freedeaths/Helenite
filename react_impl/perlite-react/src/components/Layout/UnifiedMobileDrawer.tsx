@@ -1,8 +1,7 @@
-import { IconFiles, IconSearch, IconList, IconNetwork, IconTags, IconX } from '@tabler/icons-react';
+import { IconFiles, IconList, IconNetwork, IconTags, IconX } from '@tabler/icons-react';
 import { ActionIcon, Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { FileExplorer } from '../FileExplorer/FileExplorer';
-import { SearchPanel } from '../FileExplorer/SearchPanel';
 import { TOC } from '../MarkdownViewer/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../MarkdownViewer/TagsPanel';
@@ -19,7 +18,6 @@ export function UnifiedMobileDrawer() {
 
   const tabs = [
     { id: 'files' as const, label: 'Files', icon: IconFiles, component: FileExplorer },
-    { id: 'search' as const, label: 'Search', icon: IconSearch, component: SearchPanel },
     { id: 'outline' as const, label: 'Outline', icon: IconList, component: TOC },
     { id: 'graph' as const, label: 'Graph', icon: IconNetwork, component: LocalGraph },
     { id: 'tags' as const, label: 'Tags', icon: IconTags, component: TagsPanel },

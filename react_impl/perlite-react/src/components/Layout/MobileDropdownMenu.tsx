@@ -1,5 +1,6 @@
 import { IconFiles, IconList, IconNetwork, IconTags } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { FileExplorer } from '../FileExplorer/FileExplorer';
 import { TOC } from '../MarkdownViewer/TOC';
@@ -89,23 +90,30 @@ export function MobileDropdownMenu() {
         </div>
 
         {/* Tab Bar */}
-        <div className="flex border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] overflow-x-auto px-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveMobileTab(tab.id)}
-              className={`
-                flex-1 flex flex-col items-center py-3 px-2 transition-colors min-w-0
-                ${activeMobileTab === tab.id 
-                  ? 'bg-[var(--interactive-accent)] text-white' 
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
-                }
-              `}
-            >
-              <tab.icon size={18} />
-              <span className="text-xs mt-1 font-medium truncate">{tab.label}</span>
-            </button>
-          ))}
+        <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2">
+          <Button.Group>
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                onClick={() => setActiveMobileTab(tab.id)}
+                variant={activeMobileTab === tab.id ? 'filled' : 'light'}
+                size="compact-md"
+                flex={1}
+                styles={{
+                  inner: {
+                    flexDirection: 'column',
+                    gap: '4px'
+                  },
+                  label: {
+                    fontSize: '12px'
+                  }
+                }}
+              >
+                <tab.icon size={18} />
+                {tab.label}
+              </Button>
+            ))}
+          </Button.Group>
         </div>
 
         {/* Content */}
