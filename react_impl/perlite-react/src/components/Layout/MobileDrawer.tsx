@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
+import { ActionIcon } from '@mantine/core';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -70,13 +71,15 @@ export function MobileDrawer({ isOpen, onClose, side, children, title }: MobileD
           <h2 className="text-sm font-medium text-[var(--text-normal)]">
             {title}
           </h2>
-          <button
+          <ActionIcon
             onClick={onClose}
-            className="p-1 rounded hover:bg-[var(--background-modifier-hover)] text-[var(--text-muted)] hover:text-[var(--text-normal)] transition-colors"
+            variant="subtle"
+            color="gray"
+            size="sm"
             aria-label="Close drawer"
           >
             <IconX size={18} />
-          </button>
+          </ActionIcon>
         </div>
         
         {/* Content */}

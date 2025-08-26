@@ -72,7 +72,7 @@ export function FileExplorer() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-3 border-b border-[var(--background-modifier-border)]">
+      <div style={{ padding: '4px 12px' }}>
         {/* 搜索输入框 */}
         <div className="flex items-center gap-1">
           <div className="flex-1 relative">

@@ -1,4 +1,5 @@
-import { IconFiles, IconNetwork, IconDice, IconHome } from '@tabler/icons-react';
+import { IconFiles, IconNetwork, IconDice, IconHome, IconSettings, IconDiamond } from '@tabler/icons-react';
+import { ActionIcon, Tooltip } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 
 export function LeftRibbon() {
@@ -45,37 +46,40 @@ export function LeftRibbon() {
   ];
 
   return (
-    <div className="w-12 h-full bg-[var(--background-secondary)] border-r border-[var(--background-modifier-border)] flex flex-col items-center py-2">
-      {/* Logo/Brand */}
-      <div className="mb-4 p-2">
-        <div className="w-6 h-6 bg-[var(--interactive-accent)] rounded-sm flex items-center justify-center">
-          <span className="text-white text-xs font-bold">P</span>
-        </div>
+    <div className="w-12 h-full bg-[var(--background-secondary)] border-r border-[var(--background-modifier-border)] flex flex-col items-center py-2 overflow-hidden">
+      {/* Logo/Brand - 小尺寸 */}
+      <div className="mb-2 flex items-center justify-center w-8 h-8">
+        <img 
+          src="/obsidian-svgrepo.svg" 
+          alt="Obsidian Logo" 
+          className="w-4 h-4 flex-shrink-0" 
+          style={{ 
+            filter: 'invert(0.7)',
+            width: '32px',
+            height: '32px',
+            objectFit: 'contain'
+          }}
+        />
       </div>
 
       {/* Ribbon Items */}
-      <div className="flex flex-col space-y-1">
+      <div className="flex flex-col gap-1">
         {ribbonItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.id === 'files' && leftSidebarOpen;
           
           return (
-            <button
-              key={item.id}
-              onClick={item.onClick}
-              className={`
-                p-2 rounded-md transition-all duration-200
-                ${isActive 
-                  ? 'bg-[var(--interactive-accent)] text-white shadow-sm' 
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
-                }
-                focus:outline-none focus:ring-2 focus:ring-[var(--interactive-accent)] focus:ring-opacity-50
-              `}
-              title={item.label}
-              aria-label={item.label}
-            >
-              <Icon size={18} />
-            </button>
+            <Tooltip key={item.id} label={item.label} position="right" withArrow>
+              <ActionIcon
+                onClick={item.onClick}
+                variant={isActive ? 'filled' : 'subtle'}
+                color={isActive ? 'blue' : 'gray'}
+                size="md"
+                radius="md"
+              >
+                <Icon size={16} />
+              </ActionIcon>
+            </Tooltip>
           );
         })}
       </div>
@@ -84,17 +88,17 @@ export function LeftRibbon() {
       <div className="flex-1" />
 
       {/* Bottom items */}
-      <div className="flex flex-col space-y-1">
-        <button
-          className="p-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)] transition-colors"
-          title="Settings"
-          aria-label="Settings"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="m12 1 1.27 3.86a9 9 0 0 1 1.19.45l3.68-1.79 1.41 2.45-2.97 2.49a9 9 0 0 1 0 1.9l2.97 2.49-1.41 2.45-3.68-1.79a9 9 0 0 1-1.19.45L12 23l-1.27-3.86a9 9 0 0 1-1.19-.45l-3.68 1.79-1.41-2.45 2.97-2.49a9 9 0 0 1 0-1.9L4.45 11.1l1.41-2.45 3.68 1.79a9 9 0 0 1 1.19-.45L12 1Z"/>
-          </svg>
-        </button>
+      <div className="flex flex-col gap-1">
+        <Tooltip label="Settings" position="right" withArrow>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="md"
+            radius="md"
+          >
+            <IconSettings size={16} />
+          </ActionIcon>
+        </Tooltip>
       </div>
     </div>
   );

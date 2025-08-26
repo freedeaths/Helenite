@@ -1,4 +1,5 @@
 import { IconFiles, IconList, IconNetwork, IconTags } from '@tabler/icons-react';
+import { Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { FileExplorer } from '../FileExplorer/FileExplorer';
 import { TOC } from '../MarkdownViewer/TOC';
@@ -12,6 +13,10 @@ export function LeftSidebar() {
   if (!isMobile && !isTablet) {
     return (
       <div className="h-full flex flex-col bg-[var(--background-secondary)]">
+        {/* 桌面端添加占位区域，搜索框目标位置 top:35px，原本 top:16px，差距 15px */}
+        <div className="bg-[var(--background-secondary)]" style={{ height: '15px' }}>
+          {/* 占位区域：再减少 4px，从 19px → 15px，达到目标 35px */}
+        </div>
         <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
           <FileExplorer />
         </div>
@@ -32,27 +37,34 @@ export function LeftSidebar() {
   return (
     <div className="h-full flex flex-col bg-[var(--background-secondary)]">
       {/* Tab Bar - 只在平板端显示 */}
-      <div className="flex border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveMobileTab(tab.id)}
-            className={`
-              flex-1 flex flex-col items-center py-3 px-2 transition-colors min-w-0
-              ${activeMobileTab === tab.id 
-                ? 'bg-[var(--interactive-accent)] text-white' 
-                : 'text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
-              }
-            `}
-          >
-            <tab.icon size={18} />
-            <span className="text-xs mt-1 font-medium truncate">{tab.label}</span>
-          </button>
-        ))}
+      <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2">
+        <Button.Group>
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              onClick={() => setActiveMobileTab(tab.id)}
+              variant={activeMobileTab === tab.id ? 'filled' : 'light'}
+              size="compact-sm"
+              flex={1}
+              styles={{
+                inner: {
+                  flexDirection: 'column',
+                  gap: '4px'
+                },
+                label: {
+                  fontSize: '11px'
+                }
+              }}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </Button>
+          ))}
+        </Button.Group>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
+      <div className="flex-1 overflow-hidden" style={{ padding: '0.25rem 1rem 1rem 1rem' }}>
         <ActiveComponent />
       </div>
     </div>

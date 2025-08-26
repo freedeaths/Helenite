@@ -1,4 +1,5 @@
 import { IconFiles, IconSearch, IconList, IconNetwork, IconTags, IconX } from '@tabler/icons-react';
+import { ActionIcon, Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { FileExplorer } from '../FileExplorer/FileExplorer';
 import { SearchPanel } from '../FileExplorer/SearchPanel';
@@ -36,32 +37,41 @@ export function UnifiedMobileDrawer() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--background-modifier-border)]">
           <h2 className="text-lg font-medium text-[var(--text-normal)]">Navigation</h2>
-          <button
+          <ActionIcon
             onClick={() => setMobileDrawerOpen(false)}
-            className="p-1 rounded hover:bg-[var(--background-modifier-hover)] transition-colors"
+            variant="subtle"
+            color="gray"
+            size="md"
           >
             <IconX size={20} />
-          </button>
+          </ActionIcon>
         </div>
 
         {/* Tab Bar */}
-        <div className="flex border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)]">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveMobileTab(tab.id)}
-              className={`
-                flex-1 flex flex-col items-center py-3 px-2 transition-colors
-                ${activeMobileTab === tab.id 
-                  ? 'bg-[var(--interactive-accent)] text-white' 
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
-                }
-              `}
-            >
-              <tab.icon size={20} />
-              <span className="text-xs mt-1 font-medium">{tab.label}</span>
-            </button>
-          ))}
+        <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2">
+          <Button.Group>
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                onClick={() => setActiveMobileTab(tab.id)}
+                variant={activeMobileTab === tab.id ? 'filled' : 'light'}
+                size="compact-md"
+                flex={1}
+                styles={{
+                  inner: {
+                    flexDirection: 'column',
+                    gap: '4px'
+                  },
+                  label: {
+                    fontSize: '12px'
+                  }
+                }}
+              >
+                <tab.icon size={18} />
+                {tab.label}
+              </Button>
+            ))}
+          </Button.Group>
         </div>
 
         {/* Content */}

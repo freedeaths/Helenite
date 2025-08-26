@@ -1,4 +1,5 @@
 import { IconList, IconGitFork, IconTags } from '@tabler/icons-react';
+import { Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { TOC } from '../MarkdownViewer/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
@@ -10,42 +11,36 @@ export function RightSidebar() {
   return (
     <div className="h-full flex flex-col bg-[var(--background-secondary)]">
       {/* Tab Headers */}
-      <div className="border-b border-[var(--background-modifier-border)]">
-        <div className="flex">
-          <button
+      <div className="border-b border-[var(--background-modifier-border)] p-2">
+        <Button.Group>
+          <Button
             onClick={() => setActiveRightPanel('outline')}
-            className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeRightPanel === 'outline'
-                ? 'border-[var(--interactive-accent)] text-[var(--interactive-accent)]'
-                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-normal)]'
-            }`}
+            variant={activeRightPanel === 'outline' ? 'filled' : 'light'}
+            leftSection={<IconList size={16} />}
+            size="compact-sm"
+            flex={1}
           >
-            <IconList size={16} className="mr-1" />
             Outline
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveRightPanel('graph')}
-            className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeRightPanel === 'graph'
-                ? 'border-[var(--interactive-accent)] text-[var(--interactive-accent)]'
-                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-normal)]'
-            }`}
+            variant={activeRightPanel === 'graph' ? 'filled' : 'light'}
+            leftSection={<IconGitFork size={16} />}
+            size="compact-sm"
+            flex={1}
           >
-            <IconGitFork size={16} className="mr-1" />
             Graph
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveRightPanel('tags')}
-            className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeRightPanel === 'tags'
-                ? 'border-[var(--interactive-accent)] text-[var(--interactive-accent)]'
-                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-normal)]'
-            }`}
+            variant={activeRightPanel === 'tags' ? 'filled' : 'light'}
+            leftSection={<IconTags size={16} />}
+            size="compact-sm"
+            flex={1}
           >
-            <IconTags size={16} className="mr-1" />
             Tags
-          </button>
-        </div>
+          </Button>
+        </Button.Group>
       </div>
 
       {/* Tab Content */}

@@ -1,4 +1,5 @@
 import { IconLayoutSidebar, IconLink, IconChevronDown } from '@tabler/icons-react';
+import { ActionIcon } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { useVaultStore } from '../../stores/vaultStore';
 import { MobileDropdownMenu } from './MobileDropdownMenu';
@@ -23,31 +24,27 @@ export function ViewHeader() {
         <div className="flex items-center space-x-2">
           {/* Desktop sidebar toggle */}
           {!isMobile && (
-            <button
+            <ActionIcon
               onClick={toggleLeftSidebar}
-              className={`p-1 rounded transition-colors ${
-                leftSidebarOpen 
-                  ? 'bg-[var(--background-modifier-border)]' 
-                  : 'hover:bg-[var(--background-modifier-border)]'
-              }`}
+              variant={leftSidebarOpen ? 'light' : 'subtle'}
+              color="gray"
+              size="sm"
             >
               <IconLayoutSidebar size={18} />
-            </button>
+            </ActionIcon>
           )}
           
           {/* Mobile dropdown toggle */}
           {isMobile && (
-            <button
+            <ActionIcon
               data-mobile-dropdown-toggle
               onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-              className={`p-1 rounded transition-colors ${
-                mobileDropdownOpen 
-                  ? 'bg-[var(--background-modifier-border)]' 
-                  : 'hover:bg-[var(--background-modifier-border)]'
-              }`}
+              variant={mobileDropdownOpen ? 'light' : 'subtle'}
+              color="gray"
+              size="sm"
             >
               <IconChevronDown size={18} className={`transition-transform ${mobileDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
+            </ActionIcon>
           )}
         </div>
 
@@ -60,20 +57,22 @@ export function ViewHeader() {
 
         {/* Right actions */}
         <div className="flex items-center space-x-2">
-          <button className="p-1 rounded hover:bg-[var(--background-modifier-border)] transition-colors">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+          >
             <IconLink size={18} />
-          </button>
+          </ActionIcon>
           {!isMobile && !isTablet && (
-            <button
+            <ActionIcon
               onClick={toggleRightSidebar}
-              className={`p-1 rounded transition-colors ${
-                rightSidebarOpen 
-                  ? 'bg-[var(--background-modifier-border)]' 
-                  : 'hover:bg-[var(--background-modifier-border)]'
-              }`}
+              variant={rightSidebarOpen ? 'light' : 'subtle'}
+              color="gray"
+              size="sm"
             >
               <IconLayoutSidebar size={18} className="rotate-180" />
-            </button>
+            </ActionIcon>
           )}
         </div>
       </div>
