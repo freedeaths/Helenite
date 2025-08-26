@@ -22,6 +22,13 @@ interface UIState {
   mobileLeftDrawerOpen: boolean;
   mobileRightDrawerOpen: boolean;
   
+  // New unified mobile drawer
+  mobileDrawerOpen: boolean;
+  activeMobileTab: 'files' | 'search' | 'outline' | 'graph' | 'tags';
+  
+  // Mobile dropdown menu from ViewHeader
+  mobileDropdownOpen: boolean;
+  
   // Actions
   toggleLeftSidebar: () => void;
   toggleRightSidebar: () => void;
@@ -36,6 +43,13 @@ interface UIState {
   // Mobile drawer actions
   setMobileLeftDrawerOpen: (open: boolean) => void;
   setMobileRightDrawerOpen: (open: boolean) => void;
+  
+  // New unified mobile drawer actions
+  setMobileDrawerOpen: (open: boolean) => void;
+  setActiveMobileTab: (tab: 'files' | 'search' | 'outline' | 'graph' | 'tags') => void;
+  
+  // Mobile dropdown actions
+  setMobileDropdownOpen: (open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -53,6 +67,13 @@ export const useUIStore = create<UIState>((set) => ({
   // Mobile drawer states
   mobileLeftDrawerOpen: false,
   mobileRightDrawerOpen: false,
+  
+  // New unified mobile drawer
+  mobileDrawerOpen: false,
+  activeMobileTab: 'files',
+  
+  // Mobile dropdown menu
+  mobileDropdownOpen: false,
   
   // Actions
   toggleLeftSidebar: () => set((state) => ({ 
@@ -100,4 +121,11 @@ export const useUIStore = create<UIState>((set) => ({
   // Mobile drawer actions
   setMobileLeftDrawerOpen: (open) => set({ mobileLeftDrawerOpen: open }),
   setMobileRightDrawerOpen: (open) => set({ mobileRightDrawerOpen: open }),
+  
+  // New unified mobile drawer actions
+  setMobileDrawerOpen: (open) => set({ mobileDrawerOpen: open }),
+  setActiveMobileTab: (tab) => set({ activeMobileTab: tab }),
+  
+  // Mobile dropdown actions
+  setMobileDropdownOpen: (open) => set({ mobileDropdownOpen: open }),
 }));

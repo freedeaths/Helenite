@@ -58,7 +58,7 @@ export function MarkdownViewer() {
     
     // 根据文件名生成不同的模拟内容
     if (fileName === 'Welcome') {
-      return `# 欢迎来到 Perlite
+      return `# 欢迎来到 Helenite
 
 这里是一个基于 React 的现代化 Obsidian Vault 查看器。
 
@@ -191,7 +191,7 @@ class VoyagerAgent:
 \`\`\`javascript
 // 代码块示例
 function hello() {
-    console.log('Hello, Perlite!');
+    console.log('Hello, Helenite!');
 }
 \`\`\`
 

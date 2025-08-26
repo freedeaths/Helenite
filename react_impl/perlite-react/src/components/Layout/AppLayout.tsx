@@ -6,8 +6,8 @@ import { RightSidebar } from './RightSidebar';
 import { StatusBar } from './StatusBar';
 import { ResizeHandle } from './ResizeHandle';
 import { MobileDrawer } from './MobileDrawer';
-import { MobileNavBar } from './MobileNavBar';
 import { LeftRibbon } from './LeftRibbon';
+import { UnifiedMobileDrawer } from './UnifiedMobileDrawer';
 
 export function AppLayout() {
   const { 
@@ -75,7 +75,6 @@ export function AppLayout() {
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--background-primary)] text-[var(--text-normal)]">
       
       {/* Mobile navigation bar */}
-      {isMobile && <MobileNavBar />}
 
       {/* Main workspace - Flex layout */}
       <div className="flex-1 overflow-hidden flex justify-center">
@@ -162,6 +161,7 @@ export function AppLayout() {
       {/* Mobile Drawers */}
       {isMobile && (
         <>
+          {/* Legacy drawers for compatibility */}
           <MobileDrawer
             isOpen={mobileLeftDrawerOpen}
             onClose={() => setMobileLeftDrawerOpen(false)}
@@ -182,8 +182,12 @@ export function AppLayout() {
           >
             <RightSidebar />
           </MobileDrawer>
+          
+          {/* New unified mobile drawer */}
+          <UnifiedMobileDrawer />
         </>
       )}
+      
     </div>
   );
 }
