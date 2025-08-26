@@ -42,7 +42,7 @@ export const useUIStore = create<UIState>((set) => ({
   // Initial state
   leftSidebarOpen: true,
   rightSidebarOpen: true,
-  leftSidebarWidth: 320,    // 减少到 320px，更合理的文件树宽度
+  leftSidebarWidth: 300,    // 统一使用 300px，与平板模式保持一致
   rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
   activeLeftPanel: 'files',
   activeRightPanel: 'outline',
@@ -74,8 +74,28 @@ export const useUIStore = create<UIState>((set) => ({
   setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
   setTheme: (theme) => set({ theme }),
-  setIsMobile: (isMobile) => set({ isMobile }),
-  setIsTablet: (isTablet) => set({ isTablet }),
+  setIsMobile: (isMobile) => set((state) => {
+    // 当切换到移动端时，关闭抽屉
+    if (isMobile && !state.isMobile) {
+      return { 
+        isMobile, 
+        mobileLeftDrawerOpen: false,
+        mobileRightDrawerOpen: false
+      };
+    }
+    return { isMobile };
+  }),
+  setIsTablet: (isTablet) => set((state) => {
+    // 切换到平板模式时，确保左侧栏宽度合理
+    if (isTablet && !state.isTablet && state.leftSidebarWidth > 300) {
+      return { 
+        isTablet,
+        // 如果当前宽度太大，调整为平板模式的300px
+        leftSidebarWidth: 300
+      };
+    }
+    return { isTablet };
+  }),
   
   // Mobile drawer actions
   setMobileLeftDrawerOpen: (open) => set({ mobileLeftDrawerOpen: open }),

@@ -227,7 +227,7 @@ function hello() {
 
     // 渲染处理后的 Markdown 内容
     return (
-      <div className="markdown-viewer prose prose-slate dark:prose-invert max-w-none">
+      <div className="markdown-viewer">
         {renderedContent ? (
           <div dangerouslySetInnerHTML={{ __html: renderedContent }} />
         ) : (
@@ -240,8 +240,8 @@ function hello() {
   };
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-4xl mx-auto p-8">
+    <div className="h-full">
+      <div style={{ maxWidth: '1200px', padding: '1.5rem' }}>
         {renderContent()}
       </div>
     </div>

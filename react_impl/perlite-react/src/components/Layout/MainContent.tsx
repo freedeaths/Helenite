@@ -18,7 +18,7 @@ export function MainContent() {
   return (
     <div className="h-full flex flex-col bg-[var(--background-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)]">
+      <div className="flex items-center justify-between border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)]" style={{ padding: '0.75rem 1rem' }}>
         {/* Left actions */}
         <div className="flex items-center space-x-2">
           {/* Mobile menu button */}
@@ -86,8 +86,8 @@ export function MainContent() {
         {activeFile ? (
           <MarkdownViewer />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center text-[var(--text-muted)]">
+          <div className="flex items-center justify-center h-full min-h-96">
+            <div className="text-center text-[var(--text-muted)] max-w-2xl mx-auto px-6">
               <h2 className="text-2xl font-bold mb-4">Welcome to Perlite</h2>
               <p>Select a file from the sidebar to get started</p>
             </div>

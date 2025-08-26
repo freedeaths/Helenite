@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface ResizeHandleProps {
   direction: 'left' | 'right';
@@ -6,7 +6,7 @@ interface ResizeHandleProps {
   currentWidth: number;
   minWidth?: number;
   maxWidth?: number;
-  sidebarRef: React.RefObject<HTMLDivElement>;
+  sidebarRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function ResizeHandle({ 
@@ -19,18 +19,11 @@ export function ResizeHandle({
 }: ResizeHandleProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const sidebarLeftRef = useRef(0);
 
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
     mouseDownEvent.preventDefault();
     setIsResizing(true);
-    
-    // Cache sidebar position at start of drag to avoid repeated getBoundingClientRect calls
-    if (sidebarRef.current) {
-      const rect = sidebarRef.current.getBoundingClientRect();
-      sidebarLeftRef.current = direction === 'left' ? rect.left : rect.right;
-    }
-  }, [direction, sidebarRef]);
+  }, []);
 
   const stopResizing = useCallback(() => {
     setIsResizing(false);
@@ -38,15 +31,16 @@ export function ResizeHandle({
 
   const resize = useCallback(
     (mouseMoveEvent: MouseEvent) => {
-      if (isResizing) {
+      if (isResizing && sidebarRef.current) {
+        const rect = sidebarRef.current.getBoundingClientRect();
         let newWidth: number;
         
         if (direction === 'left') {
-          // For left sidebar: calculate from mouse position to cached left edge
-          newWidth = mouseMoveEvent.clientX - sidebarLeftRef.current;
+          // For left sidebar: calculate from mouse position to real-time left edge
+          newWidth = mouseMoveEvent.clientX - rect.left;
         } else {
-          // For right sidebar: width = cached right edge - mouseX
-          newWidth = sidebarLeftRef.current - mouseMoveEvent.clientX;
+          // For right sidebar: width = real-time right edge - mouseX
+          newWidth = rect.right - mouseMoveEvent.clientX;
         }
         
         // Constrain within bounds
@@ -56,7 +50,7 @@ export function ResizeHandle({
         onResize(constrainedWidth);
       }
     },
-    [isResizing, direction, minWidth, maxWidth, onResize]
+    [isResizing, direction, minWidth, maxWidth, onResize, sidebarRef]
   );
 
   useEffect(() => {
@@ -71,16 +65,13 @@ export function ResizeHandle({
   return (
     <div
       className={`
-        absolute cursor-ew-resize z-20 
-        ${direction === 'left' ? 'left-0' : 'left-0'}
+        cursor-ew-resize z-20 flex-shrink-0
         ${isHovered || isResizing 
           ? 'bg-[var(--interactive-accent)] opacity-100' 
           : 'bg-[var(--background-modifier-border)] opacity-50 hover:opacity-100'
         }
       `}
       style={{
-        top: 0,
-        bottom: 0,
         width: '2px',
         height: '100%'
       }}
@@ -91,7 +82,7 @@ export function ResizeHandle({
       {/* Visual indicator when hovering or dragging */}
       <div className={`
         absolute inset-y-0 -inset-x-0.5
-        transition-opacity duration-200
+        transition-opacity duration-20
         ${isHovered || isResizing ? 'opacity-100' : 'opacity-0'}
         bg-[var(--interactive-accent)] bg-opacity-20
       `} />

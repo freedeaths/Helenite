@@ -37,7 +37,7 @@ export function LeftSidebar() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
         {activeLeftPanel === 'files' && <FileExplorer />}
         {activeLeftPanel === 'search' && <SearchPanel />}
       </div>

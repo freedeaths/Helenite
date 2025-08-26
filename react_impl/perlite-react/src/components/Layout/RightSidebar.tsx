@@ -49,7 +49,7 @@ export function RightSidebar() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
         {activeRightPanel === 'outline' && <TOC />}
         {activeRightPanel === 'graph' && <LocalGraph />}
         {activeRightPanel === 'tags' && <TagsPanel />}
