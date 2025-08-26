@@ -113,7 +113,7 @@ export function AppLayout() {
             onResize={setLeftSidebarWidth}
             currentWidth={leftSidebarWidth}
             minWidth={200}
-            maxWidth={600}
+            maxWidth={360}
             sidebarRef={leftSidebarRef}
           />
         )}
@@ -130,7 +130,7 @@ export function AppLayout() {
             onResize={setRightSidebarWidth}
             currentWidth={rightSidebarWidth}
             minWidth={200}
-            maxWidth={600}
+            maxWidth={360}
             sidebarRef={rightSidebarRef}
           />
         )}
