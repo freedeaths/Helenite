@@ -1,14 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { FileService } from '../../services/fileService';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import remarkRehype from 'remark-rehype';
-import rehypeKatex from 'rehype-katex';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeStringify from 'rehype-stringify';
+import { markdownProcessor } from '../../services/markdownProcessor';
+import { MermaidDiagram } from './MermaidDiagram';
+import { GPXMap } from './GPXMap';
 
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github.css';
@@ -20,38 +15,51 @@ export function MarkdownViewer() {
   const [renderedContent, setRenderedContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Markdown processor configuration
-  const processor = unified()
-    .use(remarkParse)
-    .use(remarkGfm) 
-    .use(remarkMath)
-    .use(remarkRehype)
-    .use(rehypeKatex)
-    .use(rehypeHighlight)
-    .use(rehypeStringify);
+  const [metadata, setMetadata] = useState<{
+    headings: Array<{ level: number; text: string; id: string }>;
+    links: Array<{ href: string; text: string }>;
+    tags: string[];
+  }>({ headings: [], links: [], tags: [] });
+  const [mermaidDiagrams, setMermaidDiagrams] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
+  const [gpxMaps, setGpxMaps] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (activeFile) {
       const mockContent = getMockContent(activeFile);
       setContent(mockContent);
       setError(null);
+      setLoading(true);
       
-      // Process markdown content
-      processor.process(mockContent)
+      // Process markdown content with our comprehensive processor
+      markdownProcessor.processWithMetadata(mockContent)
         .then((result) => {
-          setRenderedContent(String(result));
+          setRenderedContent(result.html);
+          setMetadata(result.metadata);
+          setMermaidDiagrams(result.mermaidDiagrams);
+          setGpxMaps(result.gpxMaps);
+          console.log('Processed markdown metadata:', result.metadata);
+          console.log('Found Mermaid diagrams:', result.mermaidDiagrams);
+          console.log('Found GPX maps:', result.gpxMaps);
         })
         .catch((err) => {
           console.error('Markdown processing error:', err);
           setError('Markdown 处理失败');
+        })
+        .finally(() => {
+          setLoading(false);
         });
     } else {
       setContent('');
       setRenderedContent('');
       setError(null);
+      setMetadata({ headings: [], links: [], tags: [] });
+      setMermaidDiagrams([]);
+      setGpxMaps([]);
     }
-  }, [activeFile, processor]);
+  }, [activeFile]);
+
+  // Mermaid diagrams are now handled directly in the render function
 
   const getMockContent = (filePath: string) => {
     const fileName = filePath.split('/').pop()?.replace('.md', '') || 'Unknown';
@@ -69,12 +77,41 @@ export function MarkdownViewer() {
 - ⚡ **高性能** - 使用 Vite 5 构建系统
 - 🎯 **专注阅读** - 只读模式，专注内容浏览
 
+## Obsidian 语法支持
+
+### 内部链接
+查看 [[Dream-Destinations]] 了解更多旅行计划，或者访问 [[Multi-agent]] 查看技术项目。
+
+### 标签系统
+相关标签：#react #markdown #obsidian #typescript
+
+### 高亮显示
+这是一个 ==重要的高亮内容== 示例。
+
+### Callouts
+
+> [!info] 信息提示
+> 这是一个信息类型的 callout 块。
+
+> [!tip] 使用技巧
+> 你可以使用左侧的文件浏览器来导航不同的文档。
+
+> [!warning] 注意事项
+> 这是只读模式，无法编辑文件内容。
+
 ## 技术栈
 
 - React 18 + TypeScript
 - Mantine UI 7 + Tailwind CSS
 - Zustand 状态管理
 - Unified + Remark Markdown 处理
+
+## 数学公式支持
+
+内联公式：$E = mc^2$
+
+块级公式：
+$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$
 
 ---
 
@@ -109,6 +146,64 @@ export function MarkdownViewer() {
   - 松本城
   - 諏訪湖（你的名字取景地）
   - 霧ヶ峰高原
+
+## 户外路线
+
+### 陆羽古道徒步路线
+
+\`\`\`gpx
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Example" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>陆羽古道环线</name>
+    <desc>湖州吴兴区稍康村出发的经典环线路线</desc>
+  </metadata>
+  <trk>
+    <name>陆羽古道徒步</name>
+    <desc>全程9公里，爬升400米</desc>
+    <trkseg>
+      <trkpt lat="30.8667" lon="120.0867">
+        <ele>50</ele>
+        <name>稍康村起点</name>
+      </trkpt>
+      <trkpt lat="30.8700" lon="120.0900">
+        <ele>120</ele>
+        <name>茶园观景台1</name>
+      </trkpt>
+      <trkpt lat="30.8750" lon="120.0950">
+        <ele>200</ele>
+        <name>山脊线</name>
+      </trkpt>
+      <trkpt lat="30.8800" lon="120.1000">
+        <ele>350</ele>
+        <name>最高点</name>
+      </trkpt>
+      <trkpt lat="30.8750" lon="120.1050">
+        <ele>280</ele>
+        <name>茶园观景台2</name>
+      </trkpt>
+      <trkpt lat="30.8700" lon="120.1000">
+        <ele>150</ele>
+        <name>下山路</name>
+      </trkpt>
+      <trkpt lat="30.8667" lon="120.0867">
+        <ele>50</ele>
+        <name>回到起点</name>
+      </trkpt>
+    </trkseg>
+  </trk>
+  <wpt lat="30.8667" lon="120.0867">
+    <ele>50</ele>
+    <name>停车场</name>
+    <desc>村口停车场，可免费停车</desc>
+  </wpt>
+  <wpt lat="30.8800" lon="120.1000">
+    <ele>350</ele>
+    <name>山顶观景台</name>
+    <desc>360度全景，可俯瞰整个茶园梯田</desc>
+  </wpt>
+</gpx>
+\`\`\`
 
 > [!tip] 旅行小贴士
 > 提前规划交通路线，考虑购买 JR Pass 节省费用。`;
@@ -225,16 +320,108 @@ function hello() {
       );
     }
 
-    // 渲染处理后的 Markdown 内容
+    // 渲染处理后的 Markdown 内容，包括 Mermaid 图表和 GPX 地图
+    if (renderedContent) {
+      // Split HTML at placeholders and insert React components
+      const parts = [];
+      let currentHTML = renderedContent;
+      let partIndex = 0;
+
+      // Create a combined list of all components to insert, sorted by position
+      const allComponents: Array<{
+        index: number;
+        type: 'mermaid' | 'gpx';
+        data: { id: string; code: string; placeholder: string };
+      }> = [];
+
+      // Add Mermaid diagrams
+      mermaidDiagrams.forEach((diagram) => {
+        const placeholder = `MERMAID_PLACEHOLDER_${diagram.id}`;
+        const index = currentHTML.indexOf(placeholder);
+        if (index !== -1) {
+          allComponents.push({ index, type: 'mermaid', data: diagram });
+        }
+      });
+
+      // Add GPX maps
+      gpxMaps.forEach((map) => {
+        const placeholder = `GPX_PLACEHOLDER_${map.id}`;
+        const index = currentHTML.indexOf(placeholder);
+        if (index !== -1) {
+          allComponents.push({ index, type: 'gpx', data: map });
+        }
+      });
+
+      // Sort by position in the HTML
+      allComponents.sort((a, b) => a.index - b.index);
+
+      // Process components in order
+      allComponents.forEach((component) => {
+        const { type, data } = component;
+        const placeholder = type === 'mermaid' 
+          ? `MERMAID_PLACEHOLDER_${data.id}` 
+          : `GPX_PLACEHOLDER_${data.id}`;
+        const placeholderIndex = currentHTML.indexOf(placeholder);
+        
+        if (placeholderIndex !== -1) {
+          // Add HTML before placeholder
+          if (placeholderIndex > 0) {
+            const htmlBefore = currentHTML.substring(0, placeholderIndex);
+            parts.push(
+              <div
+                key={`html-${partIndex++}`}
+                dangerouslySetInnerHTML={{ __html: htmlBefore }}
+              />
+            );
+          }
+          
+          // Add component
+          if (type === 'mermaid') {
+            parts.push(
+              <MermaidDiagram
+                key={data.id}
+                code={data.code}
+                className="mermaid-diagram"
+              />
+            );
+          } else {
+            parts.push(
+              <GPXMap
+                key={data.id}
+                code={data.code}
+                className="gpx-map"
+              />
+            );
+          }
+          
+          // Update currentHTML to remaining part
+          currentHTML = currentHTML.substring(placeholderIndex + placeholder.length);
+        }
+      });
+
+      // Add any remaining HTML
+      if (currentHTML.trim()) {
+        parts.push(
+          <div
+            key={`html-${partIndex}`}
+            dangerouslySetInnerHTML={{ __html: currentHTML }}
+          />
+        );
+      }
+
+      return (
+        <div className="markdown-viewer" ref={contentRef}>
+          {parts}
+        </div>
+      );
+    }
+
+    // Fallback for no rendered content
     return (
       <div className="markdown-viewer">
-        {renderedContent ? (
-          <div dangerouslySetInnerHTML={{ __html: renderedContent }} />
-        ) : (
-          <pre className="whitespace-pre-wrap font-sans text-[var(--text-normal)] bg-transparent border-none p-0">
-            {content}
-          </pre>
-        )}
+        <pre className="whitespace-pre-wrap font-sans text-[var(--text-normal)] bg-transparent border-none p-0">
+          {content}
+        </pre>
       </div>
     );
   };

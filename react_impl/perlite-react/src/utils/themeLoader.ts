@@ -49,7 +49,13 @@ class ThemeManager {
 
       // Wait for theme to load
       return new Promise((resolve, reject) => {
-        link.onload = () => resolve();
+        link.onload = () => {
+          // Dispatch custom event for Mantine bridge to respond
+          document.dispatchEvent(new CustomEvent('obsidian-theme-changed', {
+            detail: { theme: theme.name }
+          }));
+          resolve();
+        };
         link.onerror = () => reject(new Error(`Failed to load theme: ${theme.name}`));
       });
     } catch (error) {
@@ -62,6 +68,11 @@ class ThemeManager {
     if (this.currentThemeLink) {
       document.head.removeChild(this.currentThemeLink);
       this.currentThemeLink = null;
+      
+      // Dispatch event to reset to default theme
+      document.dispatchEvent(new CustomEvent('obsidian-theme-changed', {
+        detail: { theme: 'default' }
+      }));
     }
   }
 

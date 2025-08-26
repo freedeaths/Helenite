@@ -6,6 +6,8 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     fs: {
       // 允许访问上级目录的文件
       allow: ['..', '../..']
