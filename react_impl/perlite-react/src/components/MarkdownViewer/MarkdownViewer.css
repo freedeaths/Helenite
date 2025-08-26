@@ -1,0 +1,117 @@
+/* Custom styles for Markdown rendering */
+.markdown-viewer {
+  line-height: 1.6;
+}
+
+/* Code blocks */
+.markdown-viewer pre {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+/* Inline code */
+.markdown-viewer code:not(pre code) {
+  background-color: var(--background-secondary);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  color: var(--text-accent);
+}
+
+/* Blockquotes */
+.markdown-viewer blockquote {
+  border-left: 4px solid var(--interactive-accent);
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Tables */
+.markdown-viewer table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.markdown-viewer th,
+.markdown-viewer td {
+  border: 1px solid var(--background-modifier-border);
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.markdown-viewer th {
+  background-color: var(--background-secondary);
+  font-weight: 600;
+}
+
+/* Links */
+.markdown-viewer a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+.markdown-viewer a:hover {
+  text-decoration: underline;
+}
+
+/* Headings */
+.markdown-viewer h1,
+.markdown-viewer h2,
+.markdown-viewer h3,
+.markdown-viewer h4,
+.markdown-viewer h5,
+.markdown-viewer h6 {
+  color: var(--text-normal);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.markdown-viewer h1 {
+  font-size: 2rem;
+  border-bottom: 2px solid var(--background-modifier-border);
+  padding-bottom: 0.5rem;
+}
+
+.markdown-viewer h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 0.25rem;
+}
+
+.markdown-viewer h3 {
+  font-size: 1.25rem;
+}
+
+/* Lists */
+.markdown-viewer ul,
+.markdown-viewer ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.markdown-viewer li {
+  margin: 0.25rem 0;
+}
+
+/* Horizontal rule */
+.markdown-viewer hr {
+  border: none;
+  border-top: 1px solid var(--background-modifier-border);
+  margin: 2rem 0;
+}
+
+/* Math expressions */
+.markdown-viewer .katex {
+  font-size: 1em;
+}
+
+.markdown-viewer .katex-display {
+  margin: 1rem 0;
+}

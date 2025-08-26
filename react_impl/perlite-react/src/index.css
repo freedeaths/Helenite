@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Obsidian-like base styles */
+:root {
+  --background-primary: #ffffff;
+  --background-secondary: #f8f9fa;
+  --background-modifier-border: #e9ecef;
+  --text-normal: #212529;
+  --text-muted: #6c757d;
+  --text-accent: #0066cc;
+  --interactive-accent: #646cff;
+  --interactive-hover: #535bf2;
+}
+
+[data-theme="dark"] {
+  --background-primary: #1e1e1e;
+  --background-secondary: #252525;
+  --background-modifier-border: #3c3c3c;
+  --text-normal: #dcddde;
+  --text-muted: #b3b3b3;
+  --text-accent: #7dd3fc;
+  --interactive-accent: #646cff;
+  --interactive-hover: #535bf2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--interactive-accent);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-modifier-border) var(--background-secondary);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile optimized scrollbar */
+@media (max-width: 768px) {
+  .mobile-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .mobile-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--interactive-accent);
+    border-radius: 2px;
+  }
+}

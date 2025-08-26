@@ -1,0 +1,83 @@
+import { create } from 'zustand';
+
+interface UIState {
+  // Sidebar states
+  leftSidebarOpen: boolean;
+  rightSidebarOpen: boolean;
+  leftSidebarWidth: number;
+  rightSidebarWidth: number;
+  
+  // Active panels
+  activeLeftPanel: 'files' | 'search';
+  activeRightPanel: 'outline' | 'graph' | 'tags';
+  
+  // Theme
+  theme: 'light' | 'dark';
+  
+  // Responsive states
+  isMobile: boolean;
+  isTablet: boolean;
+  
+  // Mobile drawer states
+  mobileLeftDrawerOpen: boolean;
+  mobileRightDrawerOpen: boolean;
+  
+  // Actions
+  toggleLeftSidebar: () => void;
+  toggleRightSidebar: () => void;
+  setLeftSidebarWidth: (width: number) => void;
+  setRightSidebarWidth: (width: number) => void;
+  setActiveLeftPanel: (panel: 'files' | 'search') => void;
+  setActiveRightPanel: (panel: 'outline' | 'graph' | 'tags') => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  setIsMobile: (isMobile: boolean) => void;
+  setIsTablet: (isTablet: boolean) => void;
+  
+  // Mobile drawer actions
+  setMobileLeftDrawerOpen: (open: boolean) => void;
+  setMobileRightDrawerOpen: (open: boolean) => void;
+}
+
+export const useUIStore = create<UIState>((set) => ({
+  // Initial state
+  leftSidebarOpen: true,
+  rightSidebarOpen: true,
+  leftSidebarWidth: 320,    // 减少到 320px，更合理的文件树宽度
+  rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
+  activeLeftPanel: 'files',
+  activeRightPanel: 'outline',
+  theme: 'light',
+  isMobile: false,
+  isTablet: false,
+  
+  // Mobile drawer states
+  mobileLeftDrawerOpen: false,
+  mobileRightDrawerOpen: false,
+  
+  // Actions
+  toggleLeftSidebar: () => set((state) => ({ 
+    leftSidebarOpen: !state.leftSidebarOpen 
+  })),
+  toggleRightSidebar: () => set((state) => ({ 
+    rightSidebarOpen: !state.rightSidebarOpen 
+  })),
+  setLeftSidebarWidth: (width) => {
+    // Constrain width between 200px and 600px for desktop dragging
+    const constrainedWidth = Math.max(200, Math.min(600, width));
+    set({ leftSidebarWidth: constrainedWidth });
+  },
+  setRightSidebarWidth: (width) => {
+    // Constrain width between 200px and 600px for desktop dragging
+    const constrainedWidth = Math.max(200, Math.min(600, width));
+    set({ rightSidebarWidth: constrainedWidth });
+  },
+  setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
+  setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
+  setTheme: (theme) => set({ theme }),
+  setIsMobile: (isMobile) => set({ isMobile }),
+  setIsTablet: (isTablet) => set({ isTablet }),
+  
+  // Mobile drawer actions
+  setMobileLeftDrawerOpen: (open) => set({ mobileLeftDrawerOpen: open }),
+  setMobileRightDrawerOpen: (open) => set({ mobileRightDrawerOpen: open }),
+}));
