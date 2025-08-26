@@ -110,7 +110,6 @@ export function FileExplorer() {
   const { files, activeFile, setActiveFile, setFiles, setLoading, setError } = useVaultStore();
   const [initialized, setInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     if (!initialized) {
@@ -172,35 +171,38 @@ export function FileExplorer() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-3 border-b border-[var(--background-modifier-border)] space-y-3">
-        <div className="text-sm font-medium text-[var(--text-muted)]">
-          Files
-        </div>
-        
+      <div className="p-3 border-b border-[var(--background-modifier-border)]">
         {/* 搜索输入框 */}
-        <div className={`relative transition-all duration-200 ${
-          isSearchFocused ? 'ring-2 ring-[var(--interactive-accent)] ring-opacity-30' : ''
-        }`}>
-          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)]">
-            <IconSearch size={14} />
+        <div className="flex items-center gap-1">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="搜索文件..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-[var(--background-secondary)] border border-[var(--background-modifier-border)] rounded focus:outline-none focus:border-[var(--interactive-accent)] text-[var(--text-normal)] placeholder-[var(--text-muted)] h-8"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="搜索文件..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            className="w-full pl-7 pr-7 py-1.5 text-sm bg-[var(--background-secondary)] border border-[var(--background-modifier-border)] rounded focus:outline-none focus:border-[var(--interactive-accent)] text-[var(--text-normal)] placeholder-[var(--text-muted)]"
-          />
+          
+          {/* 清除按钮 */}
           {searchQuery && (
             <button
               onClick={clearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-normal)] transition-colors"
+              className="px-2 h-8 bg-[var(--background-secondary)] border border-[var(--background-modifier-border)] text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)] transition-colors rounded"
+              title="清除搜索"
             >
               <IconX size={14} />
             </button>
           )}
+          
+          {/* 搜索按钮 */}
+          <button
+            type="button"
+            className="px-2 h-8 bg-[var(--background-secondary)] border border-[var(--background-modifier-border)] text-[var(--text-muted)] hover:text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)] transition-colors rounded"
+            title="搜索"
+          >
+            <IconSearch size={14} />
+          </button>
         </div>
       </div>
       

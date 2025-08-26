@@ -24,7 +24,7 @@ interface UIState {
   
   // New unified mobile drawer
   mobileDrawerOpen: boolean;
-  activeMobileTab: 'files' | 'search' | 'outline' | 'graph' | 'tags';
+  activeMobileTab: 'files' | 'outline' | 'graph' | 'tags';
   
   // Mobile dropdown menu from ViewHeader
   mobileDropdownOpen: boolean;
@@ -46,7 +46,7 @@ interface UIState {
   
   // New unified mobile drawer actions
   setMobileDrawerOpen: (open: boolean) => void;
-  setActiveMobileTab: (tab: 'files' | 'search' | 'outline' | 'graph' | 'tags') => void;
+  setActiveMobileTab: (tab: 'files' | 'outline' | 'graph' | 'tags') => void;
   
   // Mobile dropdown actions
   setMobileDropdownOpen: (open: boolean) => void;

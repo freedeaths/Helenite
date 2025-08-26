@@ -1,8 +1,7 @@
-import { IconFiles, IconSearch, IconList, IconNetwork, IconTags } from '@tabler/icons-react';
+import { IconFiles, IconList, IconNetwork, IconTags } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { useUIStore } from '../../stores/uiStore';
 import { FileExplorer } from '../FileExplorer/FileExplorer';
-import { SearchPanel } from '../FileExplorer/SearchPanel';
 import { TOC } from '../MarkdownViewer/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../MarkdownViewer/TagsPanel';
@@ -57,7 +56,6 @@ export function MobileDropdownMenu() {
 
   const tabs = [
     { id: 'files' as const, label: 'Files', icon: IconFiles, component: FileExplorer },
-    { id: 'search' as const, label: 'Search', icon: IconSearch, component: SearchPanel },
     { id: 'outline' as const, label: 'Outline', icon: IconList, component: TOC },
     { id: 'graph' as const, label: 'Graph', icon: IconNetwork, component: LocalGraph },
     { id: 'tags' as const, label: 'Tags', icon: IconTags, component: TagsPanel },
