@@ -19,7 +19,6 @@ export function AppLayout() {
     isTablet,
     mobileLeftDrawerOpen,
     mobileRightDrawerOpen,
-    activeLeftPanel,
     activeRightPanel,
     setIsMobile,
     setIsTablet,
@@ -166,7 +165,7 @@ export function AppLayout() {
             isOpen={mobileLeftDrawerOpen}
             onClose={() => setMobileLeftDrawerOpen(false)}
             side="left"
-            title={activeLeftPanel === 'files' ? 'Files' : 'Search'}
+            title="Files"
           >
             <LeftSidebar />
           </MobileDrawer>

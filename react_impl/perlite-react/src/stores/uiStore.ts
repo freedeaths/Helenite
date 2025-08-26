@@ -8,7 +8,6 @@ interface UIState {
   rightSidebarWidth: number;
   
   // Active panels
-  activeLeftPanel: 'files' | 'search';
   activeRightPanel: 'outline' | 'graph' | 'tags';
   
   // Theme
@@ -34,7 +33,6 @@ interface UIState {
   toggleRightSidebar: () => void;
   setLeftSidebarWidth: (width: number) => void;
   setRightSidebarWidth: (width: number) => void;
-  setActiveLeftPanel: (panel: 'files' | 'search') => void;
   setActiveRightPanel: (panel: 'outline' | 'graph' | 'tags') => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -58,7 +56,6 @@ export const useUIStore = create<UIState>((set) => ({
   rightSidebarOpen: true,
   leftSidebarWidth: 300,    // 统一使用 300px，与平板模式保持一致
   rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
-  activeLeftPanel: 'files',
   activeRightPanel: 'outline',
   theme: 'light',
   isMobile: false,
@@ -92,7 +89,6 @@ export const useUIStore = create<UIState>((set) => ({
     const constrainedWidth = Math.max(200, Math.min(600, width));
     set({ rightSidebarWidth: constrainedWidth });
   },
-  setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
   setTheme: (theme) => set({ theme }),
   setIsMobile: (isMobile) => set((state) => {

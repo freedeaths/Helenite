@@ -85,21 +85,17 @@ function FileTreeItem({ file, level, onFileSelect, activeFile }: FileTreeItemPro
         </span>
       </div>
       
-      {file.type === 'folder' && file.children && (
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-        }`}>
-          <div className="mt-1">
-            {file.children.map((child) => (
-              <FileTreeItem
-                key={child.path}
-                file={child}
-                level={level + 1}
-                onFileSelect={onFileSelect}
-                activeFile={activeFile}
-              />
-            ))}
-          </div>
+      {file.type === 'folder' && file.children && isExpanded && (
+        <div className="mt-1">
+          {file.children.map((child) => (
+            <FileTreeItem
+              key={child.path}
+              file={child}
+              level={level + 1}
+              onFileSelect={onFileSelect}
+              activeFile={activeFile}
+            />
+          ))}
         </div>
       )}
     </div>

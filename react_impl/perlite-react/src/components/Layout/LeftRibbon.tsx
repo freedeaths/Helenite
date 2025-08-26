@@ -1,11 +1,9 @@
-import { IconFiles, IconSearch, IconNetwork, IconDice, IconHome } from '@tabler/icons-react';
+import { IconFiles, IconNetwork, IconDice, IconHome } from '@tabler/icons-react';
 import { useUIStore } from '../../stores/uiStore';
 
 export function LeftRibbon() {
   const { 
     toggleLeftSidebar, 
-    activeLeftPanel,
-    setActiveLeftPanel,
     leftSidebarOpen
   } = useUIStore();
 
@@ -23,18 +21,6 @@ export function LeftRibbon() {
       icon: IconFiles,
       label: 'File Explorer',
       onClick: () => {
-        setActiveLeftPanel('files');
-        if (!leftSidebarOpen) {
-          toggleLeftSidebar();
-        }
-      }
-    },
-    {
-      id: 'search',
-      icon: IconSearch,
-      label: 'Search',
-      onClick: () => {
-        setActiveLeftPanel('search');
         if (!leftSidebarOpen) {
           toggleLeftSidebar();
         }
@@ -71,8 +57,7 @@ export function LeftRibbon() {
       <div className="flex flex-col space-y-1">
         {ribbonItems.map((item) => {
           const Icon = item.icon;
-          const isActive = (item.id === 'files' && activeLeftPanel === 'files') || 
-                          (item.id === 'search' && activeLeftPanel === 'search');
+          const isActive = item.id === 'files' && leftSidebarOpen;
           
           return (
             <button
