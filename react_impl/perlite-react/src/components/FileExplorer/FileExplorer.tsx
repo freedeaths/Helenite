@@ -1,106 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
-import { IconChevronDown, IconChevronRight, IconFile, IconFolder, IconSearch, IconX } from '@tabler/icons-react';
+import { IconSearch, IconX } from '@tabler/icons-react';
+import { TextInput, Box, Text, Center, Stack } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore';
 import { FileService } from '../../services/fileService';
+import { ModernFileTree } from './ModernFileTree';
 import type { FileTree } from '../../types/vault';
 
-interface FileTreeItemProps {
-  file: FileTree;
-  level: number;
-  onFileSelect: (path: string) => void;
-  activeFile: string | null;
-}
-
-function FileTreeItem({ file, level, onFileSelect, activeFile }: FileTreeItemProps) {
-  const [isExpanded, setIsExpanded] = useState(level < 2); // 默认展开前两级
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const handleClick = () => {
-    if (file.type === 'file') {
-      onFileSelect(file.path);
-    } else {
-      setIsExpanded(!isExpanded);
-    }
-  };
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    } else if (e.key === 'ArrowRight' && file.type === 'folder' && !isExpanded) {
-      setIsExpanded(true);
-    } else if (e.key === 'ArrowLeft' && file.type === 'folder' && isExpanded) {
-      setIsExpanded(false);
-    }
-  };
-  
-  const isActive = activeFile === file.path;
-  const paddingLeft = level * 16;
-  
-  return (
-    <div>
-      <div 
-        className={`
-          flex items-center px-2 py-1 text-sm cursor-pointer rounded transition-all duration-200
-          ${isActive 
-            ? 'bg-[var(--interactive-accent)] text-white shadow-sm' 
-            : isHovered
-              ? 'bg-[var(--background-modifier-hover)] text-[var(--text-normal)] transform translate-x-1'
-              : 'text-[var(--text-normal)] hover:bg-[var(--background-modifier-border)]'
-          }
-          focus:outline-none focus:ring-2 focus:ring-[var(--interactive-accent)] focus:ring-opacity-50
-        `}
-        style={{ paddingLeft: `${paddingLeft + 8}px` }}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        tabIndex={0}
-        role={file.type === 'folder' ? 'treeitem' : 'option'}
-        aria-expanded={file.type === 'folder' ? isExpanded : undefined}
-        aria-selected={isActive}
-      >
-        {file.type === 'folder' && (
-          <div className={`mr-1 transition-transform duration-200 ${
-            isExpanded ? 'rotate-0' : '-rotate-90'
-          }`}>
-            <IconChevronDown size={14} />
-          </div>
-        )}
-        
-        <div className={`mr-2 transition-colors duration-200 ${
-          isActive ? 'text-white' : isHovered ? 'text-[var(--text-accent)]' : 'text-[var(--text-muted)]'
-        }`}>
-          {file.type === 'folder' ? (
-            <IconFolder size={16} className={isExpanded ? 'text-[var(--text-accent)]' : ''} />
-          ) : (
-            <IconFile size={16} />
-          )}
-        </div>
-        
-        <span className={`truncate transition-colors duration-200 ${
-          isActive ? 'font-medium' : isHovered ? 'text-[var(--text-normal)]' : ''
-        }`}>
-          {file.name.replace(/\.md$/, '')}
-        </span>
-      </div>
-      
-      {file.type === 'folder' && file.children && isExpanded && (
-        <div className="mt-1">
-          {file.children.map((child) => (
-            <FileTreeItem
-              key={child.path}
-              file={child}
-              level={level + 1}
-              onFileSelect={onFileSelect}
-              activeFile={activeFile}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function FileExplorer() {
   const { files, activeFile, setActiveFile, setFiles, setLoading, setError } = useVaultStore();
@@ -218,17 +123,11 @@ export function FileExplorer() {
             )}
           </div>
         ) : (
-          <div className="space-y-0.5">
-            {filteredFiles.map((file) => (
-              <FileTreeItem
-                key={file.path}
-                file={file}
-                level={0}
-                onFileSelect={handleFileSelect}
-                activeFile={activeFile}
-              />
-            ))}
-          </div>
+          <ModernFileTree
+            files={filteredFiles}
+            onFileSelect={handleFileSelect}
+            activeFile={activeFile}
+          />
         )}
       </div>
     </div>
