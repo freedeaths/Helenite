@@ -2,114 +2,289 @@
 
 ## 项目概述
 
-基于 PRD 要求，将现有的 PHP 版本 Perlite 重构为现代化的 React 应用，提供类 Obsidian 的原生体验，只读不写。
+将现有的 PHP 版本 Perlite 重构为现代化的 React 应用，提供类 Obsidian 的原生体验，只读不写。
 
-## 🎉 MVP Phase 1 完成状态 (2025-08-25)
+## ✅ 已完成 - Phase 1: 响应式布局系统
 
-### ✅ 已完成功能
+- **响应式布局**: 桌面端四列、平板端三列、移动端单列 + 抽屉
+- **拖拽调整**: 侧边栏宽度调整，性能优化
+- **主题系统**: Obsidian 主题兼容，CSS 变量系统
+- **组件架构**: Ribbon + 左侧栏 + 主内容 + 右侧栏 + 状态栏
 
-#### 1. 响应式布局系统
-- **桌面端 (≥1024px)**: 四列布局 `48px(Ribbon) + 可调节侧边栏 + 主内容 + 可调节侧边栏`
-- **平板端 (768-1024px)**: 三列布局 `48px(Ribbon) + 固定侧边栏(300px) + 主内容`
-- **移动端 (<768px)**: 单列布局 + 抽屉式侧边栏
-
-#### 2. 拖拽调整功能
-- **桌面端侧边栏宽度调整**: 鼠标拖拽调整，范围 200px-600px
-- **性能优化**: 缓存 DOM 查询，移除 CSS 过渡动画，实现流畅拖拽体验
-- **视觉反馈**: 拖拽手柄悬停高亮，2px 精细宽度设计
-
-#### 3. 移动端交互
-- **抽屉式侧边栏**: 左右滑出，正确的弹出方向
-- **移动端导航栏**: 底部导航切换左右面板
-- **手势友好**: 支持触摸操作和键盘 ESC 关闭
-
-#### 4. 主题和样式系统
-- **Obsidian 主题兼容**: 支持 Royal Velvet 等第三方主题
-- **CSS 变量系统**: 完整的明暗主题支持
-- **自定义滚动条**: 匹配 Obsidian 视觉风格
-
-#### 5. 组件架构
-- **左侧 Ribbon**: 48px 垂直导航栏，Home/Files/Search/Graph/Random 功能入口
-- **文件浏览器**: 树状结构文件列表，支持展开/折叠
-- **搜索面板**: 全文搜索和标签搜索切换
-- **右侧面板**: Outline/Graph/Tags 三个功能面板
-- **状态栏**: 显示统计信息
-
-### 🔧 技术实现细节
-
-#### 拖拽功能优化
-```typescript
-// 关键性能优化：缓存 DOM 查询
-const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
-  // 在拖拽开始时缓存位置，避免每次 mousemove 重复查询
-  const rect = sidebarRef.current.getBoundingClientRect();
-  sidebarLeftRef.current = direction === 'left' ? rect.left : rect.right;
-}, [direction, sidebarRef]);
-
-// 流畅的 resize 计算
-const resize = useCallback((mouseMoveEvent: MouseEvent) => {
-  if (isResizing) {
-    const newWidth = direction === 'left' 
-      ? mouseMoveEvent.clientX - sidebarLeftRef.current
-      : sidebarLeftRef.current - mouseMoveEvent.clientX;
-    onResize(Math.max(minWidth, Math.min(maxWidth, newWidth)));
-  }
-}, [isResizing, direction, minWidth, maxWidth, onResize]);
-```
-
-#### 响应式布局核心
-```typescript
-const getGridTemplate = () => {
-  if (isMobile) return '0px 1fr 0px';
-  if (isTablet) return `48px ${leftSidebarOpen ? '300px' : '0px'} 1fr 0px`;
-  
-  const leftWidth = leftSidebarOpen ? `${leftSidebarWidth}px` : '0px';
-  const rightWidth = rightSidebarOpen ? `${rightSidebarWidth}px` : '0px';
-  return `48px ${leftWidth} 1fr ${rightWidth}`;
-};
-```
-
-### 📁 项目结构
+## 📁 项目结构
 ```
 react_impl/perlite-react/src/
+├── apis/                      # 🆕 API 接口层
+│   ├── interfaces/            # ✅ 接口定义（已完成）
+│   │   ├── IFileTreeAPI.ts   # 文件树操作
+│   │   ├── IGraphAPI.ts      # 图谱数据  
+│   │   ├── IFileAPI.ts       # 单文件操作
+│   │   ├── ISearchAPI.ts     # 搜索功能
+│   │   └── ITagAPI.ts        # 标签管理
+│   └── implementations/       # 🔄 具体实现（进行中）
+│       ├── local/            # 基于 metadata.json
+│       └── mock/             # Mock 数据
 ├── components/
-│   ├── Layout/                 # 布局组件
-│   │   ├── AppLayout.tsx      # 主布局容器，响应式网格
-│   │   ├── LeftRibbon.tsx     # 48px 垂直导航栏
-│   │   ├── LeftSidebar.tsx    # 左侧边栏容器
-│   │   ├── RightSidebar.tsx   # 右侧边栏容器
-│   │   ├── MainContent.tsx    # 主内容区域
-│   │   ├── ResizeHandle.tsx   # 拖拽调整组件
-│   │   ├── MobileDrawer.tsx   # 移动端抽屉
-│   │   ├── MobileNavBar.tsx   # 移动端导航
-│   │   └── statusBar.tsx      # 状态栏
-│   ├── FileExplorer/          # 文件浏览功能
-│   ├── MarkdownViewer/        # Markdown 渲染
-│   └── Graph/                 # 图谱可视化
+│   ├── Layout/               # ✅ 布局组件（已完成）
+│   ├── FileExplorer/         # 文件浏览功能
+│   ├── MarkdownViewer/       # ✅ Markdown 渲染（已完成）
+│   └── Graph/                # 图谱可视化
 ├── stores/
-│   ├── uiStore.ts            # UI 状态 (响应式、宽度、面板状态)
-│   └── vaultStore.ts         # 数据状态 (文件、搜索、元数据)
-├── services/
-└── types/
+│   ├── uiStore.ts           # ✅ UI 状态（已完成）
+│   └── vaultStore.ts        # 数据状态
+└── services/
+    └── markdownProcessor.ts  # ✅ Markdown 处理（已完成）
 ```
 
-### 🎯 下一步计划
+## 🔍 Perlite PHP 实现分析与 API 接口设计
 
-#### Phase 2: 内容渲染和数据层
-1. **Markdown 渲染器**
-   - unified + remark + rehype 处理流水线
-   - Obsidian 语法支持 (`[[links]]`, callouts, tags)
-   - 数学公式 (KaTeX) 和代码高亮
-   
-2. **文件系统集成**  
-   - 连接现有 PHP 后端 API
-   - 文件内容加载和缓存
-   - 搜索功能实现
+### 核心发现
 
-3. **图谱可视化**
-   - d3-force 力导向图
-   - 节点链接关系
-   - 交互式导航
+通过分析 Perlite PHP 版本的实现，发现了以下关键技术细节：
+
+#### 1. 文件树生成 (`helper.php:188-263`)
+**实现方式**: 直接文件系统解析，使用 `glob()` 和递归目录遍历
+```php
+function menu($dir, $folder = '') {
+    $files = glob($dir . '/*');           // 获取目录下所有文件
+    usort($files, "cmp");                 // 自定义排序(下划线优先)
+    
+    foreach ($files as $file) {
+        if (is_dir($file)) {
+            if (isValidFolder($file)) {   // 过滤隐藏文件夹
+                // 递归处理子文件夹 + 生成 HTML
+                $html .= menu($file, $folder . '/');
+            }
+        } else if (isMDFile($file)) {     // 只处理 .md 文件
+            // 生成文件链接 HTML
+        }
+    }
+}
+```
+
+#### 2. 图谱数据生成 (`helper.php:451-632`) 
+**实现方式**: 依赖 Obsidian 的 `metadata.json` 文件
+```php
+function getfullGraph($rootDir) {
+    $jsonMetadaFile = $rootDir . '/metadata.json';    // 必须存在
+    $jsonData = file_get_contents($jsonMetadaFile);   // 读取 Obsidian 元数据
+    $json_obj = json_decode($jsonData, true);
+    
+    // 从 metadata.json 提取:
+    // - 文件节点 (fileName, relativePath)
+    // - 标签节点 (tags 数组)
+    // - 链接关系 (links 数组)
+}
+```
+
+#### 3. 数据源优先级
+1. **图谱关系**: 100% 依赖 `metadata.json`（Obsidian 生成）
+2. **文件树**: 直接文件系统解析，不依赖 Obsidian 配置
+3. **搜索**: 混合模式，标签搜索需要 metadata.json，全文搜索直接读文件
+4. **TOC**: 从 metadata.json 的 `headings` 字段提取
+
+#### 4. 已有 React 实现状态
+**惊喜发现**: React 版本的 Markdown 渲染已经相当完整
+- **位置**: `src/components/MarkdownViewer/` + `src/services/markdownProcessor.ts`
+- **功能**: 完整的 unified 处理流水线，支持 Obsidian 语法
+- **特性**: 内部链接、标签、高亮、数学公式、Mermaid 图表、GPX/KML 地图
+
+### API 接口架构设计
+
+基于分析结果，设计如下清晰的接口层次结构：
+
+#### 文件系统架构
+```
+src/
+├── apis/                           # 🆕 统一 API 接口层
+│   ├── interfaces/                 # API 接口定义
+│   │   ├── IVaultAPI.ts           # Vault 操作接口
+│   │   ├── IFileAPI.ts            # 文件操作接口
+│   │   ├── ISearchAPI.ts          # 搜索操作接口
+│   │   └── IGraphAPI.ts           # 图谱操作接口
+│   ├── implementations/            # 接口实现
+│   │   ├── ObsidianAPI.ts         # 基于 Obsidian metadata.json
+│   │   ├── FileSystemAPI.ts       # 基于直接文件系统解析
+│   │   ├── MockAPI.ts             # 模拟数据实现
+│   │   └── OpenAPI.ts             # 未来 OpenAPI 后端实现
+│   └── factory/
+│       └── APIFactory.ts          # API 实现工厂
+├── components/ (现有结构保持不变)
+├── services/
+│   └── markdownProcessor.ts       # ✅ 已完整实现
+└── stores/ (现有结构保持不变)
+```
+
+#### 核心接口定义
+```typescript
+// src/apis/interfaces/IVaultAPI.ts
+export interface IVaultAPI {
+  // 基础 Vault 信息
+  getVaultInfo(): Promise<VaultInfo>;
+  
+  // 文件系统
+  getFileTree(): Promise<FileTree[]>;
+  getFileContent(path: string): Promise<string>;
+  getFileMetadata(path: string): Promise<FileMetadata>;
+  
+  // 图谱数据
+  getGraphData(): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }>;
+  getLocalGraphData(filePath: string): Promise<{ nodes: GraphNode[], edges: GraphEdge[] }>;
+  
+  // 搜索功能
+  searchFiles(query: string): Promise<SearchResult[]>;
+  searchByTag(tag: string): Promise<SearchResult[]>;
+  
+  // TOC 和标签
+  extractTOC(content: string): Promise<TOCItem[]>;
+  getAllTags(): Promise<TagData[]>;
+}
+
+// src/apis/interfaces/types.ts
+export interface VaultInfo {
+  name: string;
+  path: string;
+  hasMetadata: boolean;        // 是否存在 metadata.json
+  obsidianConfig?: ObsidianConfig;
+}
+
+export interface FileTree {
+  name: string;
+  path: string;
+  type: 'file' | 'folder';
+  children?: FileTree[];
+  metadata?: FileMetadata;
+}
+
+export interface FileMetadata {
+  title?: string;
+  tags?: string[];
+  aliases?: string[];
+  frontmatter?: Record<string, any>;
+  headings?: HeadingData[];
+  links?: LinkData[];
+  backlinks?: LinkData[];
+}
+```
+
+#### 实现策略设计
+```typescript
+// src/apis/implementations/ObsidianAPI.ts - 优先实现
+export class ObsidianAPI implements IVaultAPI {
+  constructor(private baseUrl: string) {}
+  
+  async getFileTree(): Promise<FileTree[]> {
+    // 1. 优先尝试从 metadata.json 构建文件树
+    // 2. 降级到直接 glob() 文件系统解析
+    const metadata = await this.getMetadata();
+    return metadata ? this.buildTreeFromMetadata(metadata) : this.buildTreeFromFS();
+  }
+  
+  async getGraphData(): Promise<{nodes: GraphNode[], edges: GraphEdge[]}> {
+    // 严格依赖 metadata.json，复刻 PHP 逻辑
+    const metadata = await this.getMetadata();
+    if (!metadata) throw new Error('Graph requires metadata.json');
+    return this.buildGraphFromMetadata(metadata);
+  }
+  
+  async searchByTag(tag: string): Promise<SearchResult[]> {
+    // 依赖 metadata.json 中的 tags 字段
+    const metadata = await this.getMetadata();
+    return this.searchMetadataTags(metadata, tag);
+  }
+  
+  private async getMetadata(): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}/metadata.json`);
+      return response.ok ? response.json() : null;
+    } catch {
+      return null; // 优雅降级
+    }
+  }
+}
+
+// src/apis/implementations/FileSystemAPI.ts - 降级实现
+export class FileSystemAPI implements IVaultAPI {
+  // 当 metadata.json 不存在时的纯文件系统实现
+  // 复刻 PHP menu() 函数逻辑
+}
+
+// src/apis/factory/APIFactory.ts - 智能选择
+export class APIFactory {
+  static async createAPI(baseUrl: string): Promise<IVaultAPI> {
+    // 检测可用的数据源，智能选择最佳实现
+    const hasMetadata = await this.checkMetadata(baseUrl);
+    
+    if (hasMetadata) {
+      console.log('✅ 检测到 metadata.json，使用 Obsidian 增强模式');
+      return new ObsidianAPI(baseUrl);
+    } else {
+      console.log('⚠️  未发现 metadata.json，使用文件系统解析模式');
+      return new FileSystemAPI(baseUrl);
+    }
+  }
+}
+```
+
+#### 组件集成示例
+```typescript
+// src/stores/vaultStore.ts - 更新后的 Store
+interface VaultState {
+  api: IVaultAPI | null;
+  // ... 现有状态保持不变
+  
+  // Actions
+  initializeAPI: (baseUrl: string) => Promise<void>;
+  // ... 其他 actions 使用 this.api 调用接口
+}
+
+export const useVaultStore = create<VaultState>((set, get) => ({
+  api: null,
+  
+  initializeAPI: async (baseUrl: string) => {
+    const api = await APIFactory.createAPI(baseUrl);
+    set({ api });
+    
+    // 自动加载基础数据
+    const files = await api.getFileTree();
+    const vaultInfo = await api.getVaultInfo();
+    set({ files, vaultInfo });
+  },
+  
+  loadGraphData: async () => {
+    const { api } = get();
+    if (!api) return;
+    
+    try {
+      const { nodes, edges } = await api.getGraphData();
+      set({ graphNodes: nodes, graphEdges: edges });
+    } catch (error) {
+      console.warn('图谱功能需要 metadata.json 支持');
+    }
+  }
+}));
+```
+
+### 实施优先级
+
+#### Phase 2A: 核心 API 接口实现 (🔥 高优先级)
+- [ ] 创建 API 接口定义 (`src/apis/interfaces/`)
+- [ ] 实现 ObsidianAPI 类（基于现有 `public/vault/Publish/metadata.json`）
+- [ ] 实现 FileSystemAPI 类（复刻 PHP `menu()` 函数逻辑）
+- [ ] 创建 APIFactory 智能选择机制
+- [ ] 更新 vaultStore 使用新的 API 层
+
+#### Phase 2B: 组件连接 (🔥 高优先级)  
+- [ ] 更新 FileTree 组件使用新 API
+- [ ] 实现 Search 组件的标签搜索功能
+- [ ] 连接 Graph 组件到 ObsidianAPI
+- [ ] 验证 TOC 提取功能
+
+### 🎯 当前进度 - Phase 2: API 接口层实现
+
+**实施策略**: 按功能领域逐个实现，每个 API 可独立开发和测试
+
+**优先级**: 文件树 → 图谱 → 搜索 → 标签 → 单文件操作
 
 ### 🐛 已解决的关键问题
 
@@ -217,15 +392,50 @@ CONSTRAINTS = {
 > 用标记 `[ ]` 表示待办，`[x]` 表示已完成，`[!]` 表示紧急。
 
 ### 🐛 已知问题
-- [ ] 
+- [ ] 外部 GPX/KML 文件路径解析问题 - `@Publish/Attachments/` 路径无法正确加载文件
+- [ ] 非标准 Obsidian 文件链接语法 - 应该用 `![[file.gpx]]` 而不是 ```gpx:file```
 
 ### 💡 功能想法  
 - [ ] 锚点 & 路由
 - [ ] CDN 友好
 - [ ] SEO 友好
+- [ ] 实现标准 Obsidian 文件链接语法解析（![[file.gpx]] 替代 ```gpx:file```）
+- [ ] 根据文件扩展名自动选择渲染组件（.gpx/.kml → 地图组件）
 
 ### 🔧 优化项目
-- [ ] 
+- [ ] Markdown 处理器 Obsidian 兼容性优化
+- [ ] 文件路径解析逻辑统一化 
+
+### 📋 Phase 2A: 核心 API 接口实现 ✅ 已完成
+- [x] 创建 API 接口定义目录结构 (`src/apis/interfaces/`)
+- [x] 实现 `IFileTreeAPI.ts` 文件树接口定义（替代原 IVaultAPI）
+- [x] 实现 `IGraphAPI.ts` 图谱接口定义
+- [x] 实现 `IFileAPI.ts` 文件内容接口定义
+- [x] 实现 `LocalFileTreeAPI.ts` 类（基于 metadata.json，复刻 PHP menu() 逻辑）
+- [x] 实现 `LocalGraphAPI.ts` 类（复刻 PHP getfullGraph() 逻辑）
+- [x] 实现 `LocalFileAPI.ts` 类（单文件内容加载）
+- [x] 实现 `MockFileTreeAPI.ts` 和 `MockFileAPI.ts` 测试用实现
+- [x] 创建简化 API 配置切换机制（去除 APIFactory，直接配置）
+- [x] 实现 `useFileTreeAPI`、`useGraphAPI`、`useFileAPI` Hooks
+- [x] 验证 metadata.json 文件访问和解析功能
+- [x] 实现文件树构建逻辑（PHP 风格排序：下划线优先）
+- [x] 实现图谱数据生成（16个节点，11条边，验证成功）
+- [x] 实现文件内容加载和 Markdown 处理
+
+### 📋 Phase 2B: 组件连接和集成 ✅ 已完成
+- [x] 更新 `FileTree` 组件使用新 API 接口
+- [x] 连接 `Graph` 组件到 LocalGraphAPI 数据源
+- [x] 集成 `MarkdownViewer` 和新的 FileAPI 层
+- [x] 验证所有功能在现有 `public/vault/Publish/` 测试数据下的工作状态
+- [x] 创建综合测试用 Welcome.md（包含所有 markdown 特性）
+- [x] 实现 Mock API 分离，移除组件中的内联 mock 内容
+
+### 📋 Phase 2C: 搜索和标签 API (待实现)
+- [ ] 实现 `ISearchAPI.ts` 接口定义
+- [ ] 实现 `ITagAPI.ts` 接口定义 
+- [ ] 实现 `LocalSearchAPI.ts`（基于 metadata.json 全文搜索）
+- [ ] 实现 `LocalTagAPI.ts`（基于 metadata.json tags 字段）
+- [ ] 更新 `Search` 组件使用新 SearchAPI 接口 
 
 ### ⚙️ 可调参数位置
 - **响应式防抖延迟**: `/src/components/Layout/AppLayout.tsx:50` - 当前50ms，可调节范围20-100ms
@@ -265,368 +475,14 @@ CONSTRAINTS = {
 - **代码高亮**: highlight.js
 - **图表**: Mermaid
 
-## MVP 开发计划
+## 技术栈
 
-### Phase 1: 基础架构和布局 (优先级1)
-
-#### 1.1 项目初始化
-```bash
-# 创建项目
-npm create vite@latest perlite-react -- --template react-ts
-cd perlite-react
-
-# 安装核心依赖
-npm install @mantine/core @mantine/hooks @mantine/notifications
-npm install @tabler/icons-react
-npm install zustand
-npm install react-router-dom
-npm install tailwindcss
-```
-
-#### 1.2 核心布局结构
-基于原 Perlite PHP 版本的 index.php:line 90-838 布局结构分析：
-
-##### 完整布局层次结构
-```
-<body class="theme-dark obsidian-app" style="--zoom-factor:1; --font-text-size: 15px;">
-├── <div class="titlebar">                                          // 标题栏 (可选)
-│   └── <div class="titlebar-inner">
-│       └── <div class="titlebar-button-container mod-left">
-│           └── <div class="titlebar-button mod-logo">              // Logo
-└── <div class="app-container">                                     // 主应用容器
-    ├── <div class="horizontal-main-container">                     // 水平主容器
-    │   └── <div class="workspace is-left-sidedock-open">           // 工作区
-    │       ├── <div class="workspace-ribbon side-dock-ribbon mod-left">      // 左功能条
-    │       │   ├── Logo + 侧边栏切换按钮
-    │       │   ├── 功能按钮组 (图谱、随机、TOC)
-    │       │   └── 设置按钮组 (帮助、设置)
-    │       ├── <div class="workspace-split mod-horizontal mod-left-split" style="width: 450px;"> // 左侧边栏
-    │       │   ├── <div class="workspace-tabs mod-top">            // 标签头部
-    │       │   │   └── Files / Search 标签切换
-    │       │   └── <div class="workspace-tab-container">           // 标签内容
-    │       │       ├── Files 面板 (文件树 + 自定义内容)
-    │       │       └── Search 面板 (搜索框 + 结果)
-    │       ├── <div class="workspace-split mod-vertical mod-root">  // 主内容区
-    │       │   └── <div class="workspace-tabs mod-active mod-top"> // 主内容标签
-    │       │       └── <div class="workspace-tab-container">
-    │       │           └── <div class="workspace-leaf mod-active">
-    │       │               ├── <div class="view-header">           // 视图头部
-    │       │               │   ├── 移动端侧边栏按钮
-    │       │               │   ├── 标题容器
-    │       │               │   └── 操作按钮 (编辑、链接、右侧栏切换)
-    │       │               └── <div class="view-content">          // 内容区
-    │       │                   ├── <div id="graph_content">       // 图谱视图
-    │       │                   └── <div class="markdown-reading-view"> // Markdown视图
-    │       │                       └── <div id="mdContent">
-    │       ├── <div class="workspace-split mod-horizontal mod-right-split" style="width: 450px;"> // 右侧边栏  
-    │       │   └── <div class="workspace-tabs mod-top">
-    │       │       └── <div class="workspace-tab-container">
-    │       │           └── <div class="workspace-leaf mod-active">
-    │       │               ├── 导航按钮 (本地图谱、大纲、标签)
-    │       │               └── <div class="view-content">
-    │       │                   ├── <div id="outline">             // 大纲/TOC
-    │       │                   ├── <div id="tags_container">      // 标签
-    │       │                   ├── <div id="localGraph">         // 本地图谱
-    │       │                   └── 反向链接计数
-    │       └── <div class="workspace-ribbon side-dock-ribbon mod-right is-collapsed"> // 右功能条(折叠)
-    └── <div class="status-bar">                                    // 状态栏
-        ├── 反向链接计数显示
-        └── 字数统计显示
-```
-
-##### 关键布局参数
-```css
-/* 原版 Perlite 布局参数 */
-.workspace-split.mod-left-split { width: 450px; }   /* 左侧边栏固定宽度 */
-.workspace-split.mod-right-split { width: 450px; }  /* 右侧边栏固定宽度 */
-.workspace-split.mod-root { flex: 1; }              /* 主内容区自适应 */
-
-/* 响应式参数 */
-body { --font-text-size: 15px; --zoom-factor: 1; }  /* 基础字体和缩放 */
-
-/* 主题类名 */
-body.theme-dark.obsidian-app.show-inline-title.show-view-header.is-maximized
-```
-
-##### React 组件映射
-```tsx
-// src/components/Layout/AppLayout.tsx
-export function AppLayout() {
-  return (
-    <div className="app-container">
-      <div className="horizontal-main-container">
-        <div className="workspace is-left-sidedock-open">
-          {/* 左功能条 */}
-          <LeftRibbon />
-          
-          {/* 左侧边栏 - 450px 固定宽度 */}
-          <LeftSidebar style={{ width: '450px' }} />
-          
-          {/* 主内容区域 - 自适应宽度 */}
-          <MainContent />
-          
-          {/* 右侧边栏 - 450px 固定宽度 */}
-          <RightSidebar style={{ width: '450px' }} />
-          
-        </div>
-      </div>
-      
-      {/* 状态栏 */}
-      <StatusBar />
-    </div>
-  );
-}
-```
-
-#### 1.3 响应式布局断点
-基于原版 Perlite 的布局参数，采用以下响应式策略：
-
-```css
-/* 桌面端 (1024px+) - 抄原版参数 */
-.workspace.desktop {
-  display: flex;
-}
-.workspace-split.mod-left-split { width: 450px; display: block; }
-.workspace-split.mod-right-split { width: 450px; display: block; }
-.workspace-split.mod-root { flex: 1; }
-
-/* 平板端 (768px~1024px) - 隐藏右侧栏，左侧栏缩窄 */
-.workspace.tablet {
-  display: flex;
-}
-.workspace-split.mod-left-split { width: 300px; display: block; }
-.workspace-split.mod-right-split { width: 0px; display: none; }
-.workspace-split.mod-root { flex: 1; }
-
-/* 手机端 (<768px) - 只显示主内容区 */
-.workspace.mobile {
-  display: flex;
-}
-.workspace-split.mod-left-split { width: 0px; display: none; }
-.workspace-split.mod-right-split { width: 0px; display: none; }
-.workspace-split.mod-root { flex: 1; }
-
-/* 移动端侧边栏切换 */
-.mobile-display { display: none; }
-@media (max-width: 768px) {
-  .mobile-display { display: flex; }
-}
-```
-
-#### 1.4 组件结构规划
-基于原版 Perlite 布局分析，更新组件结构：
-
-```
-src/
-├── components/
-│   ├── Layout/
-│   │   ├── AppLayout.tsx          # 主布局容器 (app-container)
-│   │   ├── TitleBar.tsx           # 标题栏 (可选)
-│   │   ├── LeftRibbon.tsx         # 左功能条 (workspace-ribbon mod-left)
-│   │   ├── LeftSidebar.tsx        # 左侧边栏 (workspace-split mod-left-split)
-│   │   ├── MainContent.tsx        # 主内容区 (workspace-split mod-root)
-│   │   ├── RightSidebar.tsx       # 右侧边栏 (workspace-split mod-right-split)
-│   │   └── StatusBar.tsx          # 状态栏 (status-bar)
-│   ├── Tabs/
-│   │   ├── TabContainer.tsx       # 标签容器 (workspace-tabs)
-│   │   ├── TabHeader.tsx          # 标签头部 (workspace-tab-header)
-│   │   └── TabContent.tsx         # 标签内容 (workspace-tab-container)
-│   ├── FileExplorer/
-│   │   ├── FileTree.tsx           # 文件树 (nav-files-container)
-│   │   ├── FileTreeItem.tsx       # 文件树项 (tree-item nav-file)
-│   │   └── SearchPanel.tsx        # 搜索面板 (search-input-container)
-│   ├── ViewHeader/
-│   │   ├── ViewHeader.tsx         # 视图头部 (view-header)
-│   │   ├── MobileToggle.tsx       # 移动端切换 (mobile-display)
-│   │   └── ViewActions.tsx        # 视图操作 (view-actions)
-│   ├── MarkdownViewer/
-│   │   ├── MarkdownRenderer.tsx   # Markdown 渲染器 (markdown-reading-view)
-│   │   ├── TOC.tsx               # 目录组件 (outline)
-│   │   └── BacklinkPanel.tsx     # 反向链接面板 (tree-item-flair)
-│   └── Graph/
-│       ├── GraphView.tsx         # 全局图谱视图 (graph_content)
-│       └── LocalGraph.tsx        # 局部图谱 (localGraph)
-├── stores/
-│   ├── vaultStore.ts             # Vault 状态管理
-│   ├── uiStore.ts                # UI 状态管理 (侧边栏切换、响应式)
-│   └── settingsStore.ts          # 设置状态管理 (主题、字体大小)
-├── services/
-│   ├── fileService.ts            # 文件服务
-│   ├── searchService.ts          # 搜索服务
-│   └── markdownService.ts        # Markdown 解析服务
-├── types/
-│   ├── vault.ts                  # Vault 类型定义
-│   ├── file.ts                   # 文件类型定义
-│   ├── ui.ts                     # UI 状态类型定义
-│   └── graph.ts                  # 图谱类型定义
-└── utils/
-    ├── pathUtils.ts              # 路径工具
-    ├── linkUtils.ts              # 链接工具
-    └── responsiveUtils.ts        # 响应式工具
-```
-
-### Phase 2: 状态管理和数据层 (优先级2)
-
-#### 2.1 Zustand Store 设计
-```typescript
-// src/stores/vaultStore.ts
-interface VaultState {
-  // 文件系统状态
-  files: FileTree[];
-  activeFile: string | null;
-  metadata: Record<string, FileMetadata>;
-  
-  // 搜索状态
-  searchQuery: string;
-  searchResults: SearchResult[];
-  
-  // 图谱数据
-  graphNodes: GraphNode[];
-  graphEdges: GraphEdge[];
-  
-  // Actions
-  setActiveFile: (path: string) => void;
-  loadVault: () => Promise<void>;
-  searchFiles: (query: string) => Promise<void>;
-  loadGraphData: () => Promise<void>;
-}
-
-export const useVaultStore = create<VaultState>((set, get) => ({
-  // ... 实现
-}));
-```
-
-#### 2.2 文件服务实现
-```typescript
-// src/services/fileService.ts
-export class FileService {
-  static async loadVaultStructure(): Promise<FileTree[]> {
-    // 调用后端 API 获取文件结构
-    const response = await fetch('/api/vault/structure');
-    return response.json();
-  }
-  
-  static async getFileContent(path: string): Promise<string> {
-    // 获取文件内容
-    const response = await fetch(`/api/files/${encodeURIComponent(path)}`);
-    return response.text();
-  }
-  
-  static async getMetadata(): Promise<Record<string, FileMetadata>> {
-    // 获取 metadata.json
-    const response = await fetch('/api/vault/metadata');
-    return response.json();
-  }
-}
-```
-
-### Phase 3: Markdown 渲染系统 (优先级3)
-
-#### 3.1 Markdown 处理流水线
-```typescript
-// src/services/markdownService.ts
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import remarkRehype from 'remark-rehype';
-import rehypeKatex from 'rehype-katex';
-import rehypeHighlight from 'rehype-highlight';
-
-export class MarkdownService {
-  private processor = unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkMath)
-    .use(this.obsidianLinks)      // 自定义插件：处理 [[]] 链接
-    .use(this.obsidianCallouts)   // 自定义插件：处理 Callouts
-    .use(this.obsidianTags)       // 自定义插件：处理标签
-    .use(remarkRehype)
-    .use(rehypeKatex)
-    .use(rehypeHighlight);
-    
-  async processMarkdown(content: string): Promise<string> {
-    const result = await this.processor.process(content);
-    return String(result);
-  }
-  
-  // 自定义插件实现...
-}
-```
-
-#### 3.2 Obsidian 语法支持插件
-```typescript
-// src/services/plugins/obsidianLinks.ts
-export function obsidianLinks() {
-  return (tree: any) => {
-    visit(tree, 'text', (node, index, parent) => {
-      const value = node.value;
-      const linkRegex = /\[\[([^\]]+)\]\]/g;
-      
-      // 处理 [[链接]] 语法
-      if (linkRegex.test(value)) {
-        // 替换为内部链接节点
-      }
-    });
-  };
-}
-
-// src/services/plugins/obsidianCallouts.ts
-export function obsidianCallouts() {
-  return (tree: any) => {
-    visit(tree, 'blockquote', (node) => {
-      // 检查是否为 Callout 语法：> [!type] title
-      // 转换为 Callout 组件
-    });
-  };
-}
-```
-
-### Phase 4: 文件导航和搜索 (优先级4)
-
-#### 4.1 文件树组件
-```tsx
-// src/components/FileExplorer/FileTree.tsx
-export function FileTree({ files }: { files: FileTree[] }) {
-  const { activeFile, setActiveFile } = useVaultStore();
-  
-  return (
-    <Tree>
-      {files.map(file => (
-        <FileTreeItem 
-          key={file.path}
-          file={file}
-          isActive={activeFile === file.path}
-          onSelect={setActiveFile}
-        />
-      ))}
-    </Tree>
-  );
-}
-```
-
-#### 4.2 搜索功能实现
-```typescript
-// src/services/searchService.ts
-export class SearchService {
-  static async search(query: string): Promise<SearchResult[]> {
-    // 实现全文搜索逻辑
-    if (query.startsWith('#')) {
-      return this.searchByTag(query.slice(1));
-    }
-    
-    return this.fullTextSearch(query);
-  }
-  
-  private static async searchByTag(tag: string): Promise<SearchResult[]> {
-    // 标签搜索实现
-  }
-  
-  private static async fullTextSearch(query: string): Promise<SearchResult[]> {
-    // 全文搜索实现
-  }
-}
-```
+- **前端**: React 18 + TypeScript + Vite 5
+- **UI**: Mantine UI 7 + Tailwind CSS  
+- **状态**: Zustand + React Router 6
+- **Markdown**: unified + remark + rehype 生态
+- **图谱**: d3-force + Mermaid
+- **数学**: KaTeX + highlight.js
 
 ## 开发规范
 

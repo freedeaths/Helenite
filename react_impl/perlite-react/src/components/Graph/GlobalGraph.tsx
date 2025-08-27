@@ -1,8 +1,6 @@
-
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useGraphAPI } from '../../hooks/useAPIs';
-import { useVaultStore } from '../../stores/vaultStore';
 import type { GraphData, GraphNode, GraphEdge } from '../../apis/interfaces/IGraphAPI';
 
 interface D3Node extends GraphNode {
@@ -17,39 +15,32 @@ interface D3Link extends GraphEdge {
   target: D3Node | number;
 }
 
-export function LocalGraph() {
+export function GlobalGraph() {
   const graphAPI = useGraphAPI();
   const svgRef = useRef<SVGSVGElement>(null);
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { activeFile } = useVaultStore();
 
-  // 加载当前文件的本地图谱数据
+  // 加载全局图谱数据
   useEffect(() => {
-    const loadLocalGraphData = async () => {
-      if (!activeFile) {
-        setGraphData(null);
-        setLoading(false);
-        return;
-      }
-
+    const loadGlobalGraphData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await graphAPI.getLocalGraph(activeFile);
-        console.log('📊 Loaded local graph data for', activeFile, ':', data);
+        const data = await graphAPI.getGlobalGraph();
+        console.log('📊 Loaded global graph data:', data);
         setGraphData(data);
       } catch (err) {
-        console.error('❌ Failed to load local graph data:', err);
-        setError('无法加载本地图谱数据');
+        console.error('❌ Failed to load global graph data:', err);
+        setError('无法加载全局图谱数据');
       } finally {
         setLoading(false);
       }
     };
 
-    loadLocalGraphData();
-  }, [graphAPI, activeFile]);
+    loadGlobalGraphData();
+  }, [graphAPI]);
 
   // 渲染 D3 力导向图
   useEffect(() => {
@@ -72,8 +63,8 @@ export function LocalGraph() {
     
     svg.call(zoom);
 
-    const width = 400;
-    const height = 300;
+    const width = 800;
+    const height = 600;
 
     // 准备数据
     const nodes: D3Node[] = graphData.nodes.map(node => ({ ...node }));
@@ -82,26 +73,13 @@ export function LocalGraph() {
       target: edge.to 
     }));
     
-    // 找到当前文件对应的节点（应该是中心节点）
-    const currentFileNode = activeFile ? nodes.find(node => 
-      node.title === activeFile.replace('.md', '') || 
-      node.title === activeFile
-    ) : null;
-
-    // 如果有当前文件节点，将其固定在中心
-    if (currentFileNode) {
-      currentFileNode.fx = width / 2;
-      currentFileNode.fy = height / 2;
-    }
-    
     // 创建力仿真
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(80).strength(0.8))
-      .force('charge', d3.forceManyBody().strength(-400))
+      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(100).strength(0.6))
+      .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: any) => {
         if (d.group === 'tag') return 15;
-        if (currentFileNode && d.id === currentFileNode.id) return 30;
         return 20;
       }));
 
@@ -142,26 +120,24 @@ export function LocalGraph() {
     node.append('circle')
       .attr('r', (d: D3Node) => {
         if (d.group === 'tag') return 8;
-        // 当前文件节点更大
-        if (currentFileNode && d.id === currentFileNode.id) return 20;
-        return 12;
+        // 根据连接数调整大小
+        const connectionCount = d.value || 1;
+        return Math.min(20, Math.max(8, connectionCount * 3));
       })
       .attr('fill', (d: D3Node) => {
         if (d.group === 'tag') return 'var(--color-accent)';
-        // 当前文件节点使用特殊颜色
-        if (currentFileNode && d.id === currentFileNode.id) return 'var(--color-orange)';
         return 'var(--interactive-accent)';
       })
       .attr('stroke', 'var(--background-primary)')
-      .attr('stroke-width', (d: D3Node) => {
-        // 当前文件节点边框更粗
-        if (currentFileNode && d.id === currentFileNode.id) return 3;
-        return 2;
-      });
+      .attr('stroke-width', 2);
 
     // 添加节点标签
     node.append('text')
-      .text((d: D3Node) => d.label)
+      .text((d: D3Node) => {
+        // 截断过长的标签
+        const label = d.label;
+        return label.length > 15 ? label.substring(0, 12) + '...' : label;
+      })
       .attr('font-size', '10px')
       .attr('fill', 'var(--text-normal)')
       .attr('text-anchor', 'middle')
@@ -170,13 +146,13 @@ export function LocalGraph() {
 
     // 添加悬停提示
     node.append('title')
-      .text((d: D3Node) => d.title || d.label);
+      .text((d: D3Node) => `${d.title || d.label}${d.value ? ` (${d.value} connections)` : ''}`);
 
     // 更新位置
     simulation.on('tick', () => {
       // 添加边界约束，确保所有节点都在视口内
       nodes.forEach(d => {
-        const radius = d.group === 'tag' ? 15 : (currentFileNode && d.id === currentFileNode.id ? 25 : 20); // 节点半径
+        const radius = d.group === 'tag' ? 15 : 25; // 节点半径
         d.x = Math.max(radius, Math.min(width - radius, d.x!));
         d.y = Math.max(radius, Math.min(height - radius, d.y!));
       });
@@ -194,33 +170,17 @@ export function LocalGraph() {
     // 拖拽功能
     function dragstarted(event: d3.D3DragEvent<SVGGElement, D3Node, D3Node>) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
-      // 如果是当前文件节点，不允许拖拽离开中心
-      if (currentFileNode && event.subject.id === currentFileNode.id) {
-        return;
-      }
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }
 
     function dragged(event: d3.D3DragEvent<SVGGElement, D3Node, D3Node>) {
-      // 如果是当前文件节点，保持在中心
-      if (currentFileNode && event.subject.id === currentFileNode.id) {
-        event.subject.fx = width / 2;
-        event.subject.fy = height / 2;
-        return;
-      }
       event.subject.fx = event.x;
       event.subject.fy = event.y;
     }
 
     function dragended(event: d3.D3DragEvent<SVGGElement, D3Node, D3Node>) {
       if (!event.active) simulation.alphaTarget(0);
-      // 如果是当前文件节点，保持固定在中心
-      if (currentFileNode && event.subject.id === currentFileNode.id) {
-        event.subject.fx = width / 2;
-        event.subject.fy = height / 2;
-        return;
-      }
       event.subject.fx = null;
       event.subject.fy = null;
     }
@@ -233,11 +193,11 @@ export function LocalGraph() {
 
   if (loading) {
     return (
-      <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
-        <div className="flex items-center justify-center h-48">
+      <div className="h-full p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
+            Global Graph
+          </div>
           <div className="text-[var(--text-muted)]">加载中...</div>
         </div>
       </div>
@@ -246,51 +206,47 @@ export function LocalGraph() {
 
   if (error) {
     return (
-      <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
-        <div className="flex items-center justify-center h-48">
+      <div className="h-full p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
+            Global Graph
+          </div>
           <div className="text-red-500 text-sm">{error}</div>
         </div>
       </div>
     );
   }
 
-  if (!activeFile) {
+  if (!graphData || graphData.nodes.length === 0) {
     return (
-      <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
-        <div className="flex items-center justify-center h-48">
-          <div className="text-center text-[var(--text-muted)]">
-            <div className="text-2xl mb-2">📄</div>
-            <div className="text-sm">选择一个文件查看本地图谱</div>
+      <div className="h-full p-8 flex items-center justify-center">
+        <div className="text-center text-[var(--text-muted)]">
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
+            Global Graph
           </div>
+          <div className="text-2xl mb-2">🕸️</div>
+          <div className="text-sm">没有找到任何图谱数据</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full p-4">
-      <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-        Local Graph
+    <div className="h-full p-8">
+      <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
+        Global Graph
       </div>
       
-      {graphData && (
-        <div className="text-xs text-[var(--text-muted)] mb-2">
-          {graphData.nodes.length} 个节点, {graphData.edges.length} 条连接
-        </div>
-      )}
+      <div className="text-sm text-[var(--text-muted)] mb-4">
+        {graphData.nodes.length} 个节点, {graphData.edges.length} 条连接
+      </div>
       
-      <div className="border border-[var(--background-modifier-border)] rounded">
+      <div className="border border-[var(--background-modifier-border)] rounded h-[calc(100%-80px)]">
         <svg
           ref={svgRef}
-          width="400"
-          height="300"
-          viewBox="0 0 400 300"
+          width="100%"
+          height="100%"
+          viewBox="0 0 800 600"
           className="w-full h-full"
         >
           <g className="graph-container"></g>

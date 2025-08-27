@@ -6,7 +6,9 @@ import { useState, useCallback } from 'react';
 export function LeftRibbon() {
   const { 
     toggleLeftSidebar, 
-    leftSidebarOpen
+    leftSidebarOpen,
+    mainContentView,
+    setMainContentView
   } = useUIStore();
   
   const [isDark, setIsDark] = useState(false);
@@ -31,6 +33,7 @@ export function LeftRibbon() {
       label: 'Home',
       onClick: () => {
         // Navigate to home or welcome page
+        setMainContentView('file');
       }
     },
     {
@@ -38,6 +41,8 @@ export function LeftRibbon() {
       icon: IconFiles,
       label: 'File Explorer',
       onClick: () => {
+        // 切换到文件视图并打开文件浏览器
+        setMainContentView('file');
         if (!leftSidebarOpen) {
           toggleLeftSidebar();
         }
@@ -48,7 +53,12 @@ export function LeftRibbon() {
       icon: IconNetwork,
       label: 'Graph View',
       onClick: () => {
-        // Open graph view - could be a modal or replace main content
+        // Toggle between graph view and file view
+        if (mainContentView === 'globalGraph') {
+          setMainContentView('file');
+        } else {
+          setMainContentView('globalGraph');
+        }
       }
     },
     {
@@ -82,7 +92,10 @@ export function LeftRibbon() {
       <div className="flex flex-col gap-1">
         {ribbonItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.id === 'files' && leftSidebarOpen;
+          const isActive = 
+            (item.id === 'files' && leftSidebarOpen && mainContentView === 'file') ||
+            (item.id === 'graph' && mainContentView === 'globalGraph') ||
+            (item.id === 'home' && mainContentView === 'file' && !leftSidebarOpen);
           
           return (
             <Tooltip key={item.id} label={item.label} position="right" withArrow>

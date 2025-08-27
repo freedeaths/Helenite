@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { IconFile, IconFolder, IconFolderOpen, IconChevronRight } from '@tabler/icons-react';
-import { useVaultStore } from '../../stores/vaultStore';
-import type { FileTree } from '../../types/vault';
+import { useFileTreeAPI } from '../../hooks/useAPIs';
+import type { FileTree } from '../../apis/interfaces';
 
 interface FileTreeNodeProps {
   node: FileTree;
   level: number;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (path: string) => Promise<void>;
   activeFile: string | null;
 }
 
@@ -14,11 +14,11 @@ function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodePro
   const [isExpanded, setIsExpanded] = useState(level < 2);
   const isActive = activeFile === node.path;
 
-  const handleToggle = useCallback(() => {
+  const handleToggle = useCallback(async () => {
     if (node.type === 'folder') {
       setIsExpanded(!isExpanded);
     } else {
-      onFileSelect(node.path);
+      await onFileSelect(node.path);
     }
   }, [node.type, node.path, isExpanded, onFileSelect]);
 
@@ -80,12 +80,74 @@ function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodePro
 }
 
 interface ModernFileTreeProps {
-  files: FileTree[];
-  onFileSelect: (path: string) => void;
-  activeFile: string | null;
+  activeFile?: string | null;
+  onFileSelect?: (path: string) => Promise<void>;
 }
 
-export function ModernFileTree({ files, onFileSelect, activeFile }: ModernFileTreeProps) {
+export function ModernFileTree({ activeFile, onFileSelect }: ModernFileTreeProps) {
+  const fileTreeAPI = useFileTreeAPI();
+  const [files, setFiles] = useState<FileTree[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 加载文件树数据
+  useEffect(() => {
+    const loadFileTree = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const treeData = await fileTreeAPI.getFileTree();
+        setFiles(treeData);
+      } catch (err) {
+        console.error('Failed to load file tree:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load file tree');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFileTree();
+  }, [fileTreeAPI]);
+
+  // 默认文件选择处理器
+  const handleFileSelect = useCallback(async (path: string) => {
+    try {
+      await fileTreeAPI.selectFile(path);
+      if (onFileSelect) {
+        await onFileSelect(path);
+      }
+    } catch (err) {
+      console.error('Failed to select file:', err);
+    }
+  }, [fileTreeAPI, onFileSelect]);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="text-[var(--text-muted)] text-sm">Loading files...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="text-red-500 text-sm text-center">
+          <div className="font-medium">Failed to load files</div>
+          <div className="mt-1 text-xs">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (files.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="text-[var(--text-muted)] text-sm">No files found</div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-auto p-2">
       {files.map((file) => (
@@ -93,7 +155,7 @@ export function ModernFileTree({ files, onFileSelect, activeFile }: ModernFileTr
           key={file.path}
           node={file}
           level={0}
-          onFileSelect={onFileSelect}
+          onFileSelect={handleFileSelect}
           activeFile={activeFile}
         />
       ))}

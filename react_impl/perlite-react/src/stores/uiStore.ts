@@ -10,6 +10,9 @@ interface UIState {
   // Active panels
   activeRightPanel: 'outline' | 'graph' | 'tags';
   
+  // Main content view
+  mainContentView: 'file' | 'globalGraph';
+  
   // Theme
   theme: 'light' | 'dark';
   
@@ -34,6 +37,7 @@ interface UIState {
   setLeftSidebarWidth: (width: number) => void;
   setRightSidebarWidth: (width: number) => void;
   setActiveRightPanel: (panel: 'outline' | 'graph' | 'tags') => void;
+  setMainContentView: (view: 'file' | 'globalGraph') => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setIsMobile: (isMobile: boolean) => void;
   setIsTablet: (isTablet: boolean) => void;
@@ -57,6 +61,7 @@ export const useUIStore = create<UIState>((set) => ({
   leftSidebarWidth: 300,    // 统一使用 300px，与平板模式保持一致
   rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
   activeRightPanel: 'outline',
+  mainContentView: 'file',
   theme: 'light',
   isMobile: false,
   isTablet: false,
@@ -90,6 +95,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({ rightSidebarWidth: constrainedWidth });
   },
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
+  setMainContentView: (view) => set({ mainContentView: view }),
   setTheme: (theme) => set({ theme }),
   setIsMobile: (isMobile) => set((state) => {
     // 当切换到移动端时，关闭抽屉

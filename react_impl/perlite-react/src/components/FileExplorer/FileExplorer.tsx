@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import { TextInput, Box, Text, Center, Stack } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore';
+import { useUIStore } from '../../stores/uiStore';
 import { FileService } from '../../services/fileService';
 import { ModernFileTree } from './ModernFileTree';
 import type { FileTree } from '../../types/vault';
@@ -9,6 +10,7 @@ import type { FileTree } from '../../types/vault';
 
 export function FileExplorer() {
   const { files, activeFile, setActiveFile, setFiles, setLoading, setError } = useVaultStore();
+  const { setMainContentView } = useUIStore();
   const [initialized, setInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,8 +36,9 @@ export function FileExplorer() {
   };
 
   const handleFileSelect = async (path: string) => {
-    // 暂时设置活动文件，不加载内容
+    // 设置活动文件并切换到文件视图
     setActiveFile(path);
+    setMainContentView('file');
     console.log('Selected file:', path);
   };
 
