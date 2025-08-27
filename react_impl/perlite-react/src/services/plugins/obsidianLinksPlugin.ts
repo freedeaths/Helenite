@@ -39,6 +39,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
         console.log(`🔗 Processing text node: "${text.substring(0, 100)}..."`);
         console.log(`🔗 Found ${matches.length} link matches:`, matches.map(m => m[0]));
+        console.log(`🔗 Full text content:`, text);
 
         // 分割文本并创建新节点
         const newNodes: any[] = [];

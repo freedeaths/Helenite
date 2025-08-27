@@ -5,9 +5,10 @@ import L from 'leaflet';
 
 import 'leaflet/dist/leaflet.css';
 
-interface UnifiedTrackMapProps {
+interface TrackMapProps {
   code: string;
   isFile?: boolean;
+  fileType?: string; // 'gpx' or 'kml' - 文件类型信息
   className?: string;
 }
 
@@ -178,7 +179,7 @@ const getTrackColor = (provider?: string) => {
   }
 };
 
-export function UnifiedTrackMapSimple({ code, isFile = false, className = '' }: UnifiedTrackMapProps) {
+export function TrackMap({ code, isFile = false, fileType, className = '' }: TrackMapProps) {
   const [trackData, setTrackData] = useState<TrackData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -198,15 +199,20 @@ export function UnifiedTrackMapSimple({ code, isFile = false, className = '' }: 
         if (isFile) {
           // 处理文件路径
           let filePath = code;
+          console.log('🔍 Original file path from code:', filePath);
+          
           if (filePath.startsWith('@Publish/')) {
-            // 使用 Vite 开发服务器的 fs.allow 配置访问上级目录
-            // 将 @Publish/Attachments/file.gpx 转换为 /@fs/绝对路径
-            const absolutePath = '/Users/sunyishen/Personal/repos/Perlite/Publish/' + 
-              filePath.replace('@Publish/', '');
-            filePath = '/@fs' + absolutePath;
+            // 转换为相对于 vault 的路径
+            filePath = '/vault/Publish' + filePath.replace('@Publish', '');
+          } else if (filePath.startsWith('/Attachments/')) {
+            // 如果是 /Attachments/ 开头，添加 vault/Publish 前缀
+            filePath = '/vault/Publish' + filePath;
+          } else if (!filePath.startsWith('/')) {
+            // 如果是相对路径，转换为绝对路径
+            filePath = '/vault/Publish/' + filePath;
           }
 
-          console.log('Loading track file from:', filePath);
+          console.log('🔍 Resolved file path:', filePath);
 
           try {
             const response = await fetch(filePath);
@@ -229,20 +235,33 @@ export function UnifiedTrackMapSimple({ code, isFile = false, className = '' }: 
         // 解析轨迹数据
         let parsedData: TrackData;
 
-        // 更准确的格式检测
-        const isKML = content.includes('<kml') || content.includes('xmlns="http://www.opengis.net/kml');
-        const isGPX = content.includes('<gpx') || content.includes('xmlns="http://www.topografix.com/GPX');
+        // 优先使用 fileType 参数进行格式检测（来自 obsidianLinksPlugin 的文件类型信息）
+        let isKML: boolean, isGPX: boolean;
+        
+        if (isFile && fileType) {
+          // 如果有明确的文件类型信息，优先使用
+          isGPX = fileType.toLowerCase() === 'gpx';
+          isKML = fileType.toLowerCase() === 'kml';
+          console.log(`Using fileType hint: ${fileType} -> isGPX: ${isGPX}, isKML: ${isKML}`);
+        } else {
+          // 后备：基于内容检测格式
+          isKML = content.includes('<kml') || content.includes('xmlns="http://www.opengis.net/kml');
+          isGPX = content.includes('<gpx') || content.includes('xmlns="http://www.topografix.com/GPX');
+          console.log(`Content-based detection: isGPX: ${isGPX}, isKML: ${isKML}`);
+        }
         
         if (isKML && !isGPX) {
-          // KML 解析 (简化版本)
-          console.log('Detected KML format, attempting to parse...');
+          // KML 解析
+          console.log('Using KML parser');
           parsedData = await parseKMLData(content, provider);
         } else if (isGPX && !isKML) {
-          // GPX 解析 (增强版本) 
+          // GPX 解析
+          console.log('Using GPX parser');
           parsedData = await parseGPXData(content, provider);
         } else {
-          // 优先尝试 GPX，如果失败再尝试 KML
+          // 如果仍然不确定或两者都匹配，优先尝试 GPX
           try {
+            console.log('Trying GPX parser first (fallback)...');
             parsedData = await parseGPXData(content, provider);
           } catch (gpxError) {
             console.log('GPX parsing failed, trying KML...', gpxError);
@@ -278,7 +297,7 @@ export function UnifiedTrackMapSimple({ code, isFile = false, className = '' }: 
     return () => {
       isMounted = false;
     };
-  }, [code, isFile]);
+  }, [code, isFile, fileType]);
 
   // GPX 解析函数 (增强版本)
   const parseGPXData = async (content: string, provider: string): Promise<TrackData> => {

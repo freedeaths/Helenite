@@ -3,7 +3,7 @@ import { useVaultStore } from '../../stores/vaultStore';
 import { markdownProcessor } from '../../services/markdownProcessor';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { MermaidDiagram } from './MermaidDiagram';
-import { UnifiedTrackMapSimple } from './UnifiedTrackMapSimple';
+import { TrackMap } from './TrackMap';
 import type { FileTree } from '../../types/vault';
 
 import 'katex/dist/katex.min.css';
@@ -185,10 +185,11 @@ export function MarkdownViewer() {
             );
           } else {
             parts.push(
-              <UnifiedTrackMapSimple
+              <TrackMap
                 key={data.id}
                 code={data.code}
                 isFile={data.isFile}
+                fileType={data.fileType}
                 className="track-map"
               />
             );

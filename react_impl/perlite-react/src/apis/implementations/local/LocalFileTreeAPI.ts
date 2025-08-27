@@ -14,7 +14,7 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
   async getFileTree(): Promise<FileTree[]> {
     try {
       const metadata = await this.getMetadata();
-      return this.buildTreeFromMetadata(metadata);
+      return await this.buildTreeFromMetadata(metadata);
     } catch (error) {
       console.error('Failed to load file tree from metadata:', error);
       throw new Error('Unable to load file tree. Please check if metadata.json exists.');
@@ -68,13 +68,14 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
   
   /**
    * 从 metadata.json 构建文件树
-   * 复刻 PHP menu() 函数的逻辑
+   * 复刻 PHP menu() 函数的逻辑，并包含附件文件
    */
-  private buildTreeFromMetadata(metadata: any[]): FileTree[] {
+  private async buildTreeFromMetadata(metadata: any[]): Promise<FileTree[]> {
     // 1. 提取所有路径并构建路径映射
     const pathMap = new Map<string, FileMetadata>();
     const allPaths = new Set<string>();
     
+    // 添加 metadata.json 中的 markdown 文件
     metadata.forEach(item => {
       if (item.relativePath) {
         const path = this.normalizePath(item.relativePath);
@@ -85,6 +86,30 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
         this.addParentPaths(path, allPaths);
       }
     });
+
+    // 2. 扫描附件文件夹，添加 GPX/KML 等文件
+    try {
+      const attachmentFiles = await this.scanAttachmentFiles();
+      attachmentFiles.forEach(file => {
+        const path = this.normalizePath(file.relativePath);
+        pathMap.set(path, {
+          title: file.name,
+          tags: [],
+          aliases: [],
+          frontmatter: {},
+          headings: [],
+          links: [],
+          backlinks: []
+        });
+        allPaths.add(path);
+        
+        // 添加父目录路径
+        this.addParentPaths(path, allPaths);
+      });
+    } catch (error) {
+      console.warn('Failed to scan attachment files:', error);
+      // 继续执行，不影响 markdown 文件的加载
+    }
     
     // 2. 构建树状结构
     const root: FileTree[] = [];
@@ -209,6 +234,51 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
     return null;
   }
   
+  /**
+   * 扫描附件文件夹，获取 GPX/KML 等文件列表
+   */
+  private async scanAttachmentFiles(): Promise<Array<{ name: string; relativePath: string }>> {
+    const attachmentFiles: Array<{ name: string; relativePath: string }> = [];
+    const supportedExtensions = ['gpx', 'kml'];
+    
+    try {
+      // 尝试访问 Attachments 目录
+      const attachmentsPath = `${this.baseUrl}/Attachments`;
+      
+      // 由于浏览器限制，我们无法直接列举文件夹内容
+      // 这里我们使用已知的文件列表作为临时解决方案
+      const knownFiles = [
+        'yamap_2025-04-02_08_48.gpx',
+        '中西citywalk.kml',
+        '东西佘山含地铁绿道.kml'
+      ];
+      
+      for (const fileName of knownFiles) {
+        const ext = fileName.split('.').pop()?.toLowerCase();
+        if (ext && supportedExtensions.includes(ext)) {
+          // 验证文件是否存在
+          try {
+            const response = await fetch(`${attachmentsPath}/${fileName}`, { method: 'HEAD' });
+            if (response.ok) {
+              attachmentFiles.push({
+                name: fileName,
+                relativePath: `/Attachments/${fileName}`
+              });
+              console.log(`✅ Found attachment file: ${fileName}`);
+            }
+          } catch (error) {
+            console.warn(`❌ Could not access attachment file: ${fileName}`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to scan attachment files:', error);
+    }
+    
+    console.log(`📁 Scanned attachment files: found ${attachmentFiles.length} files`);
+    return attachmentFiles;
+  }
+
   /**
    * 计算文件夹统计信息
    */

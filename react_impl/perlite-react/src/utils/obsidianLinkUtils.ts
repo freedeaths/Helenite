@@ -119,14 +119,30 @@ export function createFileIndex(files: Array<{ path: string; type: string }>) {
   files.forEach(file => {
     if (file.type === 'file') {
       const fileName = file.path.split('/').pop() || '';
-      const nameWithoutExt = fileName.replace(/\.(md|txt)$/, '');
       
-      // 索引完整文件名
+      // 索引完整文件名（所有文件类型）
       fileIndex.set(fileName.toLowerCase(), file.path);
-      // 索引不带扩展名的文件名  
-      fileIndex.set(nameWithoutExt.toLowerCase(), file.path);
+      
+      // 索引不带扩展名的文件名（支持 md/txt/gpx/kml 文件）
+      const nameWithoutExt = fileName.replace(/\.(md|txt|gpx|kml)$/i, '');
+      if (nameWithoutExt !== fileName) { // 只有当确实移除了扩展名时才索引
+        fileIndex.set(nameWithoutExt.toLowerCase(), file.path);
+      }
+      
       // 索引完整路径
       fileIndex.set(file.path.toLowerCase(), file.path);
+      
+      // 索引相对路径（去掉开头的斜杠）
+      const relativePath = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+      fileIndex.set(relativePath.toLowerCase(), file.path);
+      
+      // 索引 Attachments/ 路径格式（用于 Obsidian 风格链接）
+      if (file.path.includes('/Attachments/')) {
+        const attachmentPath = file.path.split('/Attachments/')[1];
+        if (attachmentPath) {
+          fileIndex.set(`attachments/${attachmentPath}`.toLowerCase(), file.path);
+        }
+      }
     }
   });
   
