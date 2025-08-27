@@ -1,4 +1,5 @@
 import type { IFileTreeAPI, FileTree, FileMetadata, FolderStats } from '../../interfaces';
+import { getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../../../config/vaultConfig';
 
 /**
  * 基于 metadata.json 的文件树 API 实现
@@ -68,9 +69,11 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
   
   /**
    * 从 metadata.json 构建文件树
-   * 复刻 PHP menu() 函数的逻辑，并包含附件文件
+   * 复刻 PHP menu() 函数的逻辑，应用文件夹过滤
    */
   private async buildTreeFromMetadata(metadata: any[]): Promise<FileTree[]> {
+    const config = getVaultConfig();
+    
     // 1. 提取所有路径并构建路径映射
     const pathMap = new Map<string, FileMetadata>();
     const allPaths = new Set<string>();
@@ -79,37 +82,31 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
     metadata.forEach(item => {
       if (item.relativePath) {
         const path = this.normalizePath(item.relativePath);
+        
+        // 检查文件路径是否在被排除的文件夹中
+        if (isPathInExcludedFolder(path, config)) {
+          console.log(`🚫 Filtering file in excluded folder: ${path}`);
+          return; // 跳过此文件
+        }
+        
+        // 检查文件是否被排除
+        if (isFileExcluded(item.fileName || '', config)) {
+          console.log(`🚫 Filtering excluded file: ${item.fileName}`);
+          return; // 跳过此文件
+        }
+        
         pathMap.set(path, this.convertMetadata(item));
         allPaths.add(path);
         
-        // 添加父目录路径
-        this.addParentPaths(path, allPaths);
+        // 添加父目录路径（但排除被过滤的文件夹）
+        this.addParentPaths(path, allPaths, config);
       }
     });
 
-    // 2. 扫描附件文件夹，添加 GPX/KML 等文件
-    try {
-      const attachmentFiles = await this.scanAttachmentFiles();
-      attachmentFiles.forEach(file => {
-        const path = this.normalizePath(file.relativePath);
-        pathMap.set(path, {
-          title: file.name,
-          tags: [],
-          aliases: [],
-          frontmatter: {},
-          headings: [],
-          links: [],
-          backlinks: []
-        });
-        allPaths.add(path);
-        
-        // 添加父目录路径
-        this.addParentPaths(path, allPaths);
-      });
-    } catch (error) {
-      console.warn('Failed to scan attachment files:', error);
-      // 继续执行，不影响 markdown 文件的加载
-    }
+    console.log(`📁 File tree: processed ${allPaths.size} paths (excluded folders: ${config.excludedFolders.join(', ')})`);
+    
+    // 注意: 不再扫描附件文件，因为 Attachments 文件夹已被默认排除
+    // 如果用户需要显示特定附件，可以从 excludedFolders 中移除 'Attachments'
     
     // 2. 构建树状结构
     const root: FileTree[] = [];
@@ -190,14 +187,20 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
   }
   
   /**
-   * 添加父目录路径到集合中
+   * 添加父目录路径到集合中，排除被过滤的文件夹
    */
-  private addParentPaths(path: string, pathSet: Set<string>): void {
+  private addParentPaths(path: string, pathSet: Set<string>, config = getVaultConfig()): void {
     const parts = path.split('/');
     for (let i = 1; i < parts.length; i++) {
       const parentPath = parts.slice(0, i).join('/');
       if (parentPath) {
-        pathSet.add(parentPath);
+        // 检查父目录是否在排除列表中
+        const folderName = parts[i - 1];
+        if (!isFolderExcluded(folderName, config)) {
+          pathSet.add(parentPath);
+        } else {
+          console.log(`🚫 Filtering excluded parent folder: ${folderName} in path ${parentPath}`);
+        }
       }
     }
   }

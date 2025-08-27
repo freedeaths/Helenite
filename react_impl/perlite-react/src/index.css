@@ -362,3 +362,17 @@ body {
   color: var(--text-muted) !important;
   text-decoration: none !important;
 }
+
+/* Search result highlight styling (复刻 PHP 版本) */
+.search-result-file-matched-text {
+  background-color: rgba(255, 235, 59, 0.4);
+  color: var(--text-normal);
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .search-result-file-matched-text {
+  background-color: rgba(255, 193, 7, 0.3);
+  color: var(--text-normal);
+}

@@ -1,68 +1,51 @@
 /**
- * 搜索结果项
+ * 搜索 API 接口定义
+ * 复刻 PHP 版本的搜索功能 (helper.php:284-359)
  */
-export interface SearchResult {
-  filePath: string;
-  fileName: string;
-  matches: SearchMatch[];
-  score?: number; // 搜索相关性评分
-}
 
 export interface SearchMatch {
-  line: number;
+  /** 匹配的行内容 */
   content: string;
-  highlighted: string; // 高亮后的内容
-  context?: string; // 上下文
+  /** 高亮后的内容（包含 HTML 标记） */
+  highlighted: string;
+  /** 行号（可选） */
+  lineNumber?: number;
 }
 
-/**
- * 搜索 API 接口
- * 负责处理全文搜索和特定搜索功能
- */
+export interface SearchResult {
+  /** 文件路径 */
+  filePath: string;
+  /** 文件名（不含扩展名） */
+  fileName: string;
+  /** 匹配项列表 */
+  matches: SearchMatch[];
+  /** 匹配总数 */
+  matchCount: number;
+}
+
 export interface ISearchAPI {
   /**
    * 全文搜索
+   * 复刻 PHP search() 函数功能
    * @param query 搜索关键词
-   * @param options 搜索选项
-   * @returns Promise<SearchResult[]> 搜索结果数组
+   * @returns 搜索结果列表
    */
-  searchFiles(query: string, options?: SearchOptions): Promise<SearchResult[]>;
-  
-  /**
-   * 在指定文件中搜索
-   * @param filePath 文件路径
-   * @param query 搜索关键词
-   * @returns Promise<SearchResult[]> 搜索结果（单文件）
-   */
-  searchInFile(filePath: string, query: string): Promise<SearchResult[]>;
-  
-  /**
-   * 按文件名搜索
-   * @param fileName 文件名（支持模糊匹配）
-   * @returns Promise<SearchResult[]> 匹配的文件
-   */
-  searchByFileName(fileName: string): Promise<SearchResult[]>;
-  
-  /**
-   * 获取搜索统计信息
-   * @param query 搜索关键词
-   * @returns Promise<SearchStats> 搜索统计
-   */
-  getSearchStats(query: string): Promise<SearchStats>;
-}
+  searchContent(query: string): Promise<SearchResult[]>;
 
-export interface SearchOptions {
-  caseSensitive?: boolean; // 是否区分大小写
-  wholeWord?: boolean; // 是否匹配整个单词
-  regex?: boolean; // 是否使用正则表达式
-  maxResults?: number; // 最大结果数
-  includeContent?: boolean; // 是否包含内容片段
-  fileTypes?: string[]; // 限制搜索的文件类型
-}
+  /**
+   * 标签搜索
+   * 处理以 # 开头的搜索词，复刻 PHP 中的标签搜索逻辑
+   * @param tag 标签名（可以包含或不包含 # 前缀）
+   * @returns 包含该标签的文件列表
+   */
+  searchByTag(tag: string): Promise<SearchResult[]>;
 
-export interface SearchStats {
-  totalMatches: number;
-  filesSearched: number;
-  searchTime: number; // 毫秒
-  query: string;
+  /**
+   * 统一搜索入口
+   * 根据搜索词是否以 # 开头自动选择搜索方式
+   * 复刻 PHP doSearch() 函数功能
+   * @param query 搜索关键词或标签
+   * @returns 搜索结果列表
+   */
+  search(query: string): Promise<SearchResult[]>;
 }

@@ -404,7 +404,15 @@ CONSTRAINTS = {
 
 ### 🔧 优化项目
 - [ ] Markdown 处理器 Obsidian 兼容性优化
-- [ ] 文件路径解析逻辑统一化 
+- [ ] 文件路径解析逻辑统一化
+- [ ] **搜索性能优化**：考虑替换手工正则表达式为专业搜索库
+  - 当前实现：手工正则 `/^.*${pattern}.*$/gmi` + 文件遍历
+  - 性能问题：每次搜索加载所有文件内容，大文件集合下性能一般
+  - 可选方案：
+    - **Fuse.js** (9KB) - 模糊搜索，支持权重和排序
+    - **Lunr.js** (25KB) - 全文搜索引擎，支持倒排索引
+    - **FlexSearch** (12KB) - 高性能内存搜索
+    - **MiniSearch** (15KB) - 轻量级搜索，内存友好 
 
 ### 📋 Phase 2A: 核心 API 接口实现 ✅ 已完成
 - [x] 创建 API 接口定义目录结构 (`src/apis/interfaces/`)
@@ -430,12 +438,14 @@ CONSTRAINTS = {
 - [x] 创建综合测试用 Welcome.md（包含所有 markdown 特性）
 - [x] 实现 Mock API 分离，移除组件中的内联 mock 内容
 
-### 📋 Phase 2C: 搜索和标签 API (待实现)
-- [ ] 实现 `ISearchAPI.ts` 接口定义
-- [ ] 实现 `ITagAPI.ts` 接口定义 
-- [ ] 实现 `LocalSearchAPI.ts`（基于 metadata.json 全文搜索）
-- [ ] 实现 `LocalTagAPI.ts`（基于 metadata.json tags 字段）
-- [ ] 更新 `Search` 组件使用新 SearchAPI 接口 
+### 📋 Phase 2C: 搜索和标签 API ✅ 已完成
+- [x] 实现 `ISearchAPI.ts` 接口定义
+- [x] 实现 `ITagAPI.ts` 接口定义 
+- [x] 实现 `LocalSearchAPI.ts`（基于 metadata.json 全文搜索）
+- [x] 实现 `LocalTagAPI.ts`（基于 metadata.json tags 字段）
+- [x] 更新 `FileExplorer` 组件集成搜索功能（在 Files tab 内）
+- [x] 复刻 PHP 版本搜索逻辑：正则表达式匹配、高亮显示、标签搜索
+- [x] 验证搜索功能：文本搜索 + 标签搜索（#标签）均工作正常 
 
 ### ⚙️ 可调参数位置
 - **响应式防抖延迟**: `/src/components/Layout/AppLayout.tsx:50` - 当前50ms，可调节范围20-100ms

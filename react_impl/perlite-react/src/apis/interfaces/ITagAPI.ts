@@ -1,66 +1,43 @@
-import type { SearchResult } from './ISearchAPI';
-import type { FileTree } from './IFileTreeAPI';
+/**
+ * 标签 API 接口定义
+ * 基于 PHP 版本的标签处理逻辑 (helper.php:505-529)
+ */
 
 /**
  * 标签数据
  */
 export interface TagData {
+  /** 标签名（包含 # 前缀） */
   name: string;
-  count: number; // 使用该标签的文件数量
-  files: string[]; // 使用该标签的文件路径数组
-  color?: string; // 标签颜色（如果有）
+  /** 使用该标签的文件数量 */
+  count: number;
+  /** 使用该标签的文件路径数组 */
+  files: string[];
 }
 
 /**
  * 标签 API 接口
- * 负责处理标签相关的操作
+ * 负责从 metadata.json 提取和管理标签数据
  */
 export interface ITagAPI {
   /**
    * 获取所有标签
-   * @returns Promise<TagData[]> 标签数据数组
+   * 从 metadata.json 的 tags 字段提取所有标签
+   * @returns 标签数据数组
    */
   getAllTags(): Promise<TagData[]>;
   
   /**
-   * 根据标签搜索文件
-   * @param tag 标签名
-   * @returns Promise<SearchResult[]> 包含该标签的文件
-   */
-  searchByTag(tag: string): Promise<SearchResult[]>;
-  
-  /**
-   * 获取包含指定标签的文件树
-   * @param tag 标签名
-   * @returns Promise<FileTree[]> 文件树结构
-   */
-  getTaggedFiles(tag: string): Promise<FileTree[]>;
-  
-  /**
    * 获取文件的所有标签
    * @param filePath 文件路径
-   * @returns Promise<string[]> 标签数组
+   * @returns 标签数组（包含 # 前缀）
    */
   getFileTags(filePath: string): Promise<string[]>;
   
   /**
-   * 获取标签统计信息
-   * @returns Promise<TagStats> 标签统计
+   * 根据标签获取文件列表
+   * @param tag 标签名（可以包含或不包含 # 前缀）
+   * @returns 包含该标签的文件路径数组
    */
-  getTagStats(): Promise<TagStats>;
-  
-  /**
-   * 搜索标签（支持模糊匹配）
-   * @param query 标签搜索关键词
-   * @returns Promise<TagData[]> 匹配的标签
-   */
-  searchTags(query: string): Promise<TagData[]>;
-}
-
-export interface TagStats {
-  totalTags: number;
-  totalTaggedFiles: number;
-  averageTagsPerFile: number;
-  mostUsedTags: TagData[]; // 前N个最常用的标签
-  orphanedTags: string[]; // 没有关联文件的标签
+  getFilesByTag(tag: string): Promise<string[]>;
 }
