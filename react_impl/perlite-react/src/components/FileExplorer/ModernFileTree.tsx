@@ -32,7 +32,7 @@ function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodePro
         className={`
           w-full text-left py-1 text-sm transition-all duration-150 ease-out border-0 bg-transparent
           ${isActive 
-            ? 'bg-[var(--interactive-accent)] text-white font-medium' 
+            ? 'bg-[var(--background-modifier-active)] text-[var(--text-on-accent)] font-medium' 
             : 'text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
           }
         `}

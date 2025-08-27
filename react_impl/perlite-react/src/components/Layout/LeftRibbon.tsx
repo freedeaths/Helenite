@@ -1,12 +1,28 @@
-import { IconFiles, IconNetwork, IconDice, IconHome, IconSettings, IconDiamond } from '@tabler/icons-react';
+import { IconFiles, IconNetwork, IconDice, IconHome, IconSettings, IconMoon, IconSun } from '@tabler/icons-react';
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
+import { useState, useCallback } from 'react';
 
 export function LeftRibbon() {
   const { 
     toggleLeftSidebar, 
     leftSidebarOpen
   } = useUIStore();
+  
+  const [isDark, setIsDark] = useState(false);
+  
+  const toggleTheme = useCallback(() => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    
+    // Apply theme to body
+    document.body.setAttribute('data-theme', newTheme ? 'dark' : 'light');
+    
+    // Trigger theme change event for other components
+    document.dispatchEvent(new CustomEvent('obsidian-theme-changed', { 
+      detail: { theme: newTheme ? 'dark' : 'light' } 
+    }));
+  }, [isDark]);
 
   const ribbonItems = [
     {
@@ -89,6 +105,18 @@ export function LeftRibbon() {
 
       {/* Bottom items */}
       <div className="flex flex-col gap-1">
+        <Tooltip label={isDark ? "Light Theme" : "Dark Theme"} position="right" withArrow>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="md"
+            radius="md"
+            onClick={toggleTheme}
+          >
+            {isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
+          </ActionIcon>
+        </Tooltip>
+        
         <Tooltip label="Settings" position="right" withArrow>
           <ActionIcon
             variant="subtle"

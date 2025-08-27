@@ -691,16 +691,81 @@ interface VaultConfig {
 
 #### 开发环境
 ```bash
-# 方案1: 符号链接 (仅开发用)
-ln -sf ../../../Publish public/vault
-
-# 方案2: Vite 代理配置
-# vite.config.ts 中配置静态文件服务
+# 已实现：直接复制到 public 目录
+# react_impl/perlite-react/public/Publish/ (支持 OneDrive 同步)
+# 无需 Vite 中间件，直接通过 /Publish 访问
 ```
 
-#### 生产环境 - Docker 映射
+#### 生产环境 - Caddy + Docker 映射 (推荐)
 ```dockerfile
-# Dockerfile
+# Dockerfile (React 应用)
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM caddy:alpine
+COPY --from=builder /app/dist /usr/share/caddy
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Caddyfile
+yourdomain.com {
+    # React 应用静态资源
+    root * /usr/share/caddy
+    
+    # Vault 文件直接服务 (支持 OneDrive 实时同步)
+    handle_path /Publish/* {
+        root * /vault
+        file_server {
+            precompressed gzip br
+        }
+    }
+    
+    # CDN 友好的缓存头
+    @markdown path *.md
+    header @markdown {
+        Cache-Control "public, max-age=3600, s-maxage=86400"
+        Content-Type "text/plain; charset=utf-8"
+    }
+    
+    @obsidian path /.obsidian/*
+    header @obsidian Cache-Control "public, max-age=86400"
+    
+    try_files {path} /index.html
+}
+
+# docker-compose.yml
+services:
+  perlite-react:
+    build: .
+    volumes:
+      # OneDrive 实时同步支持
+      - /host/onedrive/obsidian/vault:/vault:ro
+    ports:
+      - "80:80"
+      - "443:443"
+```
+
+#### CDN 友好架构
+```
+[OneDrive] → [Server/Caddy] → [CDN Edge] → [User]
+    ↓             ↓              ↓
+  实时同步     直接文件服务    智能缓存+压缩
+```
+
+**Caddy 优势:**
+- ✅ Markdown 原始格式，前端动态渲染  
+- ✅ 自动 Gzip/Brotli 压缩
+- ✅ 智能缓存策略（.md 1小时，.obsidian 1天）
+- ✅ OneDrive 实时同步，无需重启
+- ✅ CDN 边缘缓存，全球加速
+- ✅ 自动 HTTPS + 简化配置
+
+#### 备选方案 - Nginx + Docker
+```dockerfile
+# 如果偏好 Nginx
 FROM nginx:alpine
 COPY dist/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -709,33 +774,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 services:
   perlite-react:
     volumes:
-      - /host/obsidian/vault:/usr/share/nginx/html/vault:ro
-    environment:
-      - VAULT_BASE_URL=/vault
-```
-
-#### CDN 部署
-```javascript
-// 构建时集成 Vault
-// vite.config.ts
-export default defineConfig({
-  plugins: [
-    react(),
-    {
-      name: 'vault-integration',
-      writeBundle() {
-        if (process.env.VAULT_PATH) {
-          copySync(process.env.VAULT_PATH, 'dist/vault');
-        }
-      }
-    }
-  ],
-  define: {
-    __VAULT_BASE_URL__: JSON.stringify(
-      process.env.VAULT_BASE_URL || '/vault'
-    )
-  }
-});
+      - /host/obsidian/vault:/usr/share/nginx/html/Publish:ro
 ```
 
 ### 文件访问模式
