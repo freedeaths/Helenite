@@ -7,18 +7,40 @@ import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../MarkdownViewer/TagsPanel';
 
 export function LeftSidebar() {
-  const { activeMobileTab, setActiveMobileTab, isMobile, isTablet } = useUIStore();
+  const { activeMobileTab, setActiveMobileTab, activeLeftPanel, setActiveLeftPanel, isMobile, isTablet } = useUIStore();
 
-  // 桌面端只显示 Files
+  // 桌面端显示 Files + Tags 切换
   if (!isMobile && !isTablet) {
     return (
       <div className="h-full flex flex-col bg-[var(--background-secondary)]">
-        {/* 桌面端添加占位区域，搜索框目标位置 top:35px，原本 top:16px，差距 15px */}
-        <div className="bg-[var(--background-secondary)]" style={{ height: '15px' }}>
-          {/* 占位区域：再减少 4px，从 19px → 15px，达到目标 35px */}
+        {/* Desktop Tab Headers */}
+        <div className="border-b border-[var(--background-modifier-border)] p-2">
+          <Button.Group>
+            <Button
+              onClick={() => setActiveLeftPanel('files')}
+              variant={activeLeftPanel === 'files' ? 'filled' : 'light'}
+              leftSection={<IconFiles size={16} />}
+              size="compact-sm"
+              flex={1}
+            >
+              Files
+            </Button>
+            <Button
+              onClick={() => setActiveLeftPanel('tags')}
+              variant={activeLeftPanel === 'tags' ? 'filled' : 'light'}
+              leftSection={<IconTags size={16} />}
+              size="compact-sm"
+              flex={1}
+            >
+              Tags
+            </Button>
+          </Button.Group>
         </div>
+
+        {/* Desktop Content */}
         <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
-          <FileExplorer />
+          {activeLeftPanel === 'files' && <FileExplorer />}
+          {activeLeftPanel === 'tags' && <TagsPanel />}
         </div>
       </div>
     );

@@ -1,9 +1,8 @@
-import { IconList, IconGitFork, IconTags } from '@tabler/icons-react';
+import { IconList, IconGitFork } from '@tabler/icons-react';
 import { Button } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { TOC } from '../MarkdownViewer/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
-import { TagsPanel } from '../MarkdownViewer/TagsPanel';
 
 export function RightSidebar() {
   const { activeRightPanel, setActiveRightPanel } = useUIStore();
@@ -31,15 +30,6 @@ export function RightSidebar() {
           >
             Graph
           </Button>
-          <Button
-            onClick={() => setActiveRightPanel('tags')}
-            variant={activeRightPanel === 'tags' ? 'filled' : 'light'}
-            leftSection={<IconTags size={16} />}
-            size="compact-sm"
-            flex={1}
-          >
-            Tags
-          </Button>
         </Button.Group>
       </div>
 
@@ -47,7 +37,6 @@ export function RightSidebar() {
       <div className="flex-1 overflow-hidden" style={{ padding: '1rem' }}>
         {activeRightPanel === 'outline' && <TOC />}
         {activeRightPanel === 'graph' && <LocalGraph />}
-        {activeRightPanel === 'tags' && <TagsPanel />}
       </div>
     </div>
   );
