@@ -28,7 +28,7 @@ export interface MarkdownProcessingOptions {
   enableMath?: boolean;
   enableCodeHighlight?: boolean;
   enableMermaid?: boolean;
-  enableGPX?: boolean;
+  enableTracks?: boolean;
 }
 
 /**
@@ -42,7 +42,7 @@ export const DEFAULT_OPTIONS: MarkdownProcessingOptions = {
   enableMath: true,
   enableCodeHighlight: true,
   enableMermaid: true,
-  enableGPX: true,
+  enableTracks: true,
 };
 
 /**
@@ -375,28 +375,76 @@ function extractMermaidDiagrams(markdown: string) {
 }
 
 /**
- * GPX maps extraction (for use in processWithMetadata)
+ * Track maps extraction (supports GPX/KML for use in processWithMetadata)
  */
-function extractGPXMaps(markdown: string) {
-  const gpxMaps: Array<{ id: string; code: string; placeholder: string }> = [];
+function extractTrackMaps(markdown: string) {
+  const trackMaps: Array<{ id: string; code: string; placeholder: string; isFile?: boolean }> = [];
   let mapId = 0;
   
-  // Replace GPX code blocks with placeholders and extract the code
-  const processedMarkdown = markdown.replace(/```gpx\n([\s\S]*?)\n```/g, (match, code) => {
-    const id = `gpx-map-${mapId++}`;
-    // Use a text-based placeholder that won't be stripped by HTML sanitizer
-    const placeholder = `GPX_PLACEHOLDER_${id}`;
+  // Replace track code blocks with placeholders and extract the code
+  let processedMarkdown = markdown;
+  
+  // Handle direct GPX content: ```gpx\n<gpx>...</gpx>\n```
+  processedMarkdown = processedMarkdown.replace(/```gpx\n([\s\S]*?)\n```/g, (match, code) => {
+    const id = `track-map-${mapId++}`;
+    const placeholder = `TRACK_PLACEHOLDER_${id}`;
     
-    gpxMaps.push({
+    trackMaps.push({
       id,
       code: code.trim(),
-      placeholder
+      placeholder,
+      isFile: false
     });
     
     return placeholder;
   });
   
-  return { processedMarkdown, gpxMaps };
+  // Handle GPX file references: ```gpx:@Publish/Attachments/file.gpx```
+  processedMarkdown = processedMarkdown.replace(/```gpx:(.+?)```/g, (match, filePath) => {
+    const id = `track-map-${mapId++}`;
+    const placeholder = `TRACK_PLACEHOLDER_${id}`;
+    
+    trackMaps.push({
+      id,
+      code: filePath.trim(), // Store file path in code field
+      placeholder,
+      isFile: true
+    });
+    
+    return placeholder;
+  });
+  
+  // Handle KML file references: ```kml:@Publish/Attachments/file.kml```
+  processedMarkdown = processedMarkdown.replace(/```kml:(.+?)```/g, (match, filePath) => {
+    const id = `track-map-${mapId++}`;
+    const placeholder = `TRACK_PLACEHOLDER_${id}`;
+    
+    trackMaps.push({
+      id,
+      code: filePath.trim(), // Store file path in code field
+      placeholder,
+      isFile: true
+    });
+    
+    return placeholder;
+  });
+  
+  // Handle direct KML content: ```kml\n<kml>...</kml>\n```
+  processedMarkdown = processedMarkdown.replace(/```kml\n([\s\S]*?)\n```/g, (match, code) => {
+    const id = `track-map-${mapId++}`;
+    const placeholder = `TRACK_PLACEHOLDER_${id}`;
+    
+    trackMaps.push({
+      id,
+      code: code.trim(),
+      placeholder,
+      isFile: false
+    });
+    
+    return placeholder;
+  });
+  
+  return { processedMarkdown, trackMaps };
 }
 
 /**
@@ -468,11 +516,11 @@ export class MarkdownProcessor {
       tags: string[];
     };
     mermaidDiagrams: Array<{ id: string; code: string; placeholder: string }>;
-    gpxMaps: Array<{ id: string; code: string; placeholder: string }>;
+    trackMaps: Array<{ id: string; code: string; placeholder: string; isFile?: boolean }>;
   }> {
-    // First, extract Mermaid diagrams and GPX maps
+    // First, extract Mermaid diagrams and track maps
     const { processedMarkdown: markdownAfterMermaid, mermaidDiagrams } = extractMermaidDiagrams(markdown);
-    const { processedMarkdown, gpxMaps } = extractGPXMaps(markdownAfterMermaid);
+    const { processedMarkdown, trackMaps } = extractTrackMaps(markdownAfterMermaid);
     
     
     // Then process the markdown with diagrams replaced by placeholders
@@ -519,7 +567,7 @@ export class MarkdownProcessor {
     // Second pass: generate HTML using processedMarkdown (with placeholders)
     const html = await this.processToHTML(processedMarkdown);
     
-    return { html, metadata, mermaidDiagrams, gpxMaps };
+    return { html, metadata, mermaidDiagrams, trackMaps };
   }
 }
 

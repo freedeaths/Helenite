@@ -3,7 +3,7 @@ import { useVaultStore } from '../../stores/vaultStore';
 import { FileService } from '../../services/fileService';
 import { markdownProcessor } from '../../services/markdownProcessor';
 import { MermaidDiagram } from './MermaidDiagram';
-import { GPXMap } from './GPXMap';
+import { UnifiedTrackMapSimple } from './UnifiedTrackMapSimple';
 
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github.css';
@@ -21,7 +21,7 @@ export function MarkdownViewer() {
     tags: string[];
   }>({ headings: [], links: [], tags: [] });
   const [mermaidDiagrams, setMermaidDiagrams] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
-  const [gpxMaps, setGpxMaps] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
+  const [trackMaps, setTrackMaps] = useState<Array<{ id: string; code: string; placeholder: string; isFile?: boolean }>>([]);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export function MarkdownViewer() {
           setRenderedContent(result.html);
           setMetadata(result.metadata);
           setMermaidDiagrams(result.mermaidDiagrams);
-          setGpxMaps(result.gpxMaps);
+          setTrackMaps(result.trackMaps);
           console.log('Processed markdown metadata:', result.metadata);
           console.log('Found Mermaid diagrams:', result.mermaidDiagrams);
-          console.log('Found GPX maps:', result.gpxMaps);
+          console.log('Found track maps:', result.trackMaps);
         })
         .catch((err) => {
           console.error('Markdown processing error:', err);
@@ -55,7 +55,7 @@ export function MarkdownViewer() {
       setError(null);
       setMetadata({ headings: [], links: [], tags: [] });
       setMermaidDiagrams([]);
-      setGpxMaps([]);
+      setTrackMaps([]);
     }
   }, [activeFile]);
 
@@ -149,7 +149,7 @@ $$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$
 
 ## 户外路线
 
-### 陆羽古道徒步路线
+### 陆羽古道徒步路线 (内联 GPX)
 
 \`\`\`gpx
 <?xml version="1.0" encoding="UTF-8"?>
@@ -205,7 +205,32 @@ $$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$
 </gpx>
 \`\`\`
 
-> [!tip] 旅行小贴士
+### YAMAP 徒步路线 (外部 GPX 文件)
+
+\`\`\`gpx:@Publish/Attachments/yamap_2025-04-02_08_48.gpx\`\`\`
+
+## 多厂商轨迹文件测试
+
+### GPX 文件测试
+
+#### foooooot 红叶尚湖
+\`\`\`gpx:@Publish/Attachments/红叶尚湖.gpx\`\`\`
+
+#### Garmin 金牛道拦马墙到普安镇  
+\`\`\`gpx:@Publish/Attachments/金牛道拦马墙到普安镇.gpx\`\`\`
+
+### KML 文件测试
+
+#### 2bulu 金牛道拦马墙到普安镇
+\`\`\`kml:@Publish/Attachments/金牛道拦马墙到普安镇.kml\`\`\`
+
+#### 东西佘山含地铁绿道
+\`\`\`kml:@Publish/Attachments/东西佘山含地铁绿道.kml\`\`\`
+
+#### 中西citywalk (复杂KML)
+\`\`\`kml:@Publish/Attachments/中西citywalk.kml\`\`\`
+
+> [!tip] 旅行小贴士  
 > 提前规划交通路线，考虑购买 JR Pass 节省费用。`;
     }
     
@@ -330,7 +355,7 @@ function hello() {
       // Create a combined list of all components to insert, sorted by position
       const allComponents: Array<{
         index: number;
-        type: 'mermaid' | 'gpx';
+        type: 'mermaid' | 'track';
         data: { id: string; code: string; placeholder: string };
       }> = [];
 
@@ -343,12 +368,12 @@ function hello() {
         }
       });
 
-      // Add GPX maps
-      gpxMaps.forEach((map) => {
-        const placeholder = `GPX_PLACEHOLDER_${map.id}`;
+      // Add track maps  
+      trackMaps.forEach((map) => {
+        const placeholder = `TRACK_PLACEHOLDER_${map.id}`;
         const index = currentHTML.indexOf(placeholder);
         if (index !== -1) {
-          allComponents.push({ index, type: 'gpx', data: map });
+          allComponents.push({ index, type: 'track', data: map });
         }
       });
 
@@ -360,7 +385,7 @@ function hello() {
         const { type, data } = component;
         const placeholder = type === 'mermaid' 
           ? `MERMAID_PLACEHOLDER_${data.id}` 
-          : `GPX_PLACEHOLDER_${data.id}`;
+          : `TRACK_PLACEHOLDER_${data.id}`;
         const placeholderIndex = currentHTML.indexOf(placeholder);
         
         if (placeholderIndex !== -1) {
@@ -386,10 +411,11 @@ function hello() {
             );
           } else {
             parts.push(
-              <GPXMap
+              <UnifiedTrackMapSimple
                 key={data.id}
                 code={data.code}
-                className="gpx-map"
+                isFile={data.isFile}
+                className="track-map"
               />
             );
           }

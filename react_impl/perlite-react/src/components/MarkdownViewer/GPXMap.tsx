@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 
 interface GPXMapProps {
   code: string;
+  isFile?: boolean;
   className?: string;
 }
 
@@ -29,7 +30,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-export function GPXMap({ code, className = '' }: GPXMapProps) {
+export function GPXMap({ code, isFile = false, className = '' }: GPXMapProps) {
   const [track, setTrack] = useState<GPXTrack | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +44,30 @@ export function GPXMap({ code, className = '' }: GPXMapProps) {
         setIsLoading(true);
         setError(null);
 
+        // Get GPX content - either directly or from file
+        let gpxContent = code;
+        
+        if (isFile) {
+          // Convert file path to accessible URL
+          // Handle @Publish/... paths and convert to relative URLs
+          let filePath = code;
+          if (filePath.startsWith('@Publish/')) {
+            filePath = filePath.replace('@Publish/', '/src/../../../Publish/');
+          }
+          
+          console.log('Loading GPX file from:', filePath);
+          
+          try {
+            const response = await fetch(filePath);
+            if (!response.ok) {
+              throw new Error(`Failed to load GPX file: ${response.statusText}`);
+            }
+            gpxContent = await response.text();
+          } catch (fetchError) {
+            throw new Error(`Could not load GPX file from ${filePath}: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+          }
+        }
+
         // Parse GPX content using gpx-parser-builder
         const parseMethod = gpxParser.parseGpx || gpxParser.parse || gpxParser;
         
@@ -50,7 +75,7 @@ export function GPXMap({ code, className = '' }: GPXMapProps) {
           throw new Error('GPX parser function not found');
         }
         
-        const gpx = parseMethod(code);
+        const gpx = parseMethod(gpxContent);
         
         if (!isMounted) return;
 

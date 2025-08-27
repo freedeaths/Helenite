@@ -350,3 +350,23 @@ body {
   background: var(--interactive-accent);
   color: var(--background-primary);
 }
+
+/* Hide only Leaflet logo, keep OSM attribution */
+.leaflet-control-attribution a[href*="leafletjs.com"] {
+  display: none !important;
+}
+
+/* Remove the separator before Leaflet link */
+.leaflet-control-attribution:after {
+  content: "";
+}
+
+/* Clean up any extra spacing or separators */
+.leaflet-control-attribution {
+  font-size: 11px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-muted) !important;
+  text-decoration: none !important;
+}
