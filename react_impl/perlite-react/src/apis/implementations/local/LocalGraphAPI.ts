@@ -34,7 +34,9 @@ export class LocalGraphAPI implements IGraphAPI {
           graphNodes.push({
             id: nodeID,
             label: node.fileName,
-            title: nodePath
+            title: nodePath,
+            path: node.relativePath,
+            group: 'file'
           });
           nodeID += 1;
 

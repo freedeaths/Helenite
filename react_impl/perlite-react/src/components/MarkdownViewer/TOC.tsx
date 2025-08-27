@@ -26,12 +26,12 @@ export function TOC() {
       if (scrollContainer === window) {
         window.scrollTo({
           top: elementTop - headerHeight,
-          behavior: 'instant' // 可以改为: 'smooth' (慢) | 'auto' (中等) | 'instant' (快)
+          behavior: 'smooth' // 可以改为: 'smooth' (慢) | 'auto' (中等) | 'instant' (快)
         });
       } else {
         scrollContainer.scrollTo({
           top: elementTop - headerHeight,
-          behavior: 'instant' // 可以改为: 'smooth' (慢) | 'auto' (中等) | 'instant' (快)
+          behavior: 'smooth' // 可以改为: 'smooth' (慢) | 'auto' (中等) | 'instant' (快)
         });
       }
     }

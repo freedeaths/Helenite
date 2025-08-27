@@ -53,10 +53,13 @@ export function LeftRibbon() {
       icon: IconNetwork,
       label: 'Graph View',
       onClick: () => {
+        console.log('🔄 Graph button clicked, current view:', mainContentView);
         // Toggle between graph view and file view
         if (mainContentView === 'globalGraph') {
+          console.log('🔄 Switching to file view');
           setMainContentView('file');
         } else {
+          console.log('🔄 Switching to globalGraph view');
           setMainContentView('globalGraph');
         }
       }

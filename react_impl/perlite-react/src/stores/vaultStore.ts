@@ -5,6 +5,7 @@ interface VaultState {
   // File system state
   files: FileTree[];
   activeFile: string | null;
+  activeAnchor: string | null;
   metadata: Record<string, FileMetadata>;
   
   // Current document metadata (from markdown processor)
@@ -28,7 +29,8 @@ interface VaultState {
   error: string | null;
   
   // Actions
-  setActiveFile: (path: string | null) => void;
+  setActiveFile: (path: string | null, anchor?: string | null) => void;
+  setActiveAnchor: (anchor: string | null) => void;
   setFiles: (files: FileTree[]) => void;
   setMetadata: (metadata: Record<string, FileMetadata>) => void;
   setCurrentDocumentMetadata: (metadata: {
@@ -48,6 +50,7 @@ export const useVaultStore = create<VaultState>((set) => ({
   // Initial state
   files: [],
   activeFile: null,
+  activeAnchor: null,
   metadata: {},
   currentDocumentMetadata: null,
   searchQuery: '',
@@ -59,7 +62,8 @@ export const useVaultStore = create<VaultState>((set) => ({
   error: null,
   
   // Actions
-  setActiveFile: (path) => set({ activeFile: path }),
+  setActiveFile: (path, anchor) => set({ activeFile: path, activeAnchor: anchor || null }),
+  setActiveAnchor: (anchor) => set({ activeAnchor: anchor }),
   setFiles: (files) => set({ files }),
   setMetadata: (metadata) => set({ metadata }),
   setCurrentDocumentMetadata: (metadata) => set({ currentDocumentMetadata: metadata }),

@@ -13,6 +13,8 @@ import remarkRehype from 'remark-rehype';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeStringify from 'rehype-stringify';
+import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
+import { createFileIndex } from '../utils/obsidianLinkUtils';
 import { visit } from 'unist-util-visit';
 import type { Root as MdastRoot, Node as MdastNode } from 'mdast';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
@@ -460,7 +462,7 @@ export class MarkdownProcessor {
     
     // Add Obsidian-specific plugins
     if (options.enableObsidianLinks) {
-      this.processor.use(remarkObsidianLinks);
+      this.processor.use(obsidianLinksPlugin());
     }
     
     if (options.enableObsidianTags) {
@@ -508,7 +510,11 @@ export class MarkdownProcessor {
   /**
    * Process markdown and extract metadata
    */
-  async processWithMetadata(markdown: string): Promise<{
+  async processWithMetadata(
+    markdown: string, 
+    currentFilePath?: string,
+    vaultFiles?: Array<{ path: string; name: string; type: string }>
+  ): Promise<{
     html: string;
     metadata: {
       headings: Array<{ level: number; text: string; id: string }>;
@@ -522,9 +528,50 @@ export class MarkdownProcessor {
     const { processedMarkdown: markdownAfterMermaid, mermaidDiagrams } = extractMermaidDiagrams(markdown);
     const { processedMarkdown, trackMaps } = extractTrackMaps(markdownAfterMermaid);
     
+    // Create file index for link resolution if vault files are provided
+    let fileIndex: Map<string, string> | undefined;
+    if (vaultFiles) {
+      fileIndex = createFileIndex(vaultFiles);
+      console.log(`🔗 Created file index with ${fileIndex.size} entries for link resolution`);
+      console.log('📁 All file index entries:', Array.from(fileIndex.entries()));
+      
+      // Look for specific files we're trying to link to
+      const searchKeys = ['Plans/夏之北海道', '夏之北海道', 'plans/夏之北海道', '/Trips/Plans/夏之北海道.md'];
+      searchKeys.forEach(key => {
+        const result = fileIndex.get(key.toLowerCase());
+        console.log(`🔍 Searching for "${key}":`, result);
+      });
+    }
+    
+    // Create a processor with current file context for link resolution
+    let processorWithContext = this.processor;
+    if (fileIndex && currentFilePath) {
+      console.log(`🔗 Using processor with context for file: ${currentFilePath}`);
+      processorWithContext = unified()
+        .use(remarkParse)
+        .use(remarkGfm)
+        .use(obsidianLinksPlugin({ 
+          fileIndex, 
+          currentFilePath,
+          baseUrl: '/vault/Publish'
+        }))
+        .use(remarkObsidianTags)
+        .use(remarkObsidianHighlights)
+        .use(remarkObsidianCallouts)
+        .use(remarkMath)
+        .use(remarkRehype)
+        .use(rehypeKatex)
+        .use(rehypeHighlight)
+        .use(rehypeStringify);
+    } else {
+      console.log('⚠️ Using default processor (no file index or current file path)');
+      console.log('fileIndex:', !!fileIndex, 'currentFilePath:', currentFilePath);
+    }
     
     // Then process the markdown with diagrams replaced by placeholders
-    const ast = this.processor.parse(processedMarkdown);
+    console.log('🔍 Processing markdown content:', processedMarkdown.substring(0, 200) + '...');
+    console.log('🔍 Looking for [[links]] in:', processedMarkdown.match(/\[\[[^\]]+\]\]/g) || 'No [[links]] found');
+    const ast = processorWithContext.parse(processedMarkdown);
     const metadata = {
       headings: [] as Array<{ level: number; text: string; id: string }>,
       links: [] as Array<{ href: string; text: string }>,
@@ -599,8 +646,8 @@ export class MarkdownProcessor {
     });
     
     // Second pass: generate HTML from the modified AST (which now has IDs)
-    const transformedAst = await this.processor.run(ast);
-    const html = this.processor.stringify(transformedAst);
+    const transformedAst = await processorWithContext.run(ast);
+    const html = processorWithContext.stringify(transformedAst);
     
     return { html, metadata, mermaidDiagrams, trackMaps };
   }

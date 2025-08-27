@@ -51,7 +51,7 @@ export function ViewHeader() {
         {/* File title */}
         <div className="flex-1 text-center">
           <span className="text-sm font-normal truncate">
-            {activeFile ? activeFile.replace(/^\//, '').replace(/\.md$/, '') : 'Welcome'}
+            {activeFile ? decodeURIComponent(activeFile).replace(/^\//, '').replace(/\.md$/, '') : 'Welcome'}
           </span>
         </div>
 

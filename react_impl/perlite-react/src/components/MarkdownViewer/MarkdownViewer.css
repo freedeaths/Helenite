@@ -181,16 +181,24 @@
   text-decoration: none;
 }
 
-.markdown-viewer .internal-link:before {
-  content: "[[";
-  color: var(--text-muted);
-  font-weight: normal;
+
+/* Invalid/unresolved links */
+.markdown-viewer .internal-link.invalid-link {
+  color: var(--text-error, var(--text-muted));
+  cursor: default;
 }
 
-.markdown-viewer .internal-link:after {
-  content: "]]";
-  color: var(--text-muted);
-  font-weight: normal;
+.markdown-viewer .internal-link.invalid-link:hover {
+  background-color: var(--background-modifier-error-hover, rgba(var(--color-red-rgb), 0.1));
+}
+
+/* Obsidian image embeds */
+.markdown-viewer .obsidian-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-s, 4px);
+  box-shadow: var(--shadow-s);
+  margin: 1rem 0;
 }
 
 /* Tags #tag */

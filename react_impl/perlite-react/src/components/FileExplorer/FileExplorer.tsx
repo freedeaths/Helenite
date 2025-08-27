@@ -3,6 +3,7 @@ import { IconSearch, IconX } from '@tabler/icons-react';
 import { TextInput, Box, Text, Center, Stack } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
+import { navigateToFile } from '../../utils/routeUtils';
 import { useFileTreeAPI } from '../../hooks/useAPIs';
 import { ModernFileTree } from './ModernFileTree';
 import type { FileTree } from '../../types/vault';
@@ -85,9 +86,8 @@ export function FileExplorer() {
   };
 
   const handleFileSelect = async (path: string) => {
-    // 设置活动文件并切换到文件视图
-    setActiveFile(path);
-    setMainContentView('file');
+    // 使用路由导航到文件
+    navigateToFile(path);
     console.log('Selected file:', path);
   };
 

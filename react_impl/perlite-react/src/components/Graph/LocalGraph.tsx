@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useGraphAPI } from '../../hooks/useAPIs';
 import { useVaultStore } from '../../stores/vaultStore';
+import { navigateToFile } from '../../utils/routeUtils';
 import type { GraphData, GraphNode, GraphEdge } from '../../apis/interfaces/IGraphAPI';
 
 interface D3Node extends GraphNode {
@@ -133,10 +134,7 @@ export function LocalGraph() {
       .data(nodes)
       .enter().append('g')
       .attr('class', 'node')
-      .call(d3.drag<SVGGElement, D3Node>()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended));
+      .style('cursor', 'pointer');
 
     // 添加节点圆圈
     node.append('circle')
@@ -157,6 +155,16 @@ export function LocalGraph() {
         // 当前文件节点边框更粗
         if (currentFileNode && d.id === currentFileNode.id) return 3;
         return 2;
+      })
+      .on('click', function(event: MouseEvent, d: D3Node) {
+        // 阻止事件冒泡
+        event.stopPropagation();
+        
+        // 只有文件节点（非标签节点）才能跳转，且不是当前文件
+        if (d.group !== 'tag' && d.path && (!currentFileNode || d.id !== currentFileNode.id)) {
+          console.log(`📊 Navigating to file from local graph: ${d.path}`);
+          navigateToFile(d.path);
+        }
       });
 
     // 添加节点标签
@@ -171,6 +179,12 @@ export function LocalGraph() {
     // 添加悬停提示
     node.append('title')
       .text((d: D3Node) => d.title || d.label);
+
+    // 添加拖拽功能到节点组（不会干扰圆圈的点击事件）
+    node.call(d3.drag<SVGGElement, D3Node>()
+      .on('start', dragstarted)
+      .on('drag', dragged)
+      .on('end', dragended));
 
     // 更新位置
     simulation.on('tick', () => {

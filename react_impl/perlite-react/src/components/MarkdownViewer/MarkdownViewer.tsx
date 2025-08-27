@@ -4,13 +4,36 @@ import { markdownProcessor } from '../../services/markdownProcessor';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { MermaidDiagram } from './MermaidDiagram';
 import { UnifiedTrackMapSimple } from './UnifiedTrackMapSimple';
+import type { FileTree } from '../../types/vault';
 
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github.css';
 import './MarkdownViewer.css';
 
+// Helper function to flatten the file tree for link resolution
+function flattenFileTree(files: FileTree[]): Array<{ path: string; name: string; type: string }> {
+  const result: Array<{ path: string; name: string; type: string }> = [];
+  
+  function traverse(nodes: FileTree[]) {
+    for (const node of nodes) {
+      result.push({
+        path: node.path,
+        name: node.name,
+        type: node.type
+      });
+      
+      if (node.children) {
+        traverse(node.children);
+      }
+    }
+  }
+  
+  traverse(files);
+  return result;
+}
+
 export function MarkdownViewer() {
-  const { activeFile, setCurrentDocumentMetadata } = useVaultStore();
+  const { activeFile, files, setCurrentDocumentMetadata } = useVaultStore();
   const fileAPI = useFileAPI();
   const [content, setContent] = useState<string>('');
   const [renderedContent, setRenderedContent] = useState<string>('');
@@ -25,14 +48,24 @@ export function MarkdownViewer() {
       setError(null);
       setLoading(true);
       
+      // Decode URL-encoded file path before loading
+      const decodedPath = decodeURIComponent(activeFile);
+      console.log('Loading file:', { original: activeFile, decoded: decodedPath });
+      
       // Load real file content using FileAPI
-      fileAPI.getFileContent(activeFile)
+      fileAPI.getFileContent(decodedPath)
         .then((realContent) => {
           setContent(realContent);
           console.log(`📄 Loaded real content for ${activeFile}: ${realContent.length} chars`);
           
           // Process markdown content with our comprehensive processor
-          return markdownProcessor.processWithMetadata(realContent);
+          // Pass current file path and vault files for Obsidian link resolution
+          const flattenedFiles = flattenFileTree(files);
+          return markdownProcessor.processWithMetadata(
+            realContent,
+            decodedPath, // current file path for relative link resolution
+            flattenedFiles // flattened vault file structure for link indexing
+          );
         })
         .then((result) => {
           setRenderedContent(result.html);
@@ -58,7 +91,7 @@ export function MarkdownViewer() {
       setMermaidDiagrams([]);
       setTrackMaps([]);
     }
-  }, [activeFile, fileAPI]);
+  }, [activeFile, fileAPI, files]);
 
 
   const renderContent = () => {
@@ -178,6 +211,12 @@ export function MarkdownViewer() {
 
       return (
         <div className="markdown-viewer" ref={contentRef}>
+          {/* File name as document title */}
+          {activeFile && (
+            <h1 className="text-2xl font-bold mb-6 text-[var(--text-normal)] border-b border-[var(--background-modifier-border)] pb-4">
+              {decodeURIComponent(activeFile).split('/').pop()?.replace('.md', '') || 'Document'}
+            </h1>
+          )}
           {parts}
         </div>
       );
@@ -186,6 +225,12 @@ export function MarkdownViewer() {
     // Fallback for no rendered content
     return (
       <div className="markdown-viewer">
+        {/* File name as document title */}
+        {activeFile && (
+          <h1 className="text-2xl font-bold mb-6 text-[var(--text-normal)] border-b border-[var(--background-modifier-border)] pb-4">
+            {decodeURIComponent(activeFile).split('/').pop()?.replace('.md', '') || 'Document'}
+          </h1>
+        )}
         <pre className="whitespace-pre-wrap font-sans text-[var(--text-normal)] bg-transparent border-none p-0">
           {content}
         </pre>
