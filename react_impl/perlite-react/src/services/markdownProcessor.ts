@@ -531,7 +531,10 @@ export class MarkdownProcessor {
       tags: [] as string[]
     };
     
-    // Extract metadata from AST
+    // Extract metadata from AST and add IDs to headings
+    const usedIds = new Set<string>();
+    let headingIndex = 0;
+    
     visit(ast, (node: any) => {
       if (node.type === 'heading') {
         const text = node.children
@@ -539,10 +542,41 @@ export class MarkdownProcessor {
           .map((child: any) => child.value)
           .join('');
         
+        // Generate a more robust ID that preserves unicode characters
+        let baseId = text.toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\u4e00-\u9fff\-]/g, '') // Keep Chinese characters
+          .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+          
+        // Ensure ID is unique by adding a suffix if needed
+        let id = baseId;
+        let counter = 1;
+        while (usedIds.has(id)) {
+          id = `${baseId}-${counter}`;
+          counter++;
+        }
+        
+        // If ID is empty (e.g. all special characters), use fallback
+        if (!id) {
+          id = `heading-${headingIndex}`;
+        }
+        
+        usedIds.add(id);
+        headingIndex++;
+        
+        // Add ID to the heading node for HTML rendering
+        if (!node.data) {
+          node.data = {};
+        }
+        if (!node.data.hProperties) {
+          node.data.hProperties = {};
+        }
+        node.data.hProperties.id = id;
+        
         metadata.headings.push({
           level: node.depth,
           text,
-          id: text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]/g, '')
+          id
         });
       }
       
@@ -564,8 +598,9 @@ export class MarkdownProcessor {
       }
     });
     
-    // Second pass: generate HTML using processedMarkdown (with placeholders)
-    const html = await this.processToHTML(processedMarkdown);
+    // Second pass: generate HTML from the modified AST (which now has IDs)
+    const transformedAst = await this.processor.run(ast);
+    const html = this.processor.stringify(transformedAst);
     
     return { html, metadata, mermaidDiagrams, trackMaps };
   }

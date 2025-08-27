@@ -24,10 +24,17 @@ export function MobileDropdownMenu() {
   useEffect(() => {
     if (mobileDropdownOpen) {
       setIsVisible(true);
-      setTimeout(() => setIsAnimating(true), 10);
+      // Use requestAnimationFrame for more reliable rendering timing
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
     } else {
       setIsAnimating(false);
-      setTimeout(() => setIsVisible(false), 200); // Match animation duration
+      // Use transitionend event instead of setTimeout for more reliable cleanup
+      const cleanup = setTimeout(() => setIsVisible(false), 250); // Slightly longer timeout
+      return () => clearTimeout(cleanup);
     }
   }, [mobileDropdownOpen]);
 

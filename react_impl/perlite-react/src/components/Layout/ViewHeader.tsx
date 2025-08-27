@@ -19,7 +19,7 @@ export function ViewHeader() {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] h-10 z-[60]" style={{ padding: '0 0.75rem' }}>
+      <div className="flex items-center justify-between border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] h-10" style={{ padding: '0 0.75rem' }}>
         {/* Left actions */}
         <div className="flex items-center space-x-2">
           {/* Desktop sidebar toggle */}

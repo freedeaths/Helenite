@@ -3,14 +3,15 @@ import { IconSearch, IconX } from '@tabler/icons-react';
 import { TextInput, Box, Text, Center, Stack } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
-import { FileService } from '../../services/fileService';
+import { useFileTreeAPI } from '../../hooks/useAPIs';
 import { ModernFileTree } from './ModernFileTree';
 import type { FileTree } from '../../types/vault';
 
 
 export function FileExplorer() {
-  const { files, activeFile, setActiveFile, setFiles, setLoading, setError } = useVaultStore();
+  const { files, activeFile, setActiveFile, setFiles, setMetadata, setLoading, setError } = useVaultStore();
   const { setMainContentView } = useUIStore();
+  const fileTreeAPI = useFileTreeAPI();
   const [initialized, setInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -25,14 +26,62 @@ export function FileExplorer() {
     try {
       setLoading(true);
       setError(null);
-      const fileStructure = await FileService.loadVaultStructure();
+      
+      // 使用真实的 FileTreeAPI 加载文件树
+      const fileStructure = await fileTreeAPI.getFileTree();
       setFiles(fileStructure);
+      
+      // 同时加载并存储 metadata 到 vaultStore
+      const metadataArray = await loadMetadata();
+      if (metadataArray) {
+        const metadataMap = buildMetadataMap(metadataArray);
+        setMetadata(metadataMap);
+        console.log('Loaded metadata for tags:', Object.keys(metadataMap).length, 'files');
+      }
+      
     } catch (error) {
       console.error('Failed to load files:', error);
       setError(error instanceof Error ? error.message : '加载文件失败');
     } finally {
       setLoading(false);
     }
+  };
+
+  // 加载 metadata.json
+  const loadMetadata = async () => {
+    try {
+      const response = await fetch('/vault/Publish/metadata.json');
+      if (!response.ok) {
+        console.warn('Metadata file not found');
+        return null;
+      }
+      return await response.json();
+    } catch (error) {
+      console.warn('Failed to load metadata:', error);
+      return null;
+    }
+  };
+
+  // 将 metadata 数组转换为 path -> FileMetadata 的映射
+  const buildMetadataMap = (metadataArray: any[]) => {
+    const metadataMap: Record<string, any> = {};
+    
+    metadataArray.forEach(item => {
+      if (item.relativePath) {
+        const normalizedPath = `/${item.relativePath}`;
+        metadataMap[normalizedPath] = {
+          title: item.fileName,
+          tags: item.tags || [],
+          aliases: item.aliases || [],
+          frontmatter: item.frontmatter || {},
+          headings: item.headings || [],
+          links: item.links || [],
+          backlinks: item.backlinks || []
+        };
+      }
+    });
+    
+    return metadataMap;
   };
 
   const handleFileSelect = async (path: string) => {

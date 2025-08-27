@@ -7,6 +7,13 @@ interface VaultState {
   activeFile: string | null;
   metadata: Record<string, FileMetadata>;
   
+  // Current document metadata (from markdown processor)
+  currentDocumentMetadata: {
+    headings: Array<{ level: number; text: string; id: string }>;
+    links: Array<{ href: string; text: string }>;
+    tags: string[];
+  } | null;
+  
   // Search state
   searchQuery: string;
   searchResults: SearchResult[];
@@ -24,6 +31,11 @@ interface VaultState {
   setActiveFile: (path: string | null) => void;
   setFiles: (files: FileTree[]) => void;
   setMetadata: (metadata: Record<string, FileMetadata>) => void;
+  setCurrentDocumentMetadata: (metadata: {
+    headings: Array<{ level: number; text: string; id: string }>;
+    links: Array<{ href: string; text: string }>;
+    tags: string[];
+  } | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchResults: (results: SearchResult[]) => void;
   setSearching: (searching: boolean) => void;
@@ -37,6 +49,7 @@ export const useVaultStore = create<VaultState>((set) => ({
   files: [],
   activeFile: null,
   metadata: {},
+  currentDocumentMetadata: null,
   searchQuery: '',
   searchResults: [],
   isSearching: false,
@@ -49,6 +62,7 @@ export const useVaultStore = create<VaultState>((set) => ({
   setActiveFile: (path) => set({ activeFile: path }),
   setFiles: (files) => set({ files }),
   setMetadata: (metadata) => set({ metadata }),
+  setCurrentDocumentMetadata: (metadata) => set({ currentDocumentMetadata: metadata }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSearchResults: (results) => set({ searchResults: results }),
   setSearching: (searching) => set({ isSearching: searching }),

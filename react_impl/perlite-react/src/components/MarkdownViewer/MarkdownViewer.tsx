@@ -10,17 +10,12 @@ import 'highlight.js/styles/github.css';
 import './MarkdownViewer.css';
 
 export function MarkdownViewer() {
-  const { activeFile } = useVaultStore();
+  const { activeFile, setCurrentDocumentMetadata } = useVaultStore();
   const fileAPI = useFileAPI();
   const [content, setContent] = useState<string>('');
   const [renderedContent, setRenderedContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, setMetadata] = useState<{
-    headings: Array<{ level: number; text: string; id: string }>;
-    links: Array<{ href: string; text: string }>;
-    tags: string[];
-  }>({ headings: [], links: [], tags: [] });
   const [mermaidDiagrams, setMermaidDiagrams] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
   const [trackMaps, setTrackMaps] = useState<Array<{ id: string; code: string; placeholder: string; isFile?: boolean }>>([]);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -41,7 +36,7 @@ export function MarkdownViewer() {
         })
         .then((result) => {
           setRenderedContent(result.html);
-          setMetadata(result.metadata);
+          setCurrentDocumentMetadata(result.metadata); // Store in global state for TOC
           setMermaidDiagrams(result.mermaidDiagrams);
           setTrackMaps(result.trackMaps);
           console.log('Processed markdown metadata:', result.metadata);
@@ -59,7 +54,7 @@ export function MarkdownViewer() {
       setContent('');
       setRenderedContent('');
       setError(null);
-      setMetadata({ headings: [], links: [], tags: [] });
+      setCurrentDocumentMetadata(null); // Clear metadata when no file
       setMermaidDiagrams([]);
       setTrackMaps([]);
     }
