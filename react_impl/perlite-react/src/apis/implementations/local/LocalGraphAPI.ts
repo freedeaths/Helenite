@@ -81,7 +81,7 @@ export class LocalGraphAPI implements IGraphAPI {
         const nodePath = this.removeExtension(node.relativePath);
         
         if (this.checkNodeExists(nodePath, metadata)) {
-          // Process links for this node
+          // Process outbound links (当前文件引用的其他文件)
           if (node.links && node.links.length > 0) {
             for (const link of node.links) {
               // 过滤掉 Attachments 目录下的文件链接
@@ -93,6 +93,46 @@ export class LocalGraphAPI implements IGraphAPI {
               const target = this.removeExtension(link.relativePath);
 
               if (source && target && this.checkNodeExists(target, metadata)) {
+                // Find source and target node IDs
+                let sourceId = -1;
+                let targetId = -1;
+
+                for (const graphNode of graphNodes) {
+                  if (graphNode.title === source) {
+                    sourceId = graphNode.id;
+                  }
+                  if (graphNode.title === target) {
+                    targetId = graphNode.id;
+                  }
+                }
+
+                // Check if edge already exists (双向检查)
+                if (sourceId !== -1 && targetId !== -1) {
+                  const edgeExists = graphEdges.some(edge => 
+                    (edge.from === sourceId && edge.to === targetId) ||
+                    (edge.from === targetId && edge.to === sourceId)
+                  );
+
+                  if (!edgeExists) {
+                    graphEdges.push({ from: sourceId, to: targetId });
+                  }
+                }
+              }
+            }
+          }
+
+          // Process backlinks (引用当前文件的其他文件)
+          if (node.backlinks && node.backlinks.length > 0) {
+            for (const backlink of node.backlinks) {
+              // 过滤掉 Attachments 目录下的文件链接
+              if (backlink.relativePath.includes('Attachments/')) {
+                continue;
+              }
+              
+              const target = nodePath;  // 当前文件作为目标
+              const source = this.removeExtension(backlink.relativePath);  // 引用方作为源
+
+              if (source && target && this.checkNodeExists(source, metadata)) {
                 // Find source and target node IDs
                 let sourceId = -1;
                 let targetId = -1;
@@ -147,20 +187,22 @@ export class LocalGraphAPI implements IGraphAPI {
   async getLocalGraph(filePath: string, depth: number = 1): Promise<GraphData> {
     const globalGraph = await this.getGlobalGraph();
     
-    // 标准化文件路径用于匹配
-    const normalizedPath = this.removeExtension(filePath);
+    // 解码 URL 编码的文件路径
+    const decodedFilePath = decodeURIComponent(filePath);
+    const normalizedPath = this.removeExtension(decodedFilePath);
     const fileName = normalizedPath.split('/').pop() || normalizedPath;
     
-    console.log('🔍 Looking for node with path:', normalizedPath, 'or fileName:', fileName);
+    console.log('🔍 Looking for node with decoded path:', normalizedPath, 'or fileName:', fileName);
+    console.log('🔍 Original path:', filePath, '-> decoded:', decodedFilePath);
     console.log('🔍 Available nodes:', globalGraph.nodes.map(n => ({ id: n.id, label: n.label, title: n.title })));
     
-    // Find the center node - try multiple matching strategies
+    // Find the center node - try multiple matching strategies with decoded paths
     const centerNode = globalGraph.nodes.find(node => 
       node.title === normalizedPath ||           // 完整路径匹配
       node.title === fileName ||                 // 文件名匹配
       node.label === fileName ||                 // 标签匹配
-      node.title === filePath ||                 // 原始路径匹配
-      node.title === this.removeExtension(filePath)
+      node.title === decodedFilePath ||          // 解码后的原始路径匹配
+      node.title === this.removeExtension(decodedFilePath) // 解码后去扩展名匹配
     );
     
     if (!centerNode) {

@@ -84,10 +84,31 @@ export function LocalGraph() {
     }));
     
     // 找到当前文件对应的节点（应该是中心节点）
-    const currentFileNode = activeFile ? nodes.find(node => 
-      node.title === activeFile.replace('.md', '') || 
-      node.title === activeFile
-    ) : null;
+    const currentFileNode = activeFile ? nodes.find(node => {
+      // 解码 activeFile 以便与节点 title 进行匹配
+      const decodedActiveFile = decodeURIComponent(activeFile);
+      const decodedFileName = decodedActiveFile.replace('.md', '');
+      
+      // 去除前导斜杠进行匹配
+      const normalizedDecodedFileName = decodedFileName.startsWith('/') ? decodedFileName.slice(1) : decodedFileName;
+      const normalizedActiveFile = activeFile.startsWith('/') ? activeFile.slice(1) : activeFile;
+      
+      console.log('🔍 Looking for current file node:', {
+        activeFile,
+        decodedActiveFile,
+        decodedFileName,
+        normalizedDecodedFileName,
+        nodeTitle: node.title,
+        match: node.title === normalizedDecodedFileName || node.title === decodedFileName || node.title === decodedActiveFile
+      });
+      
+      return node.title === normalizedDecodedFileName ||  // 主要匹配逻辑
+             node.title === decodedFileName || 
+             node.title === decodedActiveFile ||
+             node.title === normalizedActiveFile.replace('.md', '') ||
+             node.title === activeFile.replace('.md', '') || 
+             node.title === activeFile;
+    }) : null;
 
     // 如果有当前文件节点，将其固定在中心
     if (currentFileNode) {
@@ -95,15 +116,19 @@ export function LocalGraph() {
       currentFileNode.fy = height / 2;
     }
     
-    // 创建力仿真
+    // 创建力仿真 - 根据节点数量调整参数
+    const nodeCount = nodes.length;
+    const linkDistance = nodeCount <= 3 ? 200 : 80;  // 节点少时增加距离
+    const chargeStrength = nodeCount <= 3 ? -1200 : -400;  // 节点少时增加排斥力
+    
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(80).strength(0.8))
-      .force('charge', d3.forceManyBody().strength(-400))
+      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(linkDistance).strength(0.6))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: any) => {
-        if (d.group === 'tag') return 15;
-        if (currentFileNode && d.id === currentFileNode.id) return 30;
-        return 20;
+        if (d.group === 'tag') return 20;  // 增加碰撞半径
+        if (currentFileNode && d.id === currentFileNode.id) return 40;  // 当前节点更大的碰撞半径
+        return 25;  // 其他节点也增加碰撞半径
       }));
 
     // 创建连线
@@ -141,20 +166,37 @@ export function LocalGraph() {
       .attr('r', (d: D3Node) => {
         if (d.group === 'tag') return 8;
         // 当前文件节点更大
-        if (currentFileNode && d.id === currentFileNode.id) return 20;
+        if (currentFileNode && d.id === currentFileNode.id) return 15;
         return 12;
       })
       .attr('fill', (d: D3Node) => {
-        if (d.group === 'tag') return 'var(--color-accent)';
-        // 当前文件节点使用特殊颜色
-        if (currentFileNode && d.id === currentFileNode.id) return 'var(--color-orange)';
+        if (d.group === 'tag') return '#dc2626';
+        
+        // 当前文件节点 - 使用蓝色（红绿色盲友好）
+        if (currentFileNode && d.id === currentFileNode.id) {
+          return '#2563eb'; // 蓝色
+        }
+        
+        // 区分引用和被引用的节点
+        if (currentFileNode) {
+          // 检查是否是当前文件引用的节点（outbound）
+          const isOutboundRef = graphData.edges.some(edge => 
+            edge.from === currentFileNode.id && edge.to === d.id
+          );
+          
+          // 检查是否是引用当前文件的节点（inbound）
+          const isInboundRef = graphData.edges.some(edge => 
+            edge.from === d.id && edge.to === currentFileNode.id
+          );
+          
+          if (isOutboundRef) {
+            return '#f59e0b'; // 橙色 - 当前文件引用的其他文件
+          } else if (isInboundRef) {
+            return '#8b5cf6'; // 紫色 - 引用当前文件的其他文件
+          }
+        }
+        
         return 'var(--interactive-accent)';
-      })
-      .attr('stroke', 'var(--background-primary)')
-      .attr('stroke-width', (d: D3Node) => {
-        // 当前文件节点边框更粗
-        if (currentFileNode && d.id === currentFileNode.id) return 3;
-        return 2;
       })
       .on('click', function(event: MouseEvent, d: D3Node) {
         // 阻止事件冒泡
@@ -290,12 +332,69 @@ export function LocalGraph() {
   return (
     <div className="h-full p-4">
       <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-        Local Graph
+        直接关系图
       </div>
       
       {graphData && (
-        <div className="text-xs text-[var(--text-muted)] mb-2">
-          {graphData.nodes.length} 个节点, {graphData.edges.length} 条连接
+        <div className="text-xs text-[var(--text-muted)] mb-2 space-y-2">
+          {/* <div>{graphData.nodes.length} 个节点, {graphData.edges.length} 条连接</div> */}
+          <div>
+            {/* <div className="mb-1 font-medium">图例：</div> */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div 
+                  style={{ 
+                    width: '14px', 
+                    height: '14px', 
+                    borderRadius: '50%', 
+                    backgroundColor: '#2563eb',
+                    border: '1px solid #ccc',
+                    flexShrink: 0
+                  }}
+                ></div>
+                <span>当前文件</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div 
+                  style={{ 
+                    width: '12px', 
+                    height: '12px', 
+                    borderRadius: '50%', 
+                    backgroundColor: '#f59e0b',
+                    border: '1px solid #ccc',
+                    flexShrink: 0
+                  }}
+                ></div>
+                <span>引用文件</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div 
+                  style={{ 
+                    width: '12px', 
+                    height: '12px', 
+                    borderRadius: '50%', 
+                    backgroundColor: '#8b5cf6',
+                    border: '1px solid #ccc',
+                    flexShrink: 0
+                  }}
+                ></div>
+                <span>被引用文件</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div 
+                  style={{ 
+                    width: '8px', 
+                    height: '8px', 
+                    borderRadius: '50%', 
+                    backgroundColor: '#dc2626',
+                    border: '1px solid #ccc',
+                    flexShrink: 0
+                  }}
+                ></div>
+                <span>标签</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       

@@ -123,7 +123,7 @@ export function GlobalGraph() {
         return Math.min(20, Math.max(8, connectionCount * 3));
       })
       .attr('fill', (d: D3Node) => {
-        if (d.group === 'tag') return 'var(--color-accent)';
+        if (d.group === 'tag') return '#dc2626';
         return 'var(--interactive-accent)';
       })
       .attr('stroke', 'var(--background-primary)')
