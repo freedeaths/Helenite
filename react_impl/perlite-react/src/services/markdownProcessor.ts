@@ -16,7 +16,6 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeStringify from 'rehype-stringify';
 import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
-import { createFileIndex } from '../utils/obsidianLinkUtils';
 import { visit } from 'unist-util-visit';
 import type { Root as MdastRoot, Node as MdastNode } from 'mdast';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
@@ -569,9 +568,11 @@ export class MarkdownProcessor {
     // Convert to HTML - allow dangerous HTML to preserve custom elements
     this.processor.use(remarkRehype, { allowDangerousHtml: true });
     
-    // Add heading IDs and autolinks - MUST be before other HTML plugins  
+    // Add heading IDs but disable autolinks to prevent clickable titles
+    // TOC functionality does not depend on rehypeAutolinkHeadings since it uses document.getElementById()
     this.processor.use(rehypeSlug);
-    this.processor.use(rehypeAutolinkHeadings, { behavior: 'wrap' });
+    // Commented out to fix issue where all headings become clickable links
+    // this.processor.use(rehypeAutolinkHeadings, { behavior: 'wrap' });
     
     // Add HTML plugins
     if (options.enableMath) {
@@ -603,8 +604,7 @@ export class MarkdownProcessor {
    */
   async processWithMetadata(
     markdown: string, 
-    currentFilePath?: string,
-    vaultFiles?: Array<{ path: string; name: string; type: string }>
+    currentFilePath?: string
   ): Promise<{
     html: string;
     metadata: {
@@ -619,48 +619,26 @@ export class MarkdownProcessor {
     const { processedMarkdown: markdownAfterMermaid, mermaidDiagrams } = extractMermaidDiagrams(markdown);
     const { processedMarkdown, trackMaps: initialTrackMaps } = extractTrackMaps(markdownAfterMermaid);
     
-    // Create file index for link resolution if vault files are provided
-    let fileIndex: Map<string, string> | undefined;
-    if (vaultFiles) {
-      fileIndex = createFileIndex(vaultFiles);
-      console.log(`🔗 Created file index with ${fileIndex.size} entries for link resolution`);
-      console.log('📁 All file index entries:', Array.from(fileIndex.entries()));
-      
-      // Look for specific files we're trying to link to
-      const searchKeys = ['Plans/夏之北海道', '夏之北海道', 'plans/夏之北海道', '/Trips/Plans/夏之北海道.md'];
-      searchKeys.forEach(key => {
-        const result = fileIndex.get(key.toLowerCase());
-        console.log(`🔍 Searching for "${key}":`, result);
-      });
-    }
-    
-    // Create a processor with current file context for link resolution
-    let processorWithContext = this.processor;
-    if (fileIndex && currentFilePath) {
-      console.log(`🔗 Using processor with context for file: ${currentFilePath}`);
-      processorWithContext = unified()
-        .use(remarkParse)
-        .use(remarkGfm)
-        .use(obsidianLinksPlugin({ 
-          fileIndex, 
-          currentFilePath,
-          baseUrl: '/vault/Publish'
-        }))
-        .use(remarkObsidianTags)
-        .use(remarkObsidianHighlights)
-        .use(remarkObsidianCallouts)
-        .use(remarkMath)
-        .use(remarkRehype, { allowDangerousHtml: true })
-        .use(rehypeSlug) // 自动为所有标题生成ID
-        .use(rehypeAutolinkHeadings, { behavior: 'wrap' }) // 添加链接到标题
-        .use(rehypeKatex)
-        .use(wrapTablesPlugin)
-        .use(rehypeHighlight)
-        .use(rehypeStringify, { allowDangerousHtml: true });
-    } else {
-      console.log('⚠️ Using default processor (no file index or current file path)');
-      console.log('fileIndex:', !!fileIndex, 'currentFilePath:', currentFilePath);
-    }
+    // Create a simplified processor that doesn't require file index
+    console.log(`🔗 Using simplified processor with current file path: ${currentFilePath}`);
+    const processorWithContext = unified()
+      .use(remarkParse)
+      .use(remarkGfm)
+      .use(obsidianLinksPlugin({ 
+        baseUrl: '/vault/Publish',
+        currentFilePath
+      }))
+      .use(remarkObsidianTags)
+      .use(remarkObsidianHighlights)
+      .use(remarkObsidianCallouts)
+      .use(remarkMath)
+      .use(remarkRehype, { allowDangerousHtml: true })
+      .use(rehypeSlug) // 自动为所有标题生成ID
+      // .use(rehypeAutolinkHeadings, { behavior: 'wrap' }) // 禁用以避免标题变成链接
+      .use(rehypeKatex)
+      .use(wrapTablesPlugin)
+      .use(rehypeHighlight)
+      .use(rehypeStringify, { allowDangerousHtml: true });
     
     // Then process the markdown with diagrams replaced by placeholders
     console.log('🔍 Processing markdown content:', processedMarkdown.substring(0, 200) + '...');

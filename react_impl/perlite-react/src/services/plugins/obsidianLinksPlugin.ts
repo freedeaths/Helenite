@@ -5,13 +5,12 @@
 
 import { visit } from 'unist-util-visit';
 import type { Root, Text } from 'mdast';
-import { parseObsidianLink, createFileIndex, findFilePath } from '../../utils/obsidianLinkUtils';
+import { parseObsidianLink } from '../../utils/obsidianLinkUtils';
 import { navigateToFile } from '../../utils/routeUtils';
 
 interface ObsidianLinksPluginOptions {
-  fileIndex?: Map<string, string>;
-  currentFilePath?: string;
   baseUrl?: string;
+  currentFilePath?: string;
 }
 
 /**
@@ -112,22 +111,16 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 }
 
 /**
- * 根据解析结果创建对应的 AST 节点
+ * 根据解析结果创建对应的 AST 节点（简化版本，不依赖文件树索引）
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
-  const { fileIndex, currentFilePath, baseUrl = '/vault' } = options;
+  const { baseUrl = '/vault/Publish', currentFilePath } = options;
   
-  console.log(`🔍 Creating link node for:`, parsedLink);
-  console.log(`🔍 Options:`, { hasFileIndex: !!fileIndex, currentFilePath, baseUrl });
+  console.log(`🔗 Creating link node for:`, parsedLink);
   
-  // 解析文件路径
-  let resolvedPath: string | null = null;
-  
-  if (fileIndex && parsedLink.filePath) {
-    const currentDir = currentFilePath ? currentFilePath.substring(0, currentFilePath.lastIndexOf('/')) : '';
-    resolvedPath = findFilePath(parsedLink.filePath, fileIndex, currentDir);
-    console.log(`🔍 Resolved path for "${parsedLink.filePath}":`, resolvedPath);
-  }
+  // 简化路径解析：直接构造路径而不依赖文件树，支持相对路径
+  const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath);
+  console.log(`🔗 Constructed path for "${parsedLink.filePath}" from "${currentFilePath}":`, resolvedPath);
 
   let result;
   switch (parsedLink.type) {
@@ -156,64 +149,88 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       };
   }
   
-  console.log(`🔍 Final link node:`, result);
+  console.log(`🔗 Final link node:`, result);
   return result;
 }
 
 /**
- * 创建文件链接节点
+ * 简化的路径构造函数
+ * 直接根据 Obsidian 链接路径构造文件路径，支持相对路径解析
  */
-function createFileLink(parsedLink: any, resolvedPath: string | null) {
+function constructDirectPath(linkPath: string, currentFilePath?: string): string {
+  let filePath = linkPath.trim();
+  
+  // 处理相对路径解析
+  if (currentFilePath) {
+    // 获取当前文件的目录
+    const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
+    
+    if (filePath.startsWith('../')) {
+      // 上级目录：从当前目录上移一级
+      const parentDir = currentDir.substring(0, currentDir.lastIndexOf('/'));
+      const relativePart = filePath.substring(3); // 去掉 '../'
+      filePath = parentDir ? `${parentDir}/${relativePart}` : `/${relativePart}`;
+    } else if (filePath.startsWith('./')) {
+      // 当前目录：保持在同一级
+      const relativePart = filePath.substring(2); // 去掉 './'
+      filePath = `${currentDir}/${relativePart}`;
+    } else if (!filePath.startsWith('/')) {
+      // 相对路径（没有 ./ 前缀）：相对于当前文件所在目录
+      // 例如：从 /Trips/Visited-Places.md 链接到 Plans/夏之北海道 应该解析为 /Trips/Plans/夏之北海道.md
+      filePath = `${currentDir}/${filePath}`;
+    }
+  }
+  
+  // 如果没有扩展名，添加 .md
+  if (!filePath.includes('.') || !filePath.match(/\.[a-zA-Z0-9]+$/)) {
+    filePath = `${filePath}.md`;
+  }
+  
+  // 确保路径以 / 开头
+  if (!filePath.startsWith('/')) {
+    filePath = `/${filePath}`;
+  }
+  
+  return filePath;
+}
+
+/**
+ * 创建文件链接节点（简化版本）
+ */
+function createFileLink(parsedLink: any, resolvedPath: string) {
   const displayText = parsedLink.displayText || 
     parsedLink.filePath.split('/').pop()?.replace(/\.md$/, '') ||
     parsedLink.filePath;
 
   console.log(`📁 Creating file link: "${parsedLink.filePath}" → "${resolvedPath}" (display: "${displayText}")`);
 
-  if (resolvedPath) {
-    // 创建可点击的内部链接
-    const linkNode = {
-      type: 'link',
-      url: `#${resolvedPath}`, // 使用 hash 路由
-      data: {
-        hProperties: {
-          className: ['internal-link'],
-          'data-file-path': resolvedPath,
-          onClick: `window.navigateToFile('${resolvedPath}')`
-        }
-      },
-      children: [{
-        type: 'text',
-        value: displayText
-      }]
-    };
-    console.log(`✅ Created valid internal link:`, linkNode);
-    return linkNode;
-  } else {
-    // 创建无效链接（灰色显示）
-    const invalidNode = {
+  // 总是创建可点击的内部链接（简化版本不验证文件存在性）
+  const linkNode = {
+    type: 'link',
+    url: `#${resolvedPath}`, // 使用 hash 路由
+    data: {
+      hProperties: {
+        className: ['internal-link'],
+        'data-file-path': resolvedPath,
+        onClick: `window.navigateToFile('${resolvedPath}')`
+      }
+    },
+    children: [{
       type: 'text',
-      data: {
-        hProperties: {
-          className: ['internal-link', 'invalid-link'],
-          title: `文件未找到: ${parsedLink.filePath}`
-        }
-      },
       value: displayText
-    };
-    console.log(`❌ Created invalid link:`, invalidNode);
-    return invalidNode;
-  }
+    }]
+  };
+  console.log(`✅ Created internal link:`, linkNode);
+  return linkNode;
 }
 
 /**
- * 创建图片嵌入节点
+ * 创建图片嵌入节点（简化版本）
  */
-function createImageEmbed(parsedLink: any, resolvedPath: string | null, baseUrl: string) {
-  const imagePath = resolvedPath || parsedLink.filePath;
-  const fullImageUrl = imagePath.startsWith('http') 
-    ? imagePath 
-    : `${baseUrl}${imagePath}`;
+function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+  const fullImageUrl = resolvedPath.startsWith('http') 
+    ? resolvedPath 
+    : `${baseUrl}${resolvedPath}`;
 
   return {
     type: 'image',
@@ -229,13 +246,12 @@ function createImageEmbed(parsedLink: any, resolvedPath: string | null, baseUrl:
 }
 
 /**
- * 创建轨迹文件嵌入节点
+ * 创建轨迹文件嵌入节点（简化版本）
  */
-function createTrackEmbed(parsedLink: any, resolvedPath: string | null, baseUrl: string) {
-  const trackPath = resolvedPath || parsedLink.filePath;
-  const fullTrackUrl = trackPath.startsWith('http') 
-    ? trackPath 
-    : `${baseUrl}${trackPath}`;
+function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+  const fullTrackUrl = resolvedPath.startsWith('http') 
+    ? resolvedPath 
+    : `${baseUrl}${resolvedPath}`;
 
   const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
   const placeholder = `TRACK_EMBED_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -247,9 +263,9 @@ function createTrackEmbed(parsedLink: any, resolvedPath: string | null, baseUrl:
 }
 
 /**
- * 创建通用嵌入节点
+ * 创建通用嵌入节点（简化版本）
  */
-function createGenericEmbed(parsedLink: any, resolvedPath: string | null) {
+function createGenericEmbed(parsedLink: any, resolvedPath: string) {
   return {
     type: 'text',
     data: {

@@ -5,35 +5,12 @@ import { markdownProcessor } from '../../services/markdownProcessor';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { MermaidDiagram } from './MermaidDiagram';
 import { TrackMap } from './TrackMap';
-import type { FileTree } from '../../types/vault';
 
 import 'katex/dist/katex.min.css';
 import './MarkdownViewer.css';
 
-// Helper function to flatten the file tree for link resolution
-function flattenFileTree(files: FileTree[]): Array<{ path: string; name: string; type: string }> {
-  const result: Array<{ path: string; name: string; type: string }> = [];
-  
-  function traverse(nodes: FileTree[]) {
-    for (const node of nodes) {
-      result.push({
-        path: node.path,
-        name: node.name,
-        type: node.type
-      });
-      
-      if (node.children) {
-        traverse(node.children);
-      }
-    }
-  }
-  
-  traverse(files);
-  return result;
-}
-
 export function MarkdownViewer() {
-  const { activeFile, files, setCurrentDocumentMetadata } = useVaultStore();
+  const { activeFile, setCurrentDocumentMetadata } = useVaultStore();
   const { theme } = useUIStore();
   const fileAPI = useFileAPI();
   const [content, setContent] = useState<string>('');
@@ -80,12 +57,10 @@ export function MarkdownViewer() {
           console.log(`📄 Loaded real content for ${activeFile}: ${realContent.length} chars`);
           
           // Process markdown content with our comprehensive processor
-          // Pass current file path and vault files for Obsidian link resolution
-          const flattenedFiles = flattenFileTree(files);
+          // Simplified version without file index dependency
           return markdownProcessor.processWithMetadata(
             realContent,
-            decodedPath, // current file path for relative link resolution
-            flattenedFiles // flattened vault file structure for link indexing
+            decodedPath // current file path for relative link resolution
           );
         })
         .then((result) => {
@@ -112,8 +87,7 @@ export function MarkdownViewer() {
       setMermaidDiagrams([]);
       setTrackMaps([]);
     }
-  }, [activeFile, fileAPI, files]);
-
+  }, [activeFile, fileAPI, setCurrentDocumentMetadata]);
 
   const renderContent = () => {
     if (loading) {
@@ -210,7 +184,6 @@ export function MarkdownViewer() {
                 key={data.id}
                 code={data.code}
                 isFile={data.isFile}
-                fileType={data.fileType}
                 className="track-map"
               />
             );
