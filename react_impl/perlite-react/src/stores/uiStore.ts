@@ -1,5 +1,28 @@
 import { create } from 'zustand';
 
+// 主题持久化辅助函数
+const getStoredTheme = (): 'light' | 'dark' => {
+  if (typeof window === 'undefined') return 'light';
+  
+  const stored = localStorage.getItem('perlite-theme');
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  
+  // 如果没有存储的主题，检查系统偏好
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+  
+  return 'light';
+};
+
+const setStoredTheme = (theme: 'light' | 'dark') => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('perlite-theme', theme);
+  }
+};
+
 interface UIState {
   // Sidebar states
   leftSidebarOpen: boolean;
@@ -65,7 +88,7 @@ export const useUIStore = create<UIState>((set) => ({
   activeLeftPanel: 'files',
   activeRightPanel: 'outline',
   mainContentView: 'file',
-  theme: 'light',
+  theme: getStoredTheme(),
   isMobile: typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   isTablet: typeof window !== 'undefined' ? window.innerWidth >= 768 && window.innerWidth < 1024 : false,
   
@@ -100,7 +123,10 @@ export const useUIStore = create<UIState>((set) => ({
   setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
   setMainContentView: (view) => set({ mainContentView: view }),
-  setTheme: (theme) => set({ theme }),
+  setTheme: (theme) => {
+    setStoredTheme(theme);
+    set({ theme });
+  },
   setIsMobile: (isMobile) => set((state) => {
     // 当切换到移动端时，关闭抽屉
     if (isMobile && !state.isMobile) {

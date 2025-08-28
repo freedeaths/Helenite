@@ -12,12 +12,18 @@ export function LeftRibbon() {
     toggleLeftSidebar, 
     leftSidebarOpen,
     mainContentView,
-    setMainContentView
+    setMainContentView,
+    theme,
+    setTheme
   } = useUIStore();
   const { activeFile, files } = useVaultStore();
   
-  const [isDark, setIsDark] = useState(false);
   const [lastClickedButton, setLastClickedButton] = useState<string>('files'); // 默认 files 按钮激活
+
+  // Initialize theme attribute on component mount and when theme changes
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // 监听 URL 变化，同步按钮状态（用于直接访问 URL 的情况）
   useEffect(() => {
@@ -51,17 +57,17 @@ export function LeftRibbon() {
   }, [mainContentView]);
   
   const toggleTheme = useCallback(() => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
     
     // Apply theme to body
-    document.body.setAttribute('data-theme', newTheme ? 'dark' : 'light');
+    document.body.setAttribute('data-theme', newTheme);
     
     // Trigger theme change event for other components
     document.dispatchEvent(new CustomEvent('obsidian-theme-changed', { 
-      detail: { theme: newTheme ? 'dark' : 'light' } 
+      detail: { theme: newTheme } 
     }));
-  }, [isDark]);
+  }, [theme, setTheme]);
 
   // 从文件树中收集所有 markdown 文件
   const collectMarkdownFiles = (fileNodes: FileTree[]): string[] => {
@@ -200,7 +206,7 @@ export function LeftRibbon() {
 
       {/* Bottom items */}
       <div className="flex flex-col gap-1">
-        <Tooltip label={isDark ? "Light Theme" : "Dark Theme"} position="right" withArrow>
+        <Tooltip label={theme === 'dark' ? "Light Theme" : "Dark Theme"} position="right" withArrow>
           <ActionIcon
             variant="subtle"
             color="gray"
@@ -208,7 +214,7 @@ export function LeftRibbon() {
             radius="md"
             onClick={toggleTheme}
           >
-            {isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
+            {theme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />}
           </ActionIcon>
         </Tooltip>
         

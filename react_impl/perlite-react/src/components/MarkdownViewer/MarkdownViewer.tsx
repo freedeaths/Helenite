@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useVaultStore } from '../../stores/vaultStore';
+import { useUIStore } from '../../stores/uiStore';
 import { markdownProcessor } from '../../services/markdownProcessor';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { MermaidDiagram } from './MermaidDiagram';
@@ -7,7 +8,6 @@ import { TrackMap } from './TrackMap';
 import type { FileTree } from '../../types/vault';
 
 import 'katex/dist/katex.min.css';
-import 'highlight.js/styles/github.css';
 import './MarkdownViewer.css';
 
 // Helper function to flatten the file tree for link resolution
@@ -34,6 +34,7 @@ function flattenFileTree(files: FileTree[]): Array<{ path: string; name: string;
 
 export function MarkdownViewer() {
   const { activeFile, files, setCurrentDocumentMetadata } = useVaultStore();
+  const { theme } = useUIStore();
   const fileAPI = useFileAPI();
   const [content, setContent] = useState<string>('');
   const [renderedContent, setRenderedContent] = useState<string>('');
@@ -42,6 +43,26 @@ export function MarkdownViewer() {
   const [mermaidDiagrams, setMermaidDiagrams] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
   const [trackMaps, setTrackMaps] = useState<Array<{ id: string; code: string; placeholder: string; isFile?: boolean }>>([]);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic highlight.js theme loading
+  useEffect(() => {
+    // Remove existing highlight.js theme
+    const existingTheme = document.getElementById('highlight-theme');
+    if (existingTheme) {
+      existingTheme.remove();
+    }
+
+    // Load appropriate theme based on current theme
+    const themeUrl = theme === 'dark' 
+      ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+      : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+
+    const link = document.createElement('link');
+    link.id = 'highlight-theme';
+    link.rel = 'stylesheet';
+    link.href = themeUrl;
+    document.head.appendChild(link);
+  }, [theme]);
 
   useEffect(() => {
     if (activeFile) {

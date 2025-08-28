@@ -23,23 +23,19 @@
   color: var(--text-normal);
 }
 
-/* Code blocks */
+/* Code blocks - let highlight.js handle background colors */
 .markdown-viewer pre {
-  background-color: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   padding: 1rem;
   overflow-x: auto;
   font-size: 0.875rem;
 }
 
-/* Inline code */
+/* Inline code - let highlight.js handle background colors */
 .markdown-viewer code:not(pre code) {
-  background-color: var(--background-secondary);
   padding: 0.125rem 0.25rem;
   border-radius: 3px;
   font-size: 0.875rem;
-  color: var(--text-accent);
 }
 
 /* Blockquotes */
@@ -203,10 +199,12 @@
 /* Obsidian image embeds */
 .markdown-viewer .obsidian-image {
   max-width: 100%;
+  max-height: calc(100vh - 160px); /* Limit height to viewport minus header/padding */
   height: auto;
   border-radius: var(--radius-s, 4px);
   box-shadow: var(--shadow-s);
   margin: 1rem 0;
+  object-fit: contain; /* Maintain aspect ratio */
 }
 
 /* Tags #tag */
@@ -231,18 +229,22 @@
   text-decoration: none;
 }
 
-/* Highlights ==text== */
+/* Highlights ==text== - Obsidian-style highlighting */
 .markdown-viewer .cm-highlight {
-  background-color: var(--text-highlight-bg, #fff3a0);
+  background-color: #ffeb3b33; /* Obsidian light yellow with opacity */
   color: var(--text-normal);
-  padding: 0 2px;
-  border-radius: 2px;
+  padding: 1px 3px;
+  border-radius: 3px;
   font-style: normal;
+  font-weight: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
-/* Dark theme highlight adjustment */
-body.theme-dark .markdown-viewer .cm-highlight {
-  background-color: var(--text-highlight-bg, #594A12);
+/* Dark theme highlight - Obsidian dark style */
+[data-theme="dark"] .markdown-viewer .cm-highlight {
+  background-color: #d4af37; /* Obsidian golden yellow */
+  color: #1a1a1a; /* Dark text on golden background for better readability */
 }
 
 /* ===== CALLOUTS ===== */
@@ -336,9 +338,8 @@ body.theme-dark .markdown-viewer .cm-highlight {
 }
 
 /* ===== ENHANCED CODE STYLING ===== */
+/* Let highlight.js handle all code styling - just basic structure */
 .markdown-viewer pre {
-  background-color: var(--code-background, var(--background-primary-alt));
-  border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s, 4px);
   padding: 12px 16px;
   overflow-x: auto;
@@ -349,13 +350,10 @@ body.theme-dark .markdown-viewer .cm-highlight {
 }
 
 .markdown-viewer code:not(pre code) {
-  background-color: var(--code-background, var(--background-primary-alt));
   padding: 2px 4px;
   border-radius: var(--radius-s, 3px);
   font-size: var(--code-size, 0.875em);
   font-family: var(--font-monospace);
-  color: var(--code-normal, var(--text-normal));
-  border: 1px solid var(--background-modifier-border-hover);
 }
 
 /* ===== ENHANCED TABLE STYLING ===== */
@@ -488,4 +486,37 @@ body.theme-dark .markdown-viewer .cm-highlight {
   border-radius: var(--radius-m, 6px);
   padding: 1rem;
   overflow: auto;
+  max-height: calc(100vh - 160px); /* Limit height to viewport minus header/padding */
+}
+
+/* ===== GLOBAL MEDIA CONTENT SIZE LIMITS ===== */
+/* All images should respect viewport height limits */
+.markdown-viewer img {
+  max-width: 100%;
+  max-height: calc(100vh - 160px); /* Consistent height limit */
+  height: auto;
+  object-fit: contain; /* Maintain aspect ratio */
+}
+
+/* Video elements */
+.markdown-viewer video {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  height: auto;
+  object-fit: contain;
+}
+
+/* Iframe elements (for embedded content) */
+.markdown-viewer iframe {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  width: 100%;
+  border: none;
+}
+
+/* Canvas elements (for interactive content) */
+.markdown-viewer canvas {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  height: auto;
 }
