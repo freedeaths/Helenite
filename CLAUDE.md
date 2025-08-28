@@ -394,6 +394,18 @@ CONSTRAINTS = {
 ### 🐛 已知问题
 - [ ] 外部 GPX/KML 文件路径解析问题 - `@Publish/Attachments/` 路径无法正确加载文件
 - [ ] 非标准 Obsidian 文件链接语法 - 应该用 `![[file.gpx]]` 而不是 ```gpx:file```
+- [ ] **内容超出窗口边界问题** - 长链接和宽表格未受宽度限制，破坏布局
+  - 长链接不会自动折行
+  - 宽表格超出容器边界，没有横向滚动
+  - 表格字号与正文相同，未优化
+  - 内容可能影响 TOC 定位准确性
+  - 1. 所有内容都不应该超出窗口,包括长 Link 和宽表格等
+  - 2. 长 link 折行
+  - 3. 宽表在容器宽度内可以左右滑,表的列对齐,列宽适应单元格内容,表字号比正文小一号
+  - 4. 不能破坏 TOC 的定位
+  - 5. 这一轮的修复思路是对的,你要把浏览器宽度, @react_impl/perlite-react/src/components/Layout/MainContent.tsx 宽度， @react_impl/perlite-react/src/components/MarkdownViewer/MarkdownViewer.tsx 宽度, markdown 各插件的宽度在合理的地方处理它们
+- [ ] **TOC定位不准的问题**
+  - 我回退以后，在 9eb9cb637e66bb429c01d6627ef4365e67d8d7b0 这个 commit 发现了定位不准的问题，所以它不是新引入的问题，而是之前没有测试到的 Bug，具体的 http://localhost:5173/#/Trips/Plans/春岚樱语——北九州初体验.md 你在移动端反复多跳几个标题就会发现了，特别是下面的一些标题
 
 ### 💡 功能想法  
 - [ ] 锚点 & 路由
@@ -412,7 +424,7 @@ CONSTRAINTS = {
     - **Fuse.js** (9KB) - 模糊搜索，支持权重和排序
     - **Lunr.js** (25KB) - 全文搜索引擎，支持倒排索引
     - **FlexSearch** (12KB) - 高性能内存搜索
-    - **MiniSearch** (15KB) - 轻量级搜索，内存友好 
+    - **MiniSearch** (15KB) - 轻量级搜索，内存友好
 
 ### 📋 Phase 2A: 核心 API 接口实现 ✅ 已完成
 - [x] 创建 API 接口定义目录结构 (`src/apis/interfaces/`)
@@ -698,6 +710,14 @@ npm run preview
 - 验证用户交互流程
 - 自动化UI测试
 - 页面性能分析
+
+#### ⚠️ Playwright MCP 已知限制
+**当前在 Claude Code 中存在响应大小限制问题**：
+- 长页面经常超出 token 限制
+- 错误信息：`Large MCP response (~241.8k tokens), this can fill up context`
+- **解决方案**：
+  - 将长页面分段测试，避免一次性加载完整页面
+  - 对于复杂页面，使用具体元素定位而非全页面快照
 
 ## 测试策略
 
