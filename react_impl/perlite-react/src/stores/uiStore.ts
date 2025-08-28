@@ -57,17 +57,17 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  // Initial state
-  leftSidebarOpen: true,
-  rightSidebarOpen: true,
+  // Initial state - open sidebars on desktop and tablet, close on mobile
+  leftSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
+  rightSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
   leftSidebarWidth: 300,    // 统一使用 300px，与平板模式保持一致
   rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
   activeLeftPanel: 'files',
   activeRightPanel: 'outline',
   mainContentView: 'file',
   theme: 'light',
-  isMobile: false,
-  isTablet: false,
+  isMobile: typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  isTablet: typeof window !== 'undefined' ? window.innerWidth >= 768 && window.innerWidth < 1024 : false,
   
   // Mobile drawer states
   mobileLeftDrawerOpen: false,

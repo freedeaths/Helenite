@@ -12,12 +12,38 @@ import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeStringify from 'rehype-stringify';
 import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
 import { createFileIndex } from '../utils/obsidianLinkUtils';
 import { visit } from 'unist-util-visit';
 import type { Root as MdastRoot, Node as MdastNode } from 'mdast';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
+
+/**
+ * Rehype plugin to wrap tables in responsive containers
+ */
+function wrapTablesPlugin() {
+  return (tree: HastRoot) => {
+    visit(tree, 'element', (node: HastElement, index, parent) => {
+      if (node.tagName === 'table' && parent && typeof index === 'number') {
+        // Create wrapper div with responsive class
+        const wrapper: HastElement = {
+          type: 'element',
+          tagName: 'div',
+          properties: {
+            className: ['table-container']
+          },
+          children: [node]
+        };
+        
+        // Replace table with wrapped table
+        parent.children[index] = wrapper;
+      }
+    });
+  };
+}
 
 /**
  * Markdown processing options
@@ -543,10 +569,17 @@ export class MarkdownProcessor {
     // Convert to HTML - allow dangerous HTML to preserve custom elements
     this.processor.use(remarkRehype, { allowDangerousHtml: true });
     
+    // Add heading IDs and autolinks - MUST be before other HTML plugins  
+    this.processor.use(rehypeSlug);
+    this.processor.use(rehypeAutolinkHeadings, { behavior: 'wrap' });
+    
     // Add HTML plugins
     if (options.enableMath) {
       this.processor.use(rehypeKatex);
     }
+    
+    // Wrap tables in responsive containers
+    this.processor.use(wrapTablesPlugin);
     
     // Mermaid diagrams are now handled in extractMermaidDiagrams function
     
@@ -618,7 +651,10 @@ export class MarkdownProcessor {
         .use(remarkObsidianCallouts)
         .use(remarkMath)
         .use(remarkRehype, { allowDangerousHtml: true })
+        .use(rehypeSlug) // 自动为所有标题生成ID
+        .use(rehypeAutolinkHeadings, { behavior: 'wrap' }) // 添加链接到标题
         .use(rehypeKatex)
+        .use(wrapTablesPlugin)
         .use(rehypeHighlight)
         .use(rehypeStringify, { allowDangerousHtml: true });
     } else {

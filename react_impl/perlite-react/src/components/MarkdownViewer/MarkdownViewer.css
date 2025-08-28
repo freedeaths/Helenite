@@ -4,6 +4,9 @@
   color: var(--text-normal);
   font-family: var(--font-interface);
   font-size: var(--font-text-size, 16px);
+  /* 全局文本折行处理 */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .markdown-viewer p {
@@ -67,12 +70,17 @@
   font-weight: 600;
 }
 
-/* Links (General) */
+/* Links (General) - 长链接自动折行 */
 .markdown-viewer a:not(.internal-link):not(.tag) {
   color: var(--text-accent);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s ease;
+  /* 长链接折行处理 */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
 }
 
 .markdown-viewer a:not(.internal-link):not(.tag):hover {
@@ -351,27 +359,64 @@ body.theme-dark .markdown-viewer .cm-highlight {
 }
 
 /* ===== ENHANCED TABLE STYLING ===== */
+
+/* Table responsive container */
+.markdown-viewer .table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  /* 添加滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-modifier-border) var(--background-secondary);
+}
+
+.markdown-viewer .table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.markdown-viewer .table-container::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 3px;
+}
+
+.markdown-viewer .table-container::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+.markdown-viewer .table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--interactive-accent);
+}
+
 .markdown-viewer table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1rem 0;
-  border-radius: var(--radius-s, 4px);
-  overflow: hidden;
-  border: 1px solid var(--background-modifier-border);
+  min-width: 500px; /* 最小宽度确保可读性 */
+  margin: 0; /* 容器已有边距 */
+  border: none; /* 容器已有边框 */
+  font-size: 0.9em; /* 比正文小一号 */
 }
 
 .markdown-viewer th {
   background-color: var(--table-header-background, var(--background-secondary));
   font-weight: var(--font-weight-bold, 600);
   color: var(--text-normal);
-  padding: 8px 12px;
+  padding: 6px 10px; /* 紧凑间距 */
   border-bottom: 1px solid var(--background-modifier-border);
   text-align: left;
+  white-space: nowrap; /* 防止标题换行 */
+  max-width: 200px; /* 限制列宽 */
 }
 
 .markdown-viewer td {
-  padding: 8px 12px;
+  padding: 6px 10px; /* 紧凑间距 */
   border-bottom: 1px solid var(--background-modifier-border-hover);
+  max-width: 200px; /* 限制列宽 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* 防止内容换行，保持表格紧凑 */
 }
 
 .markdown-viewer tr:last-child td {

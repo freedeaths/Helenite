@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useVaultStore } from '../stores/vaultStore';
 import { useUIStore } from '../stores/uiStore';
-import { parseHashRoute, getCurrentRoute, type ParsedRoute } from '../utils/routeUtils';
+import { getCurrentRoute, navigateToFile, navigateToWelcome, type ParsedRoute } from '../utils/routeUtils';
 
 /**
  * Hash 路由管理 Hook
@@ -12,7 +12,7 @@ export function useHashRouter() {
   const { setMainContentView } = useUIStore();
   
   // 处理路由变化
-  const handleRouteChange = (route: ParsedRoute) => {
+  const handleRouteChange = useCallback((route: ParsedRoute) => {
     if (route.type === 'welcome') {
       setActiveFile(null);
       setMainContentView('file');
@@ -22,20 +22,64 @@ export function useHashRouter() {
       
       // 如果有锚点，延迟滚动到对应位置
       if (route.anchor) {
+        // Increase delay to ensure content is loaded and avoid conflicts with TOC clicks
         setTimeout(() => {
           const element = document.getElementById(route.anchor!);
           if (element) {
-            const headerHeight = 40;
-            const elementTop = element.offsetTop;
-            window.scrollTo({
-              top: elementTop - headerHeight,
-              behavior: 'smooth'
-            });
+            // Check if this is a programmatic navigation from TOC (not a hash change)
+            // If element is already in view, skip the scroll to avoid conflicts
+            const elementRect = element.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const isInView = elementRect.top >= 0 && elementRect.top < viewportHeight * 0.3;
+            
+            if (isInView) {
+              console.log('🔗 Hash router: Element already in view, skipping scroll');
+              return;
+            }
+            
+            // Find the correct scroll container (the one with actual scrollable content)
+            const findScrollableContainer = () => {
+              const containers = document.querySelectorAll('.flex-1.overflow-auto') as NodeListOf<HTMLElement>;
+              for (const container of containers) {
+                if (container.scrollHeight > container.clientHeight) {
+                  return container;
+                }
+              }
+              return null;
+            };
+            
+            const mainContentDiv = findScrollableContainer();
+            const scrollOffset = 10; // Small offset, headings have their own margin-top: 2rem (32px)
+            
+            if (!mainContentDiv) {
+              // Fallback to window scroll - use getBoundingClientRect for accuracy
+              const elementRect = element.getBoundingClientRect();
+              const currentScrollY = window.scrollY || window.pageYOffset;
+              const elementTop = elementRect.top + currentScrollY;
+              window.scrollTo({
+                top: elementTop - scrollOffset,
+                behavior: 'smooth'
+              });
+            } else {
+              // Calculate position relative to the scroll container
+              const containerRect = mainContentDiv.getBoundingClientRect();
+              const elementRect = element.getBoundingClientRect();
+              const currentScrollTop = mainContentDiv.scrollTop;
+              
+              // Calculate the element's position relative to the scroll container
+              const elementRelativeTop = elementRect.top - containerRect.top + currentScrollTop;
+              const scrollTop = elementRelativeTop - scrollOffset;
+              
+              mainContentDiv.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+              });
+            }
           }
-        }, 100); // 等待内容加载
+        }, 200); // Increased delay to avoid conflicts with TOC
       }
     }
-  };
+  }, [setActiveFile, setMainContentView]);
   
   // 监听 hash 变化
   useEffect(() => {
@@ -53,16 +97,16 @@ export function useHashRouter() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [setActiveFile, setMainContentView]);
+  }, [setActiveFile, setMainContentView, handleRouteChange]);
   
   return {
     getCurrentRoute,
     navigateToFile: (filePath: string, anchor?: string) => {
-      const { navigateToFile } = require('../utils/routeUtils');
+      // Import at top of file instead of dynamic require
       navigateToFile(filePath, anchor);
     },
     navigateToWelcome: () => {
-      const { navigateToWelcome } = require('../utils/routeUtils');
+      // Import at top of file instead of dynamic require
       navigateToWelcome();
     }
   };

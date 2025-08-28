@@ -293,6 +293,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
 3. **拖拽性能滞后**: 通过缓存 DOM 查询和移除 CSS 过渡动画大幅提升流畅度
 4. **Obsidian 主题兼容**: 确保第三方主题 CSS 不干扰拖拽功能
 5. **响应式断点处理**: 正确的 `isMobile`/`isTablet` 状态管理
+6. **TOC 定位精度问题**: 
+   - 根因：`offsetTop` 相对于 `offsetParent` 计算，当 DOM 结构复杂时返回错误值
+   - 解决：统一使用 `getBoundingClientRect()` 获取视口相对坐标
+   - 优化：调整滚动偏移量从 40px 改为 10px，利用标题自带的 `margin-top: 2rem`
 
 ### 🚀 性能优化成果
 - **拖拽流畅度**: 达到原生应用级别的响应速度
@@ -394,7 +398,7 @@ CONSTRAINTS = {
 ### 🐛 已知问题
 - [ ] 外部 GPX/KML 文件路径解析问题 - `@Publish/Attachments/` 路径无法正确加载文件
 - [ ] 非标准 Obsidian 文件链接语法 - 应该用 `![[file.gpx]]` 而不是 ```gpx:file```
-- [ ] **内容超出窗口边界问题** - 长链接和宽表格未受宽度限制，破坏布局
+- [x] **内容超出窗口边界问题** - 长链接和宽表格未受宽度限制，破坏布局
   - 长链接不会自动折行
   - 宽表格超出容器边界，没有横向滚动
   - 表格字号与正文相同，未优化
@@ -404,8 +408,10 @@ CONSTRAINTS = {
   - 3. 宽表在容器宽度内可以左右滑,表的列对齐,列宽适应单元格内容,表字号比正文小一号
   - 4. 不能破坏 TOC 的定位
   - 5. 这一轮的修复思路是对的,你要把浏览器宽度, @react_impl/perlite-react/src/components/Layout/MainContent.tsx 宽度， @react_impl/perlite-react/src/components/MarkdownViewer/MarkdownViewer.tsx 宽度, markdown 各插件的宽度在合理的地方处理它们
-- [ ] **TOC定位不准的问题**
-  - 我回退以后，在 9eb9cb637e66bb429c01d6627ef4365e67d8d7b0 这个 commit 发现了定位不准的问题，所以它不是新引入的问题，而是之前没有测试到的 Bug，具体的 http://localhost:5173/#/Trips/Plans/春岚樱语——北九州初体验.md 你在移动端反复多跳几个标题就会发现了，特别是下面的一些标题
+- [x] **TOC定位不准的问题** ✅ 已修复
+  - 根因：`offsetTop` vs `getBoundingClientRect()` 计算差异
+  - 修复：统一使用 `getBoundingClientRect()` 获取准确位置
+  - 优化：调整滚动偏移量，让标题自带的 margin-top 提供间距
 
 ### 💡 功能想法  
 - [ ] 锚点 & 路由
@@ -480,6 +486,10 @@ CONSTRAINTS = {
 - [x] 修复正文最大宽度约束 - 移除 max-w-none 覆盖，使用 flex + max-w-4xl
 - [x] 移除顶部 Perlite header 标题栏
 - [x] 添加三栏之间的间距 (gap-4 = 1rem) 并移除边框
+- [x] **修复 TOC 定位精度问题**（2024-12-28）
+  - 统一使用 `getBoundingClientRect()` 替代 `offsetTop`
+  - 添加重试机制处理间歇性定位错误
+  - 优化滚动偏移量计算，利用标题自带 margin-top
 
 ---
 
