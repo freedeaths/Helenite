@@ -204,14 +204,17 @@ function createFileLink(parsedLink: any, resolvedPath: string) {
 
   console.log(`📁 Creating file link: "${parsedLink.filePath}" → "${resolvedPath}" (display: "${displayText}")`);
 
+  // 生成不带 .md 扩展名的 URL 路径
+  const urlPath = resolvedPath.replace(/\.md$/, '');
+  
   // 总是创建可点击的内部链接（简化版本不验证文件存在性）
   const linkNode = {
     type: 'link',
-    url: `#${resolvedPath}`, // 使用 hash 路由
+    url: `#${urlPath}`, // 使用 hash 路由，不包含 .md 扩展名
     data: {
       hProperties: {
         className: ['internal-link'],
-        'data-file-path': resolvedPath,
+        'data-file-path': resolvedPath, // 保留完整路径用于导航
         onClick: `window.navigateToFile('${resolvedPath}')`
       }
     },
