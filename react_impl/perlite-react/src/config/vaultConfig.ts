@@ -7,6 +7,9 @@ export interface VaultConfig {
   /** 基础URL配置 */
   baseUrl: string;
   
+  /** 默认主页文件 */
+  indexFile: string;
+  
   /** 需要过滤的文件夹列表（不显示在文件树中，也不参与搜索） */
   excludedFolders: string[];
   
@@ -30,6 +33,9 @@ export interface VaultConfig {
  */
 export const defaultVaultConfig: VaultConfig = {
   baseUrl: '/vault/Publish',
+  
+  // 默认主页文件
+  indexFile: 'Welcome.md',
   
   // 默认过滤的文件夹
   excludedFolders: [

@@ -3,7 +3,7 @@
  */
 
 export interface ParsedRoute {
-  type: 'welcome' | 'file';
+  type: 'welcome' | 'file' | 'global-graph';
   filePath?: string;
   anchor?: string;
 }
@@ -12,6 +12,7 @@ export interface ParsedRoute {
  * 解析 hash 路由
  * 支持格式：
  * - #/welcome
+ * - #/global-graph
  * - #/path/to/note.md
  * - #/path/to/note.md#heading-id
  */
@@ -25,6 +26,10 @@ export function parseHashRoute(hash: string): ParsedRoute {
   
   if (cleanHash === '/welcome') {
     return { type: 'welcome' };
+  }
+  
+  if (cleanHash === '/global-graph') {
+    return { type: 'global-graph' };
   }
   
   // 所有其他路径都视为文件路径
@@ -54,9 +59,13 @@ export function parseHashRoute(hash: string): ParsedRoute {
 /**
  * 生成 hash 路由
  */
-export function generateHashRoute(type: 'welcome' | 'file', filePath?: string, anchor?: string): string {
+export function generateHashRoute(type: 'welcome' | 'file' | 'global-graph', filePath?: string, anchor?: string): string {
   if (type === 'welcome') {
     return '#/welcome';
+  }
+  
+  if (type === 'global-graph') {
+    return '#/global-graph';
   }
   
   if (type === 'file' && filePath) {
@@ -77,7 +86,7 @@ export function generateHashRoute(type: 'welcome' | 'file', filePath?: string, a
 /**
  * 导航到指定路由
  */
-export function navigateToRoute(type: 'welcome' | 'file', filePath?: string, anchor?: string): void {
+export function navigateToRoute(type: 'welcome' | 'file' | 'global-graph', filePath?: string, anchor?: string): void {
   const hash = generateHashRoute(type, filePath, anchor);
   window.location.hash = hash;
 }
@@ -94,6 +103,13 @@ export function navigateToFile(filePath: string, anchor?: string): void {
  */
 export function navigateToWelcome(): void {
   navigateToRoute('welcome');
+}
+
+/**
+ * 导航到全局图谱
+ */
+export function navigateToGlobalGraph(): void {
+  navigateToRoute('global-graph');
 }
 
 /**

@@ -223,11 +223,13 @@ body {
   border-color: var(--background-modifier-border) !important;
 }
 
-/* Focus states */
+/* Focus states - 移除所有 focus 边框 */
 [data-mantine-color-scheme] .mantine-ActionIcon-root:focus,
-[data-mantine-color-scheme] .mantine-Button-root:focus {
-  outline: 2px solid var(--interactive-accent) !important;
-  outline-offset: 2px !important;
+[data-mantine-color-scheme] .mantine-Button-root:focus,
+button:focus,
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Active states */

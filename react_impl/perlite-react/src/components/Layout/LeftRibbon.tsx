@@ -1,7 +1,11 @@
 import { IconFiles, IconNetwork, IconDice, IconHome, IconSettings, IconMoon, IconSun } from '@tabler/icons-react';
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
-import { useState, useCallback } from 'react';
+import { useVaultStore } from '../../stores/vaultStore';
+import { getVaultConfig } from '../../config/vaultConfig';
+import { navigateToFile, navigateToGlobalGraph, getCurrentRoute } from '../../utils/routeUtils';
+import { useState, useCallback, useEffect } from 'react';
+import type { FileTree } from '../../types/vault';
 
 export function LeftRibbon() {
   const { 
@@ -10,8 +14,41 @@ export function LeftRibbon() {
     mainContentView,
     setMainContentView
   } = useUIStore();
+  const { activeFile, files } = useVaultStore();
   
   const [isDark, setIsDark] = useState(false);
+  const [lastClickedButton, setLastClickedButton] = useState<string>('files'); // 默认 files 按钮激活
+
+  // 监听 URL 变化，同步按钮状态（用于直接访问 URL 的情况）
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const route = getCurrentRoute();
+      console.log('🔄 Route changed:', route);
+      // 只处理图谱路由的特殊情况
+      if (route.type === 'global-graph') {
+        console.log('🔄 Setting graph button active');
+        setLastClickedButton('graph');
+      }
+      // 其他路由保持用户的点击状态不变
+    };
+
+    // 初始化时执行一次
+    handleRouteChange();
+    
+    // 监听 hash 变化（用于处理直接在地址栏输入 URL 的情况）
+    window.addEventListener('hashchange', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleRouteChange);
+    };
+  }, []);
+  
+  // 监听 mainContentView 变化，当通过其他方式切换到 globalGraph 时也要同步按钮状态
+  useEffect(() => {
+    if (mainContentView === 'globalGraph') {
+      setLastClickedButton('graph');
+    }
+  }, [mainContentView]);
   
   const toggleTheme = useCallback(() => {
     const newTheme = !isDark;
@@ -26,14 +63,58 @@ export function LeftRibbon() {
     }));
   }, [isDark]);
 
+  // 从文件树中收集所有 markdown 文件
+  const collectMarkdownFiles = (fileNodes: FileTree[]): string[] => {
+    const mdFiles: string[] = [];
+    
+    const traverse = (nodes: FileTree[]) => {
+      for (const node of nodes) {
+        if (node.type === 'file' && node.path.endsWith('.md')) {
+          mdFiles.push(node.path);
+        }
+        if (node.children) {
+          traverse(node.children);
+        }
+      }
+    };
+    
+    traverse(fileNodes);
+    return mdFiles;
+  };
+
+  // 随机打开一篇文章
+  const openRandomNote = () => {
+    const allMarkdownFiles = collectMarkdownFiles(files);
+    
+    if (allMarkdownFiles.length === 0) {
+      console.warn('No markdown files found in vault');
+      return;
+    }
+    
+    // 排除当前文件，避免重复选择
+    const availableFiles = allMarkdownFiles.filter(file => file !== activeFile);
+    const filesToChooseFrom = availableFiles.length > 0 ? availableFiles : allMarkdownFiles;
+    
+    // 随机选择一个文件
+    const randomIndex = Math.floor(Math.random() * filesToChooseFrom.length);
+    const randomFile = filesToChooseFrom[randomIndex];
+    
+    console.log(`🎲 Opening random note: ${randomFile}`);
+    navigateToFile(randomFile);
+    // setMainContentView('file'); // 这个在 onClick 中处理
+  };
+
   const ribbonItems = [
     {
       id: 'home',
       icon: IconHome,
       label: 'Home',
       onClick: () => {
-        // Navigate to home or welcome page
+        // Navigate to configured index file with URL update
+        const config = getVaultConfig();
+        navigateToFile(config.indexFile);
         setMainContentView('file');
+        setLastClickedButton('home');
       }
     },
     {
@@ -46,6 +127,7 @@ export function LeftRibbon() {
         if (!leftSidebarOpen) {
           toggleLeftSidebar();
         }
+        setLastClickedButton('files');
       }
     },
     {
@@ -53,15 +135,11 @@ export function LeftRibbon() {
       icon: IconNetwork,
       label: 'Graph View',
       onClick: () => {
-        console.log('🔄 Graph button clicked, current view:', mainContentView);
-        // Toggle between graph view and file view
-        if (mainContentView === 'globalGraph') {
-          console.log('🔄 Switching to file view');
-          setMainContentView('file');
-        } else {
-          console.log('🔄 Switching to globalGraph view');
-          setMainContentView('globalGraph');
-        }
+        console.log('🔄 Graph button clicked, switching to globalGraph view');
+        // Always go to graph view when clicked
+        setMainContentView('globalGraph');
+        navigateToGlobalGraph();
+        setLastClickedButton('graph');
       }
     },
     {
@@ -69,7 +147,9 @@ export function LeftRibbon() {
       icon: IconDice,
       label: 'Random Note',
       onClick: () => {
-        // Open random note functionality
+        openRandomNote();
+        setMainContentView('file');
+        setLastClickedButton('random');
       }
     }
   ];
@@ -95,10 +175,9 @@ export function LeftRibbon() {
       <div className="flex flex-col gap-1">
         {ribbonItems.map((item) => {
           const Icon = item.icon;
-          const isActive = 
-            (item.id === 'files' && leftSidebarOpen && mainContentView === 'file') ||
-            (item.id === 'graph' && mainContentView === 'globalGraph') ||
-            (item.id === 'home' && mainContentView === 'file' && !leftSidebarOpen);
+          
+          // 简单逻辑：只有最后点击的按钮是激活的
+          const isActive = item.id === lastClickedButton;
           
           return (
             <Tooltip key={item.id} label={item.label} position="right" withArrow>

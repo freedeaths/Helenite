@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useVaultStore } from '../stores/vaultStore';
 import { useUIStore } from '../stores/uiStore';
-import { getCurrentRoute, navigateToFile, navigateToWelcome, type ParsedRoute } from '../utils/routeUtils';
+import { getCurrentRoute, navigateToFile, navigateToWelcome, navigateToGlobalGraph, type ParsedRoute } from '../utils/routeUtils';
 
 /**
  * Hash 路由管理 Hook
@@ -16,6 +16,8 @@ export function useHashRouter() {
     if (route.type === 'welcome') {
       setActiveFile(null);
       setMainContentView('file');
+    } else if (route.type === 'global-graph') {
+      setMainContentView('globalGraph');
     } else if (route.type === 'file' && route.filePath) {
       setActiveFile(route.filePath, route.anchor);
       setMainContentView('file');
@@ -108,6 +110,10 @@ export function useHashRouter() {
     navigateToWelcome: () => {
       // Import at top of file instead of dynamic require
       navigateToWelcome();
+    },
+    navigateToGlobalGraph: () => {
+      // Import at top of file instead of dynamic require
+      navigateToGlobalGraph();
     }
   };
 }
