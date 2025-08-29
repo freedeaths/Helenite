@@ -10,7 +10,7 @@ export function RightSidebar() {
   return (
     <div className="h-full flex flex-col bg-[var(--background-secondary)]">
       {/* Tab Headers */}
-      <div className="border-b border-[var(--background-modifier-border)] p-2">
+      <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
         <Button.Group>
           <Button
             onClick={() => setActiveRightPanel('outline')}

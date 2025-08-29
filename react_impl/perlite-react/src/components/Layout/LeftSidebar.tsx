@@ -14,7 +14,7 @@ export function LeftSidebar() {
     return (
       <div className="h-full flex flex-col bg-[var(--background-secondary)]">
         {/* Desktop Tab Headers */}
-        <div className="border-b border-[var(--background-modifier-border)] p-2">
+        <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
           <Button.Group>
             <Button
               onClick={() => setActiveLeftPanel('files')}
@@ -59,7 +59,7 @@ export function LeftSidebar() {
   return (
     <div className="h-full flex flex-col bg-[var(--background-secondary)]">
       {/* Tab Bar - 只在平板端显示 */}
-      <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2">
+      <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2 h-10 flex items-center">
         <Button.Group>
           {tabs.map((tab) => (
             <Button

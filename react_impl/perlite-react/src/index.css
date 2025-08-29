@@ -6,6 +6,7 @@
 :root {
   --background-primary: #ffffff;
   --background-secondary: #f8f9fa;
+  --background-ribbon: #e9ecef;
   --background-modifier-border: #e9ecef;
   --background-modifier-hover: #f1f3f4;
   --background-modifier-active-hover: #e9ecef;
@@ -22,6 +23,7 @@
 [data-theme="dark"] {
   --background-primary: #1e1e1e;
   --background-secondary: #252525;
+  --background-ribbon: #2f2f2f;
   --background-modifier-border: #3c3c3c;
   --background-modifier-hover: #2d3748;
   --background-modifier-active-hover: #4a5568;
