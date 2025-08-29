@@ -11,6 +11,7 @@ import { navigateToFile } from '../../utils/routeUtils';
 interface ObsidianLinksPluginOptions {
   baseUrl?: string;
   currentFilePath?: string;
+  metadata?: any[]; // Array of file metadata for path resolution
 }
 
 /**
@@ -36,9 +37,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
         if (matches.length === 0) return;
 
-        console.log(`🔗 Processing text node: "${text.substring(0, 100)}..."`);
-        console.log(`🔗 Found ${matches.length} link matches:`, matches.map(m => m[0]));
-        console.log(`🔗 Full text content:`, text);
+        // Processing text node with Obsidian links
 
         // 分割文本并创建新节点
         const newNodes: any[] = [];
@@ -61,15 +60,12 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
           // 解析 Obsidian 链接
           const parsedLink = parseObsidianLink(match[0]);
-          console.log(`🔗 Parsed link "${match[0]}":`, parsedLink);
           
           if (parsedLink) {
             const linkNode = createLinkNode(parsedLink, options);
-            console.log(`🔗 Created link node:`, linkNode);
             newNodes.push(linkNode);
           } else {
             // 如果解析失败，保持原文
-            console.log(`❌ Failed to parse link: ${match[0]}`);
             newNodes.push({
               type: 'text',
               value: match[0]
@@ -92,7 +88,6 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
         // 记录需要替换的节点
         if (newNodes.length > 0) {
-          console.log(`🔗 Will replace with ${newNodes.length} new nodes`);
           replacements.push({
             node,
             parent,
@@ -114,13 +109,10 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
  * 根据解析结果创建对应的 AST 节点（简化版本，不依赖文件树索引）
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
-  const { baseUrl = '/vault/Publish', currentFilePath } = options;
+  const { baseUrl = '/vault/Publish', currentFilePath, metadata } = options;
   
-  console.log(`🔗 Creating link node for:`, parsedLink);
-  
-  // 简化路径解析：直接构造路径而不依赖文件树，支持相对路径
-  const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath);
-  console.log(`🔗 Constructed path for "${parsedLink.filePath}" from "${currentFilePath}":`, resolvedPath);
+  // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
+  const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath, metadata);
 
   let result;
   switch (parsedLink.type) {
@@ -149,17 +141,39 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       };
   }
   
-  console.log(`🔗 Final link node:`, result);
   return result;
 }
 
 /**
- * 简化的路径构造函数
- * 直接根据 Obsidian 链接路径构造文件路径，支持相对路径解析
+ * 智能的路径构造函数
+ * 优先使用 metadata.json 查找文件，降级到直接路径构造，支持相对路径解析
  */
-function constructDirectPath(linkPath: string, currentFilePath?: string): string {
+function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: any[]): string {
   let filePath = linkPath.trim();
   
+  // 第一步：尝试使用 metadata.json 查找文件
+  if (metadata && metadata.length > 0) {
+    // 查找文件名匹配的条目（不包括扩展名）
+    const targetFileName = filePath.replace(/\.md$/, ''); // 去掉可能的 .md 后缀
+    
+    const matchedFile = metadata.find(item => {
+      const itemFileName = item.fileName || '';
+      const itemRelativePath = item.relativePath || '';
+      
+      // 尝试多种匹配方式
+      return itemFileName === targetFileName || // 直接文件名匹配
+             itemFileName === `${targetFileName}.md` || // 文件名加扩展名匹配
+             itemRelativePath.endsWith(`/${targetFileName}.md`) || // 路径结尾匹配
+             itemRelativePath === `${targetFileName}.md`; // 完整路径匹配
+    });
+    
+    if (matchedFile) {
+      const resolvedPath = `/${matchedFile.relativePath}`;
+      return resolvedPath;
+    }
+  }
+  
+  // 第二步：降级到直接路径构造（原有逻辑）
   // 处理相对路径解析
   if (currentFilePath) {
     // 获取当前文件的目录
@@ -202,8 +216,6 @@ function createFileLink(parsedLink: any, resolvedPath: string) {
     parsedLink.filePath.split('/').pop()?.replace(/\.md$/, '') ||
     parsedLink.filePath;
 
-  console.log(`📁 Creating file link: "${parsedLink.filePath}" → "${resolvedPath}" (display: "${displayText}")`);
-
   // 生成不带 .md 扩展名的 URL 路径
   const urlPath = resolvedPath.replace(/\.md$/, '');
   
@@ -223,7 +235,6 @@ function createFileLink(parsedLink: any, resolvedPath: string) {
       value: displayText
     }]
   };
-  console.log(`✅ Created internal link:`, linkNode);
   return linkNode;
 }
 

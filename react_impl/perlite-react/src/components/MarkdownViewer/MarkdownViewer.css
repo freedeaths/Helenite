@@ -84,6 +84,41 @@
   text-decoration: none;
 }
 
+/* External Links - 外部链接特殊样式 */
+.markdown-viewer a.external-link {
+  color: var(--text-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  /* 长链接折行处理 */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  hyphens: auto;
+  position: relative;
+}
+
+/* 外部链接图标 */
+.markdown-viewer a.external-link::after {
+  content: "↗";
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.8em;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  vertical-align: super;
+  line-height: 1;
+}
+
+.markdown-viewer a.external-link:hover {
+  border-bottom-color: var(--text-accent);
+  text-decoration: none;
+}
+
+.markdown-viewer a.external-link:hover::after {
+  opacity: 1;
+}
+
 /* Headings */
 .markdown-viewer h1,
 .markdown-viewer h2,
