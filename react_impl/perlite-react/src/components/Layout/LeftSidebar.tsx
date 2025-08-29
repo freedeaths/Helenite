@@ -15,13 +15,13 @@ export function LeftSidebar() {
       <div className="h-full flex flex-col bg-[var(--background-secondary)]">
         {/* Desktop Tab Headers */}
         <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
-          <Button.Group>
+          <Button.Group className="w-full">
             <Button
               onClick={() => setActiveLeftPanel('files')}
               variant={activeLeftPanel === 'files' ? 'filled' : 'light'}
               leftSection={<IconFiles size={16} />}
               size="compact-sm"
-              flex={1}
+              className="flex-1"
             >
               Files
             </Button>
@@ -30,7 +30,7 @@ export function LeftSidebar() {
               variant={activeLeftPanel === 'tags' ? 'filled' : 'light'}
               leftSection={<IconTags size={16} />}
               size="compact-sm"
-              flex={1}
+              className="flex-1"
             >
               Tags
             </Button>

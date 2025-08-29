@@ -11,13 +11,13 @@ export function RightSidebar() {
     <div className="h-full flex flex-col bg-[var(--background-secondary)]">
       {/* Tab Headers */}
       <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
-        <Button.Group>
+        <Button.Group className="w-full">
           <Button
             onClick={() => setActiveRightPanel('outline')}
             variant={activeRightPanel === 'outline' ? 'filled' : 'light'}
             leftSection={<IconList size={16} />}
             size="compact-sm"
-            flex={1}
+            className="flex-1"
           >
             Outline
           </Button>
@@ -26,7 +26,7 @@ export function RightSidebar() {
             variant={activeRightPanel === 'graph' ? 'filled' : 'light'}
             leftSection={<IconGitFork size={16} />}
             size="compact-sm"
-            flex={1}
+            className="flex-1"
           >
             Graph
           </Button>

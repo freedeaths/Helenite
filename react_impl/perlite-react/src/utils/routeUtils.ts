@@ -9,6 +9,25 @@ export interface ParsedRoute {
 }
 
 /**
+ * 安全的URL路径编码，保留中文和日文字符
+ * 只编码必要的URL特殊字符，保持中文日文可读性
+ */
+function encodeURIPathSafely(path: string): string {
+  // 对路径的每个部分分别处理，避免编码路径分隔符
+  return path
+    .split('/')
+    .map(segment => {
+      // 如果包含需要编码的特殊字符，则编码整个段落
+      // 但保留中文、日文、字母、数字、连字符、下划线等安全字符
+      if (/[#?&\s]/.test(segment)) {
+        return encodeURIComponent(segment);
+      }
+      return segment;
+    })
+    .join('/');
+}
+
+/**
  * 解析 hash 路由
  * 支持格式：
  * - #/welcome
@@ -17,6 +36,7 @@ export interface ParsedRoute {
  * - #/path/to/note.md (兼容带扩展名，内部处理)
  * - #/path/to/note#heading-id
  * - #/path/to/note.md#heading-id
+ * 支持中文和日文字符的URL解码
  */
 export function parseHashRoute(hash: string): ParsedRoute {
   // 移除开头的 #
@@ -44,10 +64,18 @@ export function parseHashRoute(hash: string): ParsedRoute {
       [filePath, anchor] = filePath.split('#');
     }
     
+    // URL解码文件路径，支持中文和日文字符
+    try {
+      filePath = decodeURIComponent(filePath);
+    } catch (error) {
+      console.warn('Failed to decode URI component:', filePath, error);
+      // 如果解码失败，使用原始路径
+    }
+    
     // 如果 URL 包含 .md 扩展名，则重定向到不带扩展名的版本
     if (filePath.endsWith('.md')) {
       const newPath = filePath.replace(/\.md$/, '');
-      const newHash = anchor ? `#${newPath}#${anchor}` : `#${newPath}`;
+      const newHash = anchor ? `#${encodeURIPathSafely(newPath)}#${anchor}` : `#${encodeURIPathSafely(newPath)}`;
       // 静默替换 URL，不触发页面刷新
       window.history.replaceState(null, '', newHash);
     }
@@ -81,6 +109,7 @@ function normalizeFilePath(filePath: string): string {
 
 /**
  * 生成 hash 路由（URL 中不包含 .md 扩展名）
+ * 保持中文和日文字符可读性
  */
 export function generateHashRoute(type: 'welcome' | 'file' | 'global-graph', filePath?: string, anchor?: string): string {
   if (type === 'welcome') {
@@ -98,7 +127,9 @@ export function generateHashRoute(type: 'welcome' | 'file' | 'global-graph', fil
     // 移除 .md 扩展名（用于 URL 显示）
     cleanPath = cleanPath.replace(/\.md$/, '');
     
-    const baseRoute = `#${cleanPath}`;
+    // 使用安全编码，保留中文和日文字符
+    const encodedPath = encodeURIPathSafely(cleanPath);
+    const baseRoute = `#${encodedPath}`;
     
     if (anchor) {
       return `${baseRoute}#${anchor}`;

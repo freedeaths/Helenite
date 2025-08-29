@@ -1,4 +1,5 @@
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { AppLayout } from './components/Layout/AppLayout';
 import { useHashRouter } from './hooks/useHashRouter';
 import { useSEO } from './hooks/useSEO';
@@ -12,6 +13,7 @@ function App() {
   
   return (
     <MantineProvider defaultColorScheme="light">
+      <Notifications />
       <AppLayout />
     </MantineProvider>
   );

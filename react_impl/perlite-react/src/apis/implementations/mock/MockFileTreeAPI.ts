@@ -16,7 +16,7 @@ export class MockFileTreeAPI implements IFileTreeAPI {
         aliases: ['Welcome'],
         frontmatter: {},
         headings: [
-          { heading: 'Welcome to Perlite', level: 1 },
+          { heading: 'Welcome to Helenite', level: 1 },
           { heading: 'Getting Started', level: 2 }
         ],
         links: [

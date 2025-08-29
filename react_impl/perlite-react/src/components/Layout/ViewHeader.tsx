@@ -1,8 +1,9 @@
-import { IconLayoutSidebar, IconLink, IconChevronDown } from '@tabler/icons-react';
+import { IconLayoutSidebar, IconChevronDown } from '@tabler/icons-react';
 import { ActionIcon } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { useVaultStore } from '../../stores/vaultStore';
 import { MobileDropdownMenu } from './MobileDropdownMenu';
+import { ShareButton } from '../Share';
 
 export function ViewHeader() {
   const { 
@@ -57,13 +58,7 @@ export function ViewHeader() {
 
         {/* Right actions */}
         <div className="flex items-center space-x-2 flex-shrink-0">
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="sm"
-          >
-            <IconLink size={18} />
-          </ActionIcon>
+          <ShareButton size="sm" variant="subtle" />
           {!isMobile && !isTablet && (
             <ActionIcon
               onClick={toggleRightSidebar}

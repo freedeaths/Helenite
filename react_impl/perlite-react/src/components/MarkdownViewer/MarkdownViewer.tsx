@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
 import { markdownProcessor } from '../../services/markdownProcessor';
+import { MetaTagService } from '../../services/metaTagService';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { MermaidDiagram } from './MermaidDiagram';
 import { TrackMap } from './TrackMap';
@@ -56,6 +57,12 @@ export function MarkdownViewer() {
           setContent(realContent);
           console.log(`📄 Loaded real content for ${activeFile}: ${realContent.length} chars`);
           
+          // 更新页面meta标签用于分享
+          const fileName = decodedPath.split('/').pop() || 'Untitled';
+          const metaData = MetaTagService.generateMetaFromContent(fileName, realContent);
+          MetaTagService.updateMetaTags(metaData);
+          console.log('Updated page meta tags:', metaData);
+          
           // Process markdown content with our comprehensive processor
           // Simplified version without file index dependency
           return markdownProcessor.processWithMetadata(
@@ -68,6 +75,7 @@ export function MarkdownViewer() {
           setCurrentDocumentMetadata(result.metadata); // Store in global state for TOC
           setMermaidDiagrams(result.mermaidDiagrams);
           setTrackMaps(result.trackMaps);
+          
           console.log('Processed markdown metadata:', result.metadata);
           console.log('Found Mermaid diagrams:', result.mermaidDiagrams);
           console.log('Found track maps:', result.trackMaps);
@@ -86,6 +94,9 @@ export function MarkdownViewer() {
       setCurrentDocumentMetadata(null); // Clear metadata when no file
       setMermaidDiagrams([]);
       setTrackMaps([]);
+      
+      // 重置meta标签为默认值
+      MetaTagService.resetToDefaults();
     }
   }, [activeFile, fileAPI, setCurrentDocumentMetadata]);
 

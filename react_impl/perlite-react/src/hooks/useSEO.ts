@@ -15,11 +15,11 @@ export function useSEO() {
       const fileName = decodedPath.split('/').pop()?.replace('.md', '') || 'Document';
       
       // 生成页面标题
-      const pageTitle = `${fileName} - Perlite`;
+      const pageTitle = `${fileName} - Helenite`;
       document.title = pageTitle;
       
       // 生成描述
-      let description = `View ${fileName} in Perlite vault viewer`;
+      let description = `View ${fileName} in Helenite vault viewer`;
       
       // 如果有标题，使用第一个标题作为描述
       if (currentDocumentMetadata?.headings?.length) {
@@ -71,7 +71,7 @@ export function useSEO() {
       
     } else {
       // 默认首页 SEO
-      document.title = 'Perlite - Modern Obsidian Vault Viewer';
+      document.title = 'Helenite - Modern Obsidian Vault Viewer';
       
       let metaDescription = document.querySelector('meta[name="description"]');
       if (!metaDescription) {
@@ -83,7 +83,7 @@ export function useSEO() {
       
       let ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) {
-        ogTitle.setAttribute('content', 'Perlite - Modern Obsidian Vault Viewer');
+        ogTitle.setAttribute('content', 'Helenite - Modern Obsidian Vault Viewer');
       }
       
       let canonical = document.querySelector('link[rel="canonical"]');
