@@ -89,8 +89,7 @@ export function AppLayout() {
         <div 
           ref={leftSidebarRef}
           className={`
-            relative border-r border-[var(--background-modifier-border)] 
-            overflow-hidden sidebar-transition gpu-accelerated
+            relative overflow-hidden sidebar-transition gpu-accelerated
             ${leftSidebarOpen && !isMobile ? 'flex-shrink-0' : 'w-0'}
           `}
           style={{
@@ -137,8 +136,7 @@ export function AppLayout() {
         <div 
           ref={rightSidebarRef}
           className={`
-            relative border-l border-[var(--background-modifier-border)] 
-            overflow-hidden sidebar-transition gpu-accelerated hide-tablet hide-mobile
+            relative overflow-hidden sidebar-transition gpu-accelerated hide-tablet hide-mobile
             ${rightSidebarOpen && !isMobile && !isTablet ? 'flex-shrink-0' : 'w-0'}
           `}
           style={{

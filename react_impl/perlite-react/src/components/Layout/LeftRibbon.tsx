@@ -161,7 +161,7 @@ export function LeftRibbon() {
   ];
 
   return (
-    <div className="w-12 h-full bg-[var(--background-secondary)] border-r border-[var(--background-modifier-border)] flex flex-col items-center py-2 overflow-hidden">
+    <div className="w-12 h-full bg-[var(--background-secondary)] flex flex-col items-center py-2 overflow-hidden">
       {/* Logo/Brand - 小尺寸 */}
       <div className="mb-2 flex items-center justify-center w-8 h-8">
         <img 

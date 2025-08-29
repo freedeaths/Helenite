@@ -65,27 +65,21 @@ export function ResizeHandle({
   return (
     <div
       className={`
-        cursor-ew-resize z-20 flex-shrink-0
+        cursor-ew-resize z-20 flex-shrink-0 relative
         ${isHovered || isResizing 
           ? 'bg-[var(--interactive-accent)] opacity-100' 
           : 'bg-[var(--background-modifier-border)] opacity-50 hover:opacity-100'
         }
       `}
       style={{
-        width: '2px',
-        height: '100%'
+        width: isHovered || isResizing ? '2px' : '1px',
+        height: '100%',
+        transition: 'width 0.2s ease'
       }}
       onMouseDown={startResizing}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Visual indicator when hovering or dragging */}
-      <div className={`
-        absolute inset-y-0 -inset-x-0.5
-        transition-opacity duration-20
-        ${isHovered || isResizing ? 'opacity-100' : 'opacity-0'}
-        bg-[var(--interactive-accent)] bg-opacity-20
-      `} />
     </div>
   );
 }
