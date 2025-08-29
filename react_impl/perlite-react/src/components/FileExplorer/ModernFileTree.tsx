@@ -13,7 +13,11 @@ interface FileTreeNodeProps {
 
 function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(level < 2);
-  const isActive = activeFile === node.path;
+  // 修复中文文件名的活跃状态匹配问题
+  // 需要解码 activeFile 或编码 node.path 来进行正确的比较
+  const isActive = activeFile === node.path || 
+    (activeFile && decodeURIComponent(activeFile) === node.path) ||
+    (activeFile && activeFile === encodeURIComponent(node.path));
 
   const handleToggle = useCallback(async () => {
     if (node.type === 'folder') {
