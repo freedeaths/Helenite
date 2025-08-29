@@ -3,10 +3,14 @@ import { useVaultStore } from '../../stores/vaultStore';
 import { MarkdownViewer } from '../MarkdownViewer/MarkdownViewer';
 import { GlobalGraph } from '../Graph/GlobalGraph';
 import { ViewHeader } from './ViewHeader';
+import { useScrollPositionPersistence } from '../../hooks/useScrollPositionPersistence';
 
 export function MainContent() {
-  const { isMobile, mainContentView } = useUIStore();
+  const { mainContentView } = useUIStore();
   const { activeFile } = useVaultStore();
+  
+  // Use scroll position persistence hook
+  const scrollContainerRef = useScrollPositionPersistence(activeFile);
 
   return (
     <div className="h-full flex flex-col bg-[var(--background-primary)]">
@@ -16,7 +20,7 @@ export function MainContent() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto" ref={scrollContainerRef}>
         {mainContentView === 'globalGraph' ? (
           <GlobalGraph />
         ) : (

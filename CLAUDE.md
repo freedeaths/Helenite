@@ -396,29 +396,11 @@ CONSTRAINTS = {
 > 用标记 `[ ]` 表示待办，`[x]` 表示已完成，`[!]` 表示紧急。
 
 ### 🐛 已知问题
-- [x] 外部 GPX/KML 文件路径解析问题 - `@Publish/Attachments/` 路径无法正确加载文件 ✅ 已修复
-- [x] 非标准 Obsidian 文件链接语法 - 应该用 `![[file.gpx]]` 而不是 ```gpx:file``` ✅ 已实现
-- [x] **内容超出窗口边界问题** - 长链接和宽表格未受宽度限制，破坏布局
-  - 长链接不会自动折行
-  - 宽表格超出容器边界，没有横向滚动
-  - 表格字号与正文相同，未优化
-  - 内容可能影响 TOC 定位准确性
-  - 1. 所有内容都不应该超出窗口,包括长 Link 和宽表格等
-  - 2. 长 link 折行
-  - 3. 宽表在容器宽度内可以左右滑,表的列对齐,列宽适应单元格内容,表字号比正文小一号
-  - 4. 不能破坏 TOC 的定位
-  - 5. 这一轮的修复思路是对的,你要把浏览器宽度, @react_impl/perlite-react/src/components/Layout/MainContent.tsx 宽度， @react_impl/perlite-react/src/components/MarkdownViewer/MarkdownViewer.tsx 宽度, markdown 各插件的宽度在合理的地方处理它们
-- [x] **TOC定位不准的问题** ✅ 已修复
-  - 根因：`offsetTop` vs `getBoundingClientRect()` 计算差异
-  - 修复：统一使用 `getBoundingClientRect()` 获取准确位置
-  - 优化：调整滚动偏移量，让标题自带的 margin-top 提供间距
+
 
 ### 💡 功能想法  
-- [x] 锚点 & 路由 ✅ 已实现 Hash 路由系统
 - [ ] CDN 友好 📋 已有设计方案，部署时实现
 - [x] SEO 友好 ✅ 已实现动态 meta 标签更新
-- [x] 实现标准 Obsidian 文件链接语法解析（![[file.gpx]] 替代 ```gpx:file```） ✅ 已实现
-- [x] 根据文件扩展名自动选择渲染组件（.gpx/.kml → 地图组件） ✅ 已实现
 
 ### 🔧 优化项目
 - [ ] Markdown 处理器 Obsidian 兼容性优化
@@ -431,39 +413,6 @@ CONSTRAINTS = {
     - **Lunr.js** (25KB) - 全文搜索引擎，支持倒排索引
     - **FlexSearch** (12KB) - 高性能内存搜索
     - **MiniSearch** (15KB) - 轻量级搜索，内存友好
-
-### 📋 Phase 2A: 核心 API 接口实现 ✅ 已完成
-- [x] 创建 API 接口定义目录结构 (`src/apis/interfaces/`)
-- [x] 实现 `IFileTreeAPI.ts` 文件树接口定义（替代原 IVaultAPI）
-- [x] 实现 `IGraphAPI.ts` 图谱接口定义
-- [x] 实现 `IFileAPI.ts` 文件内容接口定义
-- [x] 实现 `LocalFileTreeAPI.ts` 类（基于 metadata.json，复刻 PHP menu() 逻辑）
-- [x] 实现 `LocalGraphAPI.ts` 类（复刻 PHP getfullGraph() 逻辑）
-- [x] 实现 `LocalFileAPI.ts` 类（单文件内容加载）
-- [x] 实现 `MockFileTreeAPI.ts` 和 `MockFileAPI.ts` 测试用实现
-- [x] 创建简化 API 配置切换机制（去除 APIFactory，直接配置）
-- [x] 实现 `useFileTreeAPI`、`useGraphAPI`、`useFileAPI` Hooks
-- [x] 验证 metadata.json 文件访问和解析功能
-- [x] 实现文件树构建逻辑（PHP 风格排序：下划线优先）
-- [x] 实现图谱数据生成（16个节点，11条边，验证成功）
-- [x] 实现文件内容加载和 Markdown 处理
-
-### 📋 Phase 2B: 组件连接和集成 ✅ 已完成
-- [x] 更新 `FileTree` 组件使用新 API 接口
-- [x] 连接 `Graph` 组件到 LocalGraphAPI 数据源
-- [x] 集成 `MarkdownViewer` 和新的 FileAPI 层
-- [x] 验证所有功能在现有 `public/vault/Publish/` 测试数据下的工作状态
-- [x] 创建综合测试用 Welcome.md（包含所有 markdown 特性）
-- [x] 实现 Mock API 分离，移除组件中的内联 mock 内容
-
-### 📋 Phase 2C: 搜索和标签 API ✅ 已完成
-- [x] 实现 `ISearchAPI.ts` 接口定义
-- [x] 实现 `ITagAPI.ts` 接口定义 
-- [x] 实现 `LocalSearchAPI.ts`（基于 metadata.json 全文搜索）
-- [x] 实现 `LocalTagAPI.ts`（基于 metadata.json tags 字段）
-- [x] 更新 `FileExplorer` 组件集成搜索功能（在 Files tab 内）
-- [x] 复刻 PHP 版本搜索逻辑：正则表达式匹配、高亮显示、标签搜索
-- [x] 验证搜索功能：文本搜索 + 标签搜索（#标签）均工作正常 
 
 ### ⚙️ 可调参数位置
 - **响应式防抖延迟**: `/src/components/Layout/AppLayout.tsx:50` - 当前50ms，可调节范围20-100ms
