@@ -118,10 +118,22 @@ export function FileExplorer() {
     // 使用路由导航到文件
     navigateToFile(path);
     console.log('Selected file:', path);
+    
+    // 在手机端点击文件后收回抽屉 - 使用正确的 setMobileDropdownOpen
+    const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
+    if (isMobile) {
+      setMobileDropdownOpen(false);
+    }
   };
 
   const handleSearchResultClick = (filePath: string) => {
     navigateToFile(filePath);
+    
+    // 在手机端点击搜索结果后收回抽屉 - 使用正确的 setMobileDropdownOpen
+    const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
+    if (isMobile) {
+      setMobileDropdownOpen(false);
+    }
   };
 
   // 过滤文件树

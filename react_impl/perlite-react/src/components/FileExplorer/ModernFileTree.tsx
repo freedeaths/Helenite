@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { IconFile, IconFolder, IconFolderOpen, IconChevronRight } from '@tabler/icons-react';
 import { useFileTreeAPI } from '../../hooks/useAPIs';
+import { useUIStore } from '../../stores/uiStore';
 import type { FileTree } from '../../apis/interfaces';
 
 interface FileTreeNodeProps {
@@ -18,7 +19,14 @@ function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodePro
     if (node.type === 'folder') {
       setIsExpanded(!isExpanded);
     } else {
+      console.log('ModernFileTree handleToggle - clicking file:', node.path);
       await onFileSelect(node.path);
+      
+      // 在手机端点击文件后收回抽屉 - 使用正确的 setMobileDropdownOpen
+      const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
+      if (isMobile) {
+        setMobileDropdownOpen(false);
+      }
     }
   }, [node.type, node.path, isExpanded, onFileSelect]);
 
@@ -80,18 +88,25 @@ function FileTreeNode({ node, level, onFileSelect, activeFile }: FileTreeNodePro
 }
 
 interface ModernFileTreeProps {
+  files: FileTree[];
   activeFile?: string | null;
   onFileSelect?: (path: string) => Promise<void>;
 }
 
-export function ModernFileTree({ activeFile, onFileSelect }: ModernFileTreeProps) {
+export function ModernFileTree({ files: propFiles, activeFile, onFileSelect }: ModernFileTreeProps) {
   const fileTreeAPI = useFileTreeAPI();
-  const [files, setFiles] = useState<FileTree[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState<FileTree[]>(propFiles || []);
+  const [loading, setLoading] = useState(!propFiles);
   const [error, setError] = useState<string | null>(null);
 
-  // 加载文件树数据
+  // 加载文件树数据（如果没有通过props传入）
   useEffect(() => {
+    if (propFiles) {
+      setFiles(propFiles);
+      setLoading(false);
+      return;
+    }
+
     const loadFileTree = async () => {
       try {
         setLoading(true);
@@ -107,7 +122,7 @@ export function ModernFileTree({ activeFile, onFileSelect }: ModernFileTreeProps
     };
 
     loadFileTree();
-  }, [fileTreeAPI]);
+  }, [fileTreeAPI, propFiles]);
 
   // 默认文件选择处理器
   const handleFileSelect = useCallback(async (path: string) => {
@@ -156,7 +171,7 @@ export function ModernFileTree({ activeFile, onFileSelect }: ModernFileTreeProps
           node={file}
           level={0}
           onFileSelect={handleFileSelect}
-          activeFile={activeFile}
+          activeFile={activeFile || null}
         />
       ))}
     </div>
