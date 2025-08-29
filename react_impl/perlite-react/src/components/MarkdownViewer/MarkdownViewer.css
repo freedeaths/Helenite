@@ -207,37 +207,31 @@
   object-fit: contain; /* Maintain aspect ratio */
 }
 
-/* Tags #tag - Badge style */
+/* Tags #tag - Simple gray style to match other tags */
 .markdown-viewer .tag {
-  color: #ffffff;
+  color: var(--tag-color, var(--text-muted));
   text-decoration: none;
-  background: linear-gradient(135deg, var(--interactive-accent, #7c3aed), rgba(var(--text-accent-rgb, 124, 58, 237), 0.8));
-  border: none;
-  border-radius: 16px;
-  padding: 4px 12px;
-  font-size: 0.8em;
-  line-height: 1.3;
-  font-weight: 600;
+  background: var(--tag-background, rgba(var(--text-muted-rgb, 156, 163, 175), 0.1));
+  border: 1px solid var(--background-modifier-border, rgba(0, 0, 0, 0.1));
+  border-radius: var(--tag-radius, 4px);
+  padding: var(--tag-padding-y, 2px) var(--tag-padding-x, 8px);
+  font-size: 0.85em;
+  line-height: 1.4;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  margin: 2px 4px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 2px 4px 2px 0;
+  transition: all 0.2s ease;
   white-space: nowrap;
   vertical-align: middle;
 }
 
-.markdown-viewer .tag::before {
-  content: "🏷️";
-  margin-right: 4px;
-  font-size: 0.9em;
-  opacity: 0.8;
-}
+/* Removed emoji prefix for cleaner tag appearance */
 
 .markdown-viewer .tag:hover {
-  background: linear-gradient(135deg, rgba(var(--text-accent-rgb, 124, 58, 237), 0.9), var(--interactive-accent, #7c3aed));
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(var(--text-accent-rgb, 124, 58, 237), 0.3);
+  background: var(--tag-background-hover, rgba(var(--text-muted-rgb, 156, 163, 175), 0.15));
+  border-color: var(--background-modifier-border-hover, rgba(0, 0, 0, 0.2));
+  color: var(--tag-color-hover, var(--text-normal));
   text-decoration: none;
 }
 

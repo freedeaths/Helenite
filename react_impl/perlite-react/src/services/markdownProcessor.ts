@@ -281,9 +281,10 @@ function remarkObsidianTags() {
       if (!parent || typeof index !== 'number') return;
       
       const value = node.value;
-      const tagRegex = /(^|\s)(#[\w\-\/]+)/g;
+      const tagRegex = /(^|[\s：:,，])(#[\w\-\/]+)/g;
       
       if (!tagRegex.test(value)) return;
+      
       
       const parts: Array<{ type: 'text' | 'tag'; value: string }> = [];
       let lastIndex = 0;
@@ -468,13 +469,20 @@ function remarkObsidianCallouts() {
         children: [{ type: 'text', value: calloutTitle }]
       };
       
-      // Create content paragraph if we have content
+      // Create content - preserve all children after first paragraph for multi-paragraph callouts
       const contentChildren = [];
+      
+      // Add remaining content from first paragraph if any
       if (contentText) {
         contentChildren.push({
           type: 'paragraph' as any,
           children: [{ type: 'text', value: contentText }]
         });
+      }
+      
+      // Add all remaining child elements (preserving lists, etc.)
+      for (let i = 1; i < node.children.length; i++) {
+        contentChildren.push(node.children[i]);
       }
       
       const contentElement = {
