@@ -207,25 +207,37 @@
   object-fit: contain; /* Maintain aspect ratio */
 }
 
-/* Tags #tag */
+/* Tags #tag - Badge style */
 .markdown-viewer .tag {
-  color: var(--text-accent);
+  color: #ffffff;
   text-decoration: none;
-  background-color: var(--tag-background, rgba(var(--text-accent-rgb), 0.1));
-  border: 1px solid var(--tag-border, rgba(var(--text-accent-rgb), 0.2));
-  border-radius: 14px;
-  padding: 2px 8px;
-  font-size: 0.85em;
-  line-height: 1.2;
-  font-weight: 500;
-  display: inline-block;
-  margin: 0 2px;
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, var(--interactive-accent, #7c3aed), rgba(var(--text-accent-rgb, 124, 58, 237), 0.8));
+  border: none;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.8em;
+  line-height: 1.3;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  margin: 2px 4px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.markdown-viewer .tag::before {
+  content: "🏷️";
+  margin-right: 4px;
+  font-size: 0.9em;
+  opacity: 0.8;
 }
 
 .markdown-viewer .tag:hover {
-  background-color: var(--tag-background-hover, rgba(var(--text-accent-rgb), 0.15));
-  border-color: var(--tag-border-hover, rgba(var(--text-accent-rgb), 0.3));
+  background: linear-gradient(135deg, rgba(var(--text-accent-rgb, 124, 58, 237), 0.9), var(--interactive-accent, #7c3aed));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(var(--text-accent-rgb, 124, 58, 237), 0.3);
   text-decoration: none;
 }
 
@@ -487,6 +499,77 @@
   padding: 1rem;
   overflow: auto;
   max-height: calc(100vh - 160px); /* Limit height to viewport minus header/padding */
+}
+
+/* ===== FRONTMATTER TAGS STYLING ===== */
+/* Hide frontmatter separator lines - be more specific to avoid hiding the container */
+.markdown-viewer hr + .frontmatter-tags + hr {
+  display: none;
+}
+
+.markdown-viewer .frontmatter-tags + hr {
+  display: none;
+}
+
+.markdown-viewer hr:has(+ .frontmatter-tags) {
+  display: none;
+}
+
+/* Container for frontmatter tags */
+.markdown-viewer .frontmatter-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 1rem 0;
+  padding: 12px;
+  background-color: rgba(128, 128, 128, 0.02);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 6px);
+}
+
+/* Tags label styling */
+.markdown-viewer .frontmatter-tags .tags-label {
+  font-weight: var(--font-weight-bold, 600);
+  color: var(--text-muted);
+  font-size: 0.9em;
+  margin-right: 4px;
+}
+
+/* Frontmatter tag badges - inherit from main tag styling but with slight modifications */
+.markdown-viewer .frontmatter-tag {
+  /* Use the same badge styling as regular tags */
+  color: var(--text-normal);
+  text-decoration: none;
+  background: linear-gradient(135deg, rgba(120, 120, 120, 0.15), rgba(100, 100, 100, 0.1));
+  border: none;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.8em;
+  line-height: 1.3;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  margin: 0; /* Override margin since container provides gap */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.markdown-viewer .frontmatter-tag::before {
+  content: "#";
+  margin-right: 4px;
+  font-size: 0.9em;
+  opacity: 0.6;
+  color: var(--text-muted);
+}
+
+.markdown-viewer .frontmatter-tag:hover {
+  background: linear-gradient(135deg, rgba(140, 140, 140, 0.2), rgba(120, 120, 120, 0.15));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(120, 120, 120, 0.2);
+  cursor: default; /* Non-clickable for now */
 }
 
 /* ===== GLOBAL MEDIA CONTENT SIZE LIMITS ===== */

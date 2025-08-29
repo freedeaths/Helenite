@@ -45,6 +45,123 @@ function wrapTablesPlugin() {
 }
 
 /**
+ * Rehype plugin to transform frontmatter tag lists into styled badges
+ */
+function frontmatterTagsPlugin() {
+  return (tree: HastRoot) => {
+    visit(tree, 'element', (node: HastElement, index, parent) => {
+      // Look for patterns that indicate frontmatter tags:
+      // Pattern: <hr> <p>tags:</p> <ul><li>tag1</li><li>tag2</li></ul> <hr>
+      if (node.tagName === 'p' && parent && typeof index === 'number') {
+        const textContent = extractTextContent(node);
+        if (textContent.toLowerCase().trim() === 'tags:') {
+          // Look for the next sibling which should be a ul
+          let nextSibling = parent.children[index + 1] as HastElement;
+          
+          // If there's a text node with whitespace, skip it
+          while (nextSibling && nextSibling.type === 'text' && nextSibling.value.trim() === '') {
+            nextSibling = parent.children[index + 2] as HastElement;
+          }
+          
+          if (nextSibling && nextSibling.type === 'element' && nextSibling.tagName === 'ul') {
+            console.log('🏷️ Found frontmatter tags pattern, transforming...');
+            
+            // Transform the list items into tag badges
+            const tagElements = nextSibling.children
+              .filter((child): child is HastElement => 
+                child.type === 'element' && child.tagName === 'li'
+              )
+              .map((li) => {
+                const tagText = extractTextContent(li);
+                console.log(`🏷️ Creating tag badge for: "${tagText}"`);
+                return {
+                  type: 'element' as const,
+                  tagName: 'span',
+                  properties: {
+                    className: ['tag', 'frontmatter-tag'],
+                    'data-tag': tagText
+                  },
+                  children: [{ type: 'text', value: tagText }]
+                };
+              });
+
+            // Create a container for the tags
+            const tagsContainer: HastElement = {
+              type: 'element',
+              tagName: 'div',
+              properties: {
+                className: ['frontmatter-tags']
+              },
+              children: [
+                {
+                  type: 'element',
+                  tagName: 'span',
+                  properties: {
+                    className: ['tags-label']
+                  },
+                  children: [{ type: 'text', value: 'Tags: ' }]
+                },
+                ...tagElements
+              ]
+            };
+
+            console.log(`🏷️ Created tags container with ${tagElements.length} badges`);
+            
+            // Find the positions to replace
+            const listIndex = parent.children.indexOf(nextSibling);
+            
+            // Also look for preceding and following hr elements to remove
+            let startIndex = index;
+            let endIndex = listIndex;
+            
+            // Check if there's an hr before the tags paragraph
+            if (index > 0) {
+              const prevSibling = parent.children[index - 1] as HastElement;
+              if (prevSibling && prevSibling.type === 'element' && prevSibling.tagName === 'hr') {
+                startIndex = index - 1;
+                console.log('🏷️ Found preceding hr, will remove it');
+              }
+            }
+            
+            // Check if there's an hr after the tags list
+            if (listIndex + 1 < parent.children.length) {
+              const nextNext = parent.children[listIndex + 1] as HastElement;
+              if (nextNext && nextNext.type === 'element' && nextNext.tagName === 'hr') {
+                endIndex = listIndex + 1;
+                console.log('🏷️ Found following hr, will remove it');
+              }
+            }
+            
+            // Replace the entire frontmatter section with our tags container
+            parent.children.splice(startIndex, endIndex - startIndex + 1, tagsContainer);
+            console.log('🏷️ Replaced frontmatter tags and hr elements in DOM');
+            return; // Exit early since we modified the tree
+          }
+        }
+      }
+    });
+  };
+}
+
+/**
+ * Helper function to extract text content from a HAST element
+ */
+function extractTextContent(element: HastElement): string {
+  if (!element.children) return '';
+  
+  return element.children
+    .map((child) => {
+      if (child.type === 'text') {
+        return child.value;
+      } else if (child.type === 'element') {
+        return extractTextContent(child);
+      }
+      return '';
+    })
+    .join('');
+}
+
+/**
  * Markdown processing options
  */
 export interface MarkdownProcessingOptions {
@@ -582,6 +699,9 @@ export class MarkdownProcessor {
     // Wrap tables in responsive containers
     this.processor.use(wrapTablesPlugin);
     
+    // Transform frontmatter tags into styled badges
+    this.processor.use(frontmatterTagsPlugin);
+    
     // Mermaid diagrams are now handled in extractMermaidDiagrams function
     
     if (options.enableCodeHighlight) {
@@ -637,6 +757,7 @@ export class MarkdownProcessor {
       // .use(rehypeAutolinkHeadings, { behavior: 'wrap' }) // 禁用以避免标题变成链接
       .use(rehypeKatex)
       .use(wrapTablesPlugin)
+      .use(frontmatterTagsPlugin) // Transform frontmatter tags
       .use(rehypeHighlight)
       .use(rehypeStringify, { allowDangerousHtml: true });
     
