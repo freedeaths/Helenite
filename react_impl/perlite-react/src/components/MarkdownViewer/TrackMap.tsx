@@ -852,7 +852,9 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       height: '400px',
       border: '1px solid var(--background-modifier-border)',
       borderRadius: '4px',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      position: 'relative',
+      zIndex: 1 // Lower z-index to ensure dropdown covers maps
     }}>
       {/* 显示轨迹信息 */}
       <div style={{

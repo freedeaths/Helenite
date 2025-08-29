@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useGraphAPI, useFileAPI } from '../../hooks/useAPIs';
+import { useUIStore } from '../../stores/uiStore';
 
 export function StatusBar() {
   const { activeFile } = useVaultStore();
+  const { isMobile } = useUIStore();
   const graphAPI = useGraphAPI();
   const fileAPI = useFileAPI();
   const [backlinksCount, setBacklinksCount] = useState(0);
@@ -111,8 +113,9 @@ export function StatusBar() {
     calculateWordAndCharCount();
   }, [activeFile, fileAPI]);
 
+  // 有 bug，在浏览器模拟移动端正常显示状态栏，但在手机真机上不显示
   return (
-    <div className="h-6 bg-[var(--background-secondary)] border-t border-[var(--background-modifier-border)] flex items-center justify-between px-4 text-xs text-[var(--text-muted)]">
+    <div className={`h-6 bg-[var(--background-secondary)] border-t border-[var(--background-modifier-border)] flex items-center justify-between px-4 text-xs text-[var(--text-muted)] ${isMobile ? 'mobile-safe-area-bottom' : ''}`}>
       <div className="flex items-center space-x-4">
         <span>{backlinksCount} backlinks</span>
       </div>

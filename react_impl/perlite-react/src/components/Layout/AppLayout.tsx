@@ -76,11 +76,11 @@ export function AppLayout() {
       {/* Mobile navigation bar */}
 
       {/* Main workspace - Flex layout */}
-      <div className="flex-1 overflow-hidden flex justify-center">
-        <div className="flex w-full max-w-[1828px]">
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex w-full max-w-[1828px] mx-auto">
         {/* Left Ribbon - show on desktop and tablet only */}
         {!isMobile && (
-          <div className="flex-shrink-0 overflow-hidden">
+          <div className="flex-shrink-0 w-12 overflow-hidden">
             <LeftRibbon />
           </div>
         )}
@@ -116,7 +116,7 @@ export function AppLayout() {
         )}
 
         {/* Main Content */}
-        <div className="relative flex-1 overflow-hidden">
+        <div className={`relative overflow-hidden ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}>
           <MainContent />
         </div>
 
@@ -152,8 +152,9 @@ export function AppLayout() {
         </div>
       </div>
 
-      {/* Status Bar */}
-      <StatusBar />
+      {/* Status Bar - Desktop and Tablet only */}
+      {/* 移动端模拟正常显示，真机不显示 */}
+      {!isMobile && <StatusBar />}
       
       {/* Mobile Drawers */}
       {isMobile && (
