@@ -49,14 +49,14 @@ export function ViewHeader() {
         </div>
 
         {/* File title */}
-        <div className="flex-1 text-center">
-          <span className="text-sm font-normal truncate">
+        <div className="flex-1 text-center min-w-0 px-2 overflow-hidden">
+          <div className="text-sm font-normal truncate whitespace-nowrap">
             {activeFile ? decodeURIComponent(activeFile).replace(/^\//, '').replace(/\.md$/, '') : 'Welcome'}
-          </span>
+          </div>
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-shrink-0">
           <ActionIcon
             variant="subtle"
             color="gray"
