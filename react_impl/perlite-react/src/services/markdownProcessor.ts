@@ -17,6 +17,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeStringify from 'rehype-stringify';
 import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
 import { externalLinksPlugin } from './plugins/externalLinksPlugin';
+import { parseFrontMatter, type FrontMatterData } from '../utils/frontMatterParser';
 import { visit } from 'unist-util-visit';
 import type { Root as MdastRoot, Node as MdastNode } from 'mdast';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
@@ -45,96 +46,7 @@ function wrapTablesPlugin() {
   };
 }
 
-/**
- * Rehype plugin to transform frontmatter tag lists into styled badges
- */
-function frontmatterTagsPlugin() {
-  return (tree: HastRoot) => {
-    visit(tree, 'element', (node: HastElement, index, parent) => {
-      // Look for patterns that indicate frontmatter tags:
-      // Pattern: <hr> <p>tags:</p> <ul><li>tag1</li><li>tag2</li></ul> <hr>
-      if (node.tagName === 'p' && parent && typeof index === 'number') {
-        const textContent = extractTextContent(node);
-        if (textContent.toLowerCase().trim() === 'tags:') {
-          // Look for the next sibling which should be a ul
-          let nextSibling = parent.children[index + 1] as HastElement;
-          
-          // If there's a text node with whitespace, skip it
-          while (nextSibling && nextSibling.type === 'text' && nextSibling.value.trim() === '') {
-            nextSibling = parent.children[index + 2] as HastElement;
-          }
-          
-          if (nextSibling && nextSibling.type === 'element' && nextSibling.tagName === 'ul') {
-            // Transform the list items into tag badges
-            const tagElements = nextSibling.children
-              .filter((child): child is HastElement => 
-                child.type === 'element' && child.tagName === 'li'
-              )
-              .map((li) => {
-                const tagText = extractTextContent(li);
-                return {
-                  type: 'element' as const,
-                  tagName: 'span',
-                  properties: {
-                    className: ['tag', 'frontmatter-tag'],
-                    'data-tag': tagText
-                  },
-                  children: [{ type: 'text', value: tagText }]
-                };
-              });
-
-            // Create a container for the tags
-            const tagsContainer: HastElement = {
-              type: 'element',
-              tagName: 'div',
-              properties: {
-                className: ['frontmatter-tags']
-              },
-              children: [
-                {
-                  type: 'element',
-                  tagName: 'span',
-                  properties: {
-                    className: ['tags-label']
-                  },
-                  children: [{ type: 'text', value: 'Tags: ' }]
-                },
-                ...tagElements
-              ]
-            };
-            
-            // Find the positions to replace
-            const listIndex = parent.children.indexOf(nextSibling);
-            
-            // Also look for preceding and following hr elements to remove
-            let startIndex = index;
-            let endIndex = listIndex;
-            
-            // Check if there's an hr before the tags paragraph
-            if (index > 0) {
-              const prevSibling = parent.children[index - 1] as HastElement;
-              if (prevSibling && prevSibling.type === 'element' && prevSibling.tagName === 'hr') {
-                startIndex = index - 1;
-              }
-            }
-            
-            // Check if there's an hr after the tags list
-            if (listIndex + 1 < parent.children.length) {
-              const nextNext = parent.children[listIndex + 1] as HastElement;
-              if (nextNext && nextNext.type === 'element' && nextNext.tagName === 'hr') {
-                endIndex = listIndex + 1;
-              }
-            }
-            
-            // Replace the entire frontmatter section with our tags container
-            parent.children.splice(startIndex, endIndex - startIndex + 1, tagsContainer);
-            return; // Exit early since we modified the tree
-          }
-        }
-      }
-    });
-  };
-}
+// Frontmatter tags are now handled by LocalTagAPI in MarkdownViewer component
 
 /**
  * Helper function to extract text content from a HAST element
@@ -683,8 +595,7 @@ export class MarkdownProcessor {
     // Wrap tables in responsive containers
     this.processor.use(wrapTablesPlugin);
     
-    // Transform frontmatter tags into styled badges
-    this.processor.use(frontmatterTagsPlugin);
+    // Transform frontmatter tags into styled badges (will be added dynamically)
     
     // Handle external links (add target="_blank")
     this.processor.use(externalLinksPlugin);
@@ -719,11 +630,15 @@ export class MarkdownProcessor {
       links: Array<{ href: string; text: string }>;
       tags: string[];
     };
+    frontMatter: FrontMatterData;
     mermaidDiagrams: Array<{ id: string; code: string; placeholder: string }>;
     trackMaps: Array<{ id: string; code: string; placeholder: string; isFile?: boolean; fileType?: string }>;
   }> {
-    // First, extract Mermaid diagrams and track maps from markdown
-    const { processedMarkdown: markdownAfterMermaid, mermaidDiagrams } = extractMermaidDiagrams(markdown);
+    // Parse front matter and remove it from content (tags now handled by LocalTagAPI)
+    const { frontMatter, content } = parseFrontMatter(markdown);
+    
+    // Extract Mermaid diagrams and track maps from content without front matter
+    const { processedMarkdown: markdownAfterMermaid, mermaidDiagrams } = extractMermaidDiagrams(content);
     const { processedMarkdown, trackMaps: initialTrackMaps } = extractTrackMaps(markdownAfterMermaid);
     
     // Load metadata.json for intelligent link resolution
@@ -755,7 +670,7 @@ export class MarkdownProcessor {
       // .use(rehypeAutolinkHeadings, { behavior: 'wrap' }) // 禁用以避免标题变成链接
       .use(rehypeKatex)
       .use(wrapTablesPlugin)
-      .use(frontmatterTagsPlugin) // Transform frontmatter tags
+      // Frontmatter tags now handled by LocalTagAPI in MarkdownViewer
       .use(externalLinksPlugin) // Handle external links
       .use(rehypeHighlight)
       .use(rehypeStringify, { allowDangerousHtml: true });
@@ -845,7 +760,7 @@ export class MarkdownProcessor {
     // Combine initial track maps (from markdown) with additional ones (from HTML embeds)
     const allTrackMaps = [...initialTrackMaps, ...additionalTrackMaps];
     
-    return { html: finalHtml, metadata, mermaidDiagrams, trackMaps: allTrackMaps };
+    return { html: finalHtml, metadata, frontMatter, mermaidDiagrams, trackMaps: allTrackMaps };
   }
 }
 

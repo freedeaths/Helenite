@@ -1,0 +1,78 @@
+/* Cusdis 自定义样式优化 */
+.cusdis-comments {
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.cusdis-comments h3 {
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+/* Cusdis 容器样式 */
+.cusdis-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.cusdis-container:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* 强制 Cusdis iframe 高度设置 */
+#cusdis_thread {
+  background: var(--background-primary) !important;
+  color-scheme: var(--color-scheme, light);
+  min-height: 500px !important;
+}
+
+#cusdis_thread iframe {
+  min-height: 500px !important;
+  height: auto !important;
+  width: 100% !important;
+  border: none !important;
+  background: var(--background-primary) !important;
+}
+
+/* 全局 iframe 选择器以确保样式应用 */
+iframe[src*="cusdis"] {
+  min-height: 500px !important;
+  height: auto !important;
+  background: var(--background-primary) !important;
+}
+
+/* 暗主题特殊处理 */
+[data-theme="dark"] #cusdis_thread {
+  color-scheme: dark;
+  background: var(--background-primary) !important;
+}
+
+[data-theme="dark"] #cusdis_thread iframe {
+  background: var(--background-primary) !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .cusdis-container {
+    border-radius: 4px;
+    margin: 0 -4px;
+  }
+  
+  #cusdis_thread {
+    min-height: 400px !important;
+  }
+  
+  #cusdis_thread iframe {
+    min-height: 400px !important;
+  }
+}
+
+/* 确保加载状态下的最小高度 */
+.cusdis-comments > div {
+  min-height: 500px;
+}

@@ -104,9 +104,15 @@ export class LocalTagAPI implements ITagAPI {
    */
   async getFileTags(filePath: string): Promise<string[]> {
     const metadata = await this.getMetadata();
-    const fileInfo = metadata.find(f => f.relativePath === filePath);
     
-    if (!fileInfo) return [];
+    // 标准化文件路径 - 移除前导斜杠以匹配 metadata.json 格式
+    const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+    const fileInfo = metadata.find(f => f.relativePath === normalizedPath);
+    
+    if (!fileInfo) {
+      console.warn(`File not found in metadata: ${filePath} (normalized: ${normalizedPath})`);
+      return [];
+    }
 
     const tags = fileInfo.tags || [];
     

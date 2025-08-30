@@ -4,8 +4,10 @@ import { useUIStore } from '../../stores/uiStore';
 import { markdownProcessor } from '../../services/markdownProcessor';
 import { MetaTagService } from '../../services/metaTagService';
 import { useFileAPI } from '../../hooks/useAPIs';
+import { useTags } from '../../apis/hooks/useTagAPI';
 import { MermaidDiagram } from './MermaidDiagram';
 import { TrackMap } from './TrackMap';
+import { CusdisComments } from './CusdisComments';
 
 import 'katex/dist/katex.min.css';
 import './MarkdownViewer.css';
@@ -14,10 +16,13 @@ export function MarkdownViewer() {
   const { activeFile, setCurrentDocumentMetadata } = useVaultStore();
   const { theme } = useUIStore();
   const fileAPI = useFileAPI();
+  const { getFileTags } = useTags();
   const [content, setContent] = useState<string>('');
   const [renderedContent, setRenderedContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileTags, setFileTags] = useState<string[]>([]);
+  const [frontMatter, setFrontMatter] = useState<any>(null);
   const [mermaidDiagrams, setMermaidDiagrams] = useState<Array<{ id: string; code: string; placeholder: string }>>([]);
   const [trackMaps, setTrackMaps] = useState<Array<{ id: string; code: string; placeholder: string; isFile?: boolean }>>([]);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -70,15 +75,29 @@ export function MarkdownViewer() {
             decodedPath // current file path for relative link resolution
           );
         })
-        .then((result) => {
+        .then(async (result) => {
           setRenderedContent(result.html);
           setCurrentDocumentMetadata(result.metadata); // Store in global state for TOC
           setMermaidDiagrams(result.mermaidDiagrams);
           setTrackMaps(result.trackMaps);
+          setFrontMatter(result.frontMatter); // Store front matter for Cusdis
           
           console.log('Processed markdown metadata:', result.metadata);
+          console.log('📄 Front Matter 数据:', {
+            filePath: activeFile,
+            frontMatter: result.frontMatter,
+            uuid: result.frontMatter.uuid,
+            tags: result.frontMatter.tags,
+            customFields: Object.keys(result.frontMatter).filter(key => !['tags'].includes(key))
+          });
+          
           console.log('Found Mermaid diagrams:', result.mermaidDiagrams);
           console.log('Found track maps:', result.trackMaps);
+          
+          // Load file tags using LocalTagAPI
+          const tags = await getFileTags(decodedPath);
+          setFileTags(tags);
+          console.log('📋 Loaded tags from LocalTagAPI:', tags);
         })
         .catch((err) => {
           console.error('File loading or markdown processing error:', err);
@@ -94,11 +113,13 @@ export function MarkdownViewer() {
       setCurrentDocumentMetadata(null); // Clear metadata when no file
       setMermaidDiagrams([]);
       setTrackMaps([]);
+      setFileTags([]);
+      setFrontMatter(null);
       
       // 重置meta标签为默认值
       MetaTagService.resetToDefaults();
     }
-  }, [activeFile, fileAPI, setCurrentDocumentMetadata]);
+  }, [activeFile, fileAPI, setCurrentDocumentMetadata, getFileTags]);
 
   const renderContent = () => {
     if (loading) {
@@ -223,7 +244,37 @@ export function MarkdownViewer() {
               {decodeURIComponent(activeFile).split('/').pop()?.replace('.md', '') || 'Document'}
             </h1>
           )}
+          
+          {/* File tags from LocalTagAPI */}
+          {fileTags.length > 0 && (
+            <div className="frontmatter-tags mb-6">
+              <span className="tags-label text-sm text-[var(--text-muted)] mr-2">Tags:</span>
+              {fileTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag frontmatter-tag inline-block px-2 py-1 mr-2 mb-1 text-xs bg-[var(--background-secondary)] text-[var(--text-accent)] rounded-md border border-[var(--background-modifier-border)] hover:bg-[var(--interactive-hover)] cursor-pointer transition-colors"
+                  data-tag={tag.replace('#', '')}
+                  onClick={() => {
+                    console.log('Tag clicked:', tag);
+                    // TODO: Implement tag search/filter
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          
           {parts}
+          
+          {/* Cusdis 评论系统 */}
+          {frontMatter?.uuid && activeFile && (
+            <CusdisComments
+              pageId={frontMatter.uuid}
+              pageTitle={decodeURIComponent(activeFile).split('/').pop()?.replace('.md', '') || 'Document'}
+              pageUrl={window.location.href}
+            />
+          )}
         </div>
       );
     }
