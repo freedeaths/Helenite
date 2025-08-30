@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import { useEffect, useState, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet';
 import gpxParser from 'gpx-parser-builder';
 import L from 'leaflet';
 
@@ -179,10 +179,45 @@ const getTrackColor = (provider?: string) => {
   }
 };
 
+// 获取地图实例的组件
+function MapInstanceCapture({ onMapReady }: { onMapReady: (map: any) => void }) {
+  const map = useMapEvents({});
+  
+  useEffect(() => {
+    if (map) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+  
+  return null;
+}
+
 export function TrackMap({ code, isFile = false, fileType, className = '' }: TrackMapProps) {
   const [trackData, setTrackData] = useState<TrackData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const mapRef = useRef<any>(null); // Leaflet 地图实例引用
+  const [initialBounds, setInitialBounds] = useState<[[number, number], [number, number]] | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false); // 窗口内放大状态
+
+  // 重置地图视图到初始状态
+  const handleResetView = () => {
+    if (mapRef.current && initialBounds) {
+      const map = mapRef.current;
+      map.fitBounds(initialBounds, { padding: [20, 20] });
+    }
+  };
+
+  // 窗口内放大/缩小切换
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+    // 放大后需要通知 Leaflet 重新计算尺寸
+    setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 100);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -818,6 +853,12 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
     }
   );
 
+  // 设置初始边界（用于重置功能）
+  const mapBounds: [[number, number], [number, number]] = [[bounds.minLat, bounds.minLon], [bounds.maxLat, bounds.maxLon]];
+  if (!initialBounds) {
+    setInitialBounds(mapBounds);
+  }
+
   const center: [number, number] = [
     (bounds.minLat + bounds.maxLat) / 2,
     (bounds.minLon + bounds.maxLon) / 2
@@ -847,15 +888,38 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
   const trackColor = getTrackColor(trackData.provider);
 
   return (
-    <div className={`track-container ${className}`} style={{
-      margin: '1rem 0',
-      height: '400px',
-      border: '1px solid var(--background-modifier-border)',
-      borderRadius: '4px',
-      overflow: 'hidden',
-      position: 'relative',
-      zIndex: 1 // Lower z-index to ensure dropdown covers maps
-    }}>
+    <div 
+      className={`track-container ${className}`} 
+      style={{
+        margin: '1rem 0',
+        height: '400px',
+        border: '1px solid var(--background-modifier-border)',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 1, // Lower z-index to ensure dropdown covers maps
+        // 放大时的样式调整
+        ...(isExpanded && {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          margin: 0,
+          border: 'none',
+          borderRadius: 0,
+          backgroundColor: '#ffffff',
+          zIndex: 9999,
+        })
+      }}
+      onClick={isExpanded ? (e) => {
+        // 点击背景区域关闭放大，但不影响地图内容的点击
+        if (e.target === e.currentTarget) {
+          toggleExpanded();
+        }
+      } : undefined}>
       {/* 显示轨迹信息 */}
       <div style={{
         padding: '0.5rem',
@@ -880,10 +944,14 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       <MapContainer
         center={center}
         zoom={13}
-        style={{ height: 'calc(100% - 40px)', width: '100%' }}
+        style={{ 
+          height: isExpanded ? 'calc(100vh - 60px)' : 'calc(100% - 40px)', 
+          width: '100%' 
+        }}
         bounds={[[bounds.minLat, bounds.minLon], [bounds.maxLat, bounds.maxLon]]}
         boundsOptions={{ padding: [20, 20] }}
       >
+        <MapInstanceCapture onMapReady={(map) => { mapRef.current = map; }} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -950,6 +1018,75 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           </Marker>
         ))}
       </MapContainer>
+      
+      {/* 浮动工具栏 - 重置按钮 */}
+      {!isLoading && !error && trackData && (
+        <div style={{
+          position: 'absolute',
+          top: '50px', // 避开轨迹信息栏
+          right: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '8px',
+          padding: '6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(224, 224, 224, 0.5)',
+          zIndex: 1000 // 确保在地图之上
+        }}>
+          <button
+            onClick={handleResetView}
+            style={{
+              width: '28px',
+              height: '28px',
+              border: 'none',
+              borderRadius: '6px',
+              background: '#ffffff',
+              color: '#333',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            title="重置视图"
+          >
+            ↻
+          </button>
+
+          <div style={{
+            width: '1px',
+            height: '20px',
+            backgroundColor: 'rgba(224, 224, 224, 0.5)',
+            margin: '0 4px'
+          }} />
+          
+          <button
+            onClick={toggleExpanded}
+            style={{
+              width: '28px',
+              height: '28px',
+              border: 'none',
+              borderRadius: '6px',
+              background: '#ffffff',
+              color: '#333',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            title={isExpanded ? "缩小" : "放大"}
+          >
+            {isExpanded ? '⤵' : '⤴'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

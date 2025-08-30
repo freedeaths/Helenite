@@ -22,6 +22,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isExpanded, setIsExpanded] = useState(false); // 窗口内放大状态
 
   // Add window resize handler for responsive updates
   useEffect(() => {
@@ -92,6 +93,14 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
     setPosition({ x: 0, y: 0 });
   };
 
+  // 窗口内放大/缩小切换
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+    // 切换时重置缩放和位置
+    setZoomLevel(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
   // 移除未使用的 handleMouseDown 函数
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -105,17 +114,82 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
     setIsDragging(false);
   }, []);
 
+  // 触摸事件处理
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 1) {
+      // 单指拖拽
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+      e.preventDefault();
+      if (svgRef.current) {
+        svgRef.current.style.cursor = 'grabbing';
+      }
+    } else if (e.touches.length === 2) {
+      // 双指缩放
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      setDragStart({ x: distance, y: 0 }); // 复用 dragStart 存储初始距离
+      e.preventDefault();
+    }
+  }, [position]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 1 && isDragging) {
+      // 单指拖拽
+      const touch = e.touches[0];
+      const newX = touch.clientX - dragStart.x;
+      const newY = touch.clientY - dragStart.y;
+      setPosition({ x: newX, y: newY });
+      e.preventDefault();
+    } else if (e.touches.length === 2) {
+      // 双指缩放
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      const initialDistance = dragStart.x;
+      if (initialDistance > 0) {
+        const scaleChange = distance / initialDistance;
+        const newZoom = Math.min(Math.max(zoomLevel * scaleChange, 0.5), 3);
+        setZoomLevel(newZoom);
+        setDragStart({ x: distance, y: 0 }); // 更新基准距离
+      }
+      e.preventDefault();
+    }
+  }, [isDragging, dragStart, zoomLevel]);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 0) {
+      setIsDragging(false);
+      if (svgRef.current) {
+        svgRef.current.style.cursor = 'grab';
+      }
+    }
+    e.preventDefault();
+  }, []);
+
   // 添加全局拖拽事件监听
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd, { passive: false });
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   // 更新transform当zoom或position改变时
   useEffect(() => {
@@ -297,6 +371,9 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             }
           });
           
+          // 添加触摸事件监听
+          newSvgElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+          
           // 保存SVG引用并应用当前变换
           svgRef.current = newSvgElement;
           updateSVGTransform();
@@ -374,8 +451,28 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
         maxWidth: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        // 放大时的样式调整
+        ...(isExpanded && {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          margin: 0,
+          zIndex: 9999,
+          backgroundColor: theme === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(5px)',
+        })
       }}
+      onClick={isExpanded ? (e) => {
+        // 点击背景区域关闭放大，但不影响图表内容的点击
+        if (e.target === e.currentTarget) {
+          toggleExpanded();
+        }
+      } : undefined}
     >
       {(isLoading && !isThemeChanging) && (
         <div style={{
@@ -411,8 +508,8 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
         style={{
           position: 'relative',
           width: '100%',
-          minHeight: '200px', // 最小高度确保可见
-          maxHeight: 'calc(100vh - 100px)', // 最大高度限制，防止过高
+          minHeight: isExpanded ? 'calc(100vh - 100px)' : '200px', // 放大时占满屏幕
+          maxHeight: isExpanded ? 'calc(100vh - 100px)' : 'calc(100vh - 100px)',
           overflow: 'auto', // 超出时显示滚动条
           backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
           borderRadius: '8px',
@@ -534,6 +631,35 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             title="重置视图"
           >
             ↻
+          </button>
+
+          <div style={{
+            width: '1px',
+            height: '20px',
+            backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
+            margin: '0 2px'
+          }} />
+          
+          <button
+            onClick={toggleExpanded}
+            style={{
+              width: '28px',
+              height: '28px',
+              border: 'none',
+              borderRadius: '6px',
+              background: theme === 'dark' ? '#404040' : '#ffffff',
+              color: theme === 'dark' ? '#e0e0e0' : '#333',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            title={isExpanded ? "缩小" : "放大"}
+          >
+            {isExpanded ? '⤵' : '⤴'}
           </button>
         </div>
       )}
