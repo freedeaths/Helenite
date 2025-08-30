@@ -1,4 +1,4 @@
-# Helinite [WIP]
+# Helenite [WIP]
 
 This project is inspired by [Perlite](https://github.com/secure-77/Perlite).
 
