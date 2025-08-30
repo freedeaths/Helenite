@@ -2,6 +2,8 @@
 
 This project is inspired by [Perlite](https://github.com/secure-77/Perlite).
 
+This project is fully vibe coding from scratch (only based on `Perlite` repo)
+
 ## Required Obsidian Settings (unchecked)
 
 > Copied from [Perlite Wiki](https://github.com/secure-77/Perlite/wiki/03---Perlite-Settings#required-settings)
