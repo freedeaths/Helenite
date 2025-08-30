@@ -233,13 +233,21 @@
 
 /* Obsidian image embeds */
 .markdown-viewer .obsidian-image {
-  max-width: 100%;
+  max-width: 80%;
   max-height: calc(100vh - 160px); /* Limit height to viewport minus header/padding */
   height: auto;
   border-radius: var(--radius-s, 4px);
   box-shadow: var(--shadow-s);
-  margin: 1rem 0;
+  margin: 1rem auto;
+  display: block;
   object-fit: contain; /* Maintain aspect ratio */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.markdown-viewer .obsidian-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Tags #tag - Simple gray style to match other tags */
@@ -512,15 +520,35 @@
 
 /* ===== TRACK MAP SPECIFIC STYLES ===== */
 .markdown-viewer .track-map {
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
+  width: 80%;
   border-radius: var(--radius-m, 6px);
   overflow: hidden;
   box-shadow: var(--shadow-s);
+  display: block;
+}
+
+/* Leaflet 地图缩放按钮移动端适配 */
+.track-container .leaflet-control-zoom a {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  font-size: 18px !important;
+}
+
+@media (max-width: 768px) {
+  .track-container .leaflet-control-zoom a {
+    width: 22px !important;
+    height: 22px !important;
+    line-height: 22px !important;
+    font-size: 16px !important;
+  }
 }
 
 /* ===== MERMAID DIAGRAM SPECIFIC STYLES ===== */
 .markdown-viewer .mermaid-diagram {
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
+  width: 80%;
   text-align: center;
   background-color: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
@@ -528,6 +556,7 @@
   padding: 1rem;
   overflow: auto;
   max-height: calc(100vh - 160px); /* Limit height to viewport minus header/padding */
+  display: block;
 }
 
 /* ===== FRONTMATTER TAGS STYLING ===== */
@@ -604,31 +633,126 @@
 /* ===== GLOBAL MEDIA CONTENT SIZE LIMITS ===== */
 /* All images should respect viewport height limits */
 .markdown-viewer img {
-  max-width: 100%;
+  max-width: 80%;
   max-height: calc(100vh - 160px); /* Consistent height limit */
   height: auto;
+  margin: 1rem auto;
+  display: block;
   object-fit: contain; /* Maintain aspect ratio */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.markdown-viewer img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Video elements */
 .markdown-viewer video {
-  max-width: 100%;
+  max-width: 80%;
   max-height: calc(100vh - 160px);
   height: auto;
+  margin: 1rem auto;
+  display: block;
   object-fit: contain;
 }
 
 /* Iframe elements (for embedded content) */
 .markdown-viewer iframe {
-  max-width: 100%;
+  max-width: 80%;
   max-height: calc(100vh - 160px);
-  width: 100%;
+  width: 80%;
+  margin: 1rem auto;
+  display: block;
   border: none;
 }
 
 /* Canvas elements (for interactive content) */
 .markdown-viewer canvas {
-  max-width: 100%;
+  max-width: 80%;
   max-height: calc(100vh - 160px);
   height: auto;
+  margin: 1rem auto;
+  display: block;
+}
+
+/* ===== IMAGE ZOOM MODAL ===== */
+.image-zoom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-zoom-modal.show {
+  opacity: 1;
+}
+
+.image-zoom-modal img {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  /* transform 现在由 React state 动态控制 */
+}
+
+.image-zoom-modal .close-hint {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+.image-zoom-modal .zoom-indicator {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 12px;
+  border-radius: 20px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  min-width: 60px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .image-zoom-modal .close-hint {
+    top: 15px;
+    right: 15px;
+    font-size: 13px;
+    padding: 5px 8px;
+  }
+  
+  .image-zoom-modal .zoom-indicator {
+    bottom: 15px;
+    font-size: 14px;
+    padding: 4px 10px;
+  }
 }

@@ -447,8 +447,8 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
       style={{ 
         position: 'relative',
         margin: '1rem auto',
-        width: '100%',
-        maxWidth: '100%',
+        width: isExpanded ? '100%' : '80%',
+        maxWidth: isExpanded ? '100%' : '80%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -543,10 +543,10 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             onClick={handleZoomOut}
             disabled={zoomLevel <= 0.5}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: zoomLevel <= 0.5 
                 ? (theme === 'dark' ? '#333' : '#f0f0f0') 
                 : (theme === 'dark' ? '#404040' : '#ffffff'),
@@ -554,7 +554,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
                 ? (theme === 'dark' ? '#666' : '#ccc') 
                 : (theme === 'dark' ? '#e0e0e0' : '#333'),
               cursor: zoomLevel <= 0.5 ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
+              fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
@@ -567,12 +567,12 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           </button>
           
           <div style={{
-            minWidth: '42px',
+            minWidth: window.innerWidth <= 768 ? '32px' : '42px', // 移动端更小
             textAlign: 'center',
-            fontSize: '12px',
+            fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
             fontWeight: '500',
             color: theme === 'dark' ? '#e0e0e0' : '#666',
-            padding: '0 4px'
+            padding: window.innerWidth <= 768 ? '0 2px' : '0 4px' // 移动端更小内边距
           }}>
             {Math.round(zoomLevel * 100)}%
           </div>
@@ -581,10 +581,10 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             onClick={handleZoomIn}
             disabled={zoomLevel >= 3}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: zoomLevel >= 3 
                 ? (theme === 'dark' ? '#333' : '#f0f0f0') 
                 : (theme === 'dark' ? '#404040' : '#ffffff'),
@@ -592,7 +592,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
                 ? (theme === 'dark' ? '#666' : '#ccc') 
                 : (theme === 'dark' ? '#e0e0e0' : '#333'),
               cursor: zoomLevel >= 3 ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
+              fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
@@ -606,22 +606,22 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           
           <div style={{
             width: '1px',
-            height: '20px',
+            height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
             backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
-            margin: '0 2px'
+            margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
           }} />
           
           <button
             onClick={handleResetZoom}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: theme === 'dark' ? '#404040' : '#ffffff',
               color: theme === 'dark' ? '#e0e0e0' : '#333',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
@@ -635,22 +635,22 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
           <div style={{
             width: '1px',
-            height: '20px',
+            height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
             backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
-            margin: '0 2px'
+            margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
           }} />
           
           <button
             onClick={toggleExpanded}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: theme === 'dark' ? '#404040' : '#ffffff',
               color: theme === 'dark' ? '#e0e0e0' : '#333',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',

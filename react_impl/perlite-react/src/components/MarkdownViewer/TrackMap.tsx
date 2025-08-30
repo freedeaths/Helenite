@@ -891,8 +891,11 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
     <div 
       className={`track-container ${className}`} 
       style={{
-        margin: '1rem 0',
-        height: '400px',
+        margin: '1rem auto',
+        width: isExpanded ? '100vw' : '80%',
+        aspectRatio: isExpanded ? 'auto' : '1 / 1', // 1:1 aspect ratio when not expanded
+        height: isExpanded ? '100vh' : 'auto', // Let aspect ratio handle height when not expanded
+        maxHeight: isExpanded ? '100vh' : '500px', // Cap the height for very wide screens
         border: '1px solid var(--background-modifier-border)',
         borderRadius: '4px',
         overflow: 'hidden',
@@ -1028,8 +1031,8 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '8px',
-          padding: '6px',
+          borderRadius: window.innerWidth <= 768 ? '6px' : '8px', // 移动端更小圆角
+          padding: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小内边距
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(224, 224, 224, 0.5)',
@@ -1038,14 +1041,14 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           <button
             onClick={handleResetView}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '18px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '18px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: '#ffffff',
               color: '#333',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
@@ -1059,22 +1062,22 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
 
           <div style={{
             width: '1px',
-            height: '20px',
+            height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
             backgroundColor: 'rgba(224, 224, 224, 0.5)',
-            margin: '0 4px'
+            margin: window.innerWidth <= 768 ? '0 3px' : '0 4px' // 移动端更小间距
           }} />
           
           <button
             onClick={toggleExpanded}
             style={{
-              width: '28px',
-              height: '28px',
+              width: window.innerWidth <= 768 ? '18px' : '28px', // 移动端更小
+              height: window.innerWidth <= 768 ? '18px' : '28px', // 移动端更小
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
               background: '#ffffff',
               color: '#333',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
