@@ -1,69 +1,26 @@
-# React + TypeScript + Vite
+# Helinite [WIP]
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is inspired by [Perlite](https://github.com/secure-77/Perlite).
 
-Currently, two official plugins are available:
+## Required Obsidian Settings (unchecked)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> Copied from [Perlite Wiki](https://github.com/secure-77/Perlite/wiki/03---Perlite-Settings#required-settings)
+> Meta Extrator plugin necessary?? metadata.json
 
-## Expanding the ESLint configuration
+### Internal links
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+You need to set `Files & Links` in the options from `Shortest path when possible` to `Relative path to file`
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> ⚠️ This options only applies for new created links, so you need to fix already existing links in your files. Obsidian can automatically update internal links in your vault when you rename or move a file.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Fix already created links
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+You can use the [obsidian-link-converter plugin](https://github.com/ozntel/obsidian-link-converter) for this. After installation, change the "Converted Link Format" to "Relative Path" or "Absolute Path" in the Plugin options
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then go to the command palette and search for `vault:` and select convert all "Links to Markdown". Confirm the Messagebox and do the same again but this time select "Links to Wiki", this way you can force the plugin to update all your links to the correct format.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+If you only want to convert Links in specific files you can use the context menu on you markdown file and choose "All Links to Relative Path | Absolute Path"
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Wikilinks
+
+for internal links (like to other files or images) only Wikilinks are supported, so make sure that you have turned this option on (default)
