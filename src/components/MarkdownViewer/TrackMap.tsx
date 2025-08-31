@@ -242,17 +242,19 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           if (filePath.startsWith('@Publish/')) {
             // @Publish/ 格式：移除 @Publish 前缀，使用 VAULT_PATH
             filePath = VAULT_PATH + filePath.replace('@Publish', '');
-          } else if (filePath.startsWith('/Attachments/')) {
-            // /Attachments/ 开头：添加 VAULT_PATH 前缀
+          } else if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+            // 已经是完整的 HTTP URL，保持不变
+            // filePath 保持原样
+          } else if (filePath.startsWith(VAULT_PATH)) {
+            // 已经包含 VAULT_PATH，保持不变
+            // filePath 保持原样
+          } else if (filePath.startsWith('/')) {
+            // 绝对路径：添加 VAULT_PATH 前缀
             filePath = VAULT_PATH + filePath;
-          } else if (filePath.startsWith('Attachments/')) {
-            // Attachments/ 开头（无斜杠）：添加 VAULT_PATH 前缀
-            filePath = VAULT_PATH + '/' + filePath;
-          } else if (!filePath.startsWith('/') && !filePath.startsWith('http')) {
-            // 相对路径：转换为绝对路径
+          } else {
+            // 相对路径（包括 Attachments/ 等）：添加 VAULT_PATH 和斜杠
             filePath = VAULT_PATH + '/' + filePath;
           }
-          // 如果已经是完整路径（以 / 或 http 开头），保持不变
 
           console.log('🔍 Resolved file path:', filePath);
 

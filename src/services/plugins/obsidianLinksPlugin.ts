@@ -180,18 +180,30 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
     // 获取当前文件的目录
     const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
     
+    // 处理多级向上的相对路径 (../../ 或 ../)
     if (filePath.startsWith('../')) {
-      // 上级目录：从当前目录上移一级
-      const parentDir = currentDir.substring(0, currentDir.lastIndexOf('/'));
-      const relativePart = filePath.substring(3); // 去掉 '../'
-      filePath = parentDir ? `${parentDir}/${relativePart}` : `/${relativePart}`;
+      let workingDir = currentDir;
+      let workingPath = filePath;
+      
+      // 逐级处理 ../
+      while (workingPath.startsWith('../')) {
+        // 移除一个 ../
+        workingPath = workingPath.substring(3);
+        // 向上移动一级目录
+        const lastSlash = workingDir.lastIndexOf('/');
+        workingDir = lastSlash > 0 ? workingDir.substring(0, lastSlash) : '';
+      }
+      
+      // 组合最终路径
+      filePath = workingDir ? `${workingDir}/${workingPath}` : `/${workingPath}`;
     } else if (filePath.startsWith('./')) {
       // 当前目录：保持在同一级
       const relativePart = filePath.substring(2); // 去掉 './'
       filePath = `${currentDir}/${relativePart}`;
-    } else if (!filePath.startsWith('/')) {
+    } else if (!filePath.startsWith('/') && !filePath.startsWith('Attachments/')) {
       // 相对路径（没有 ./ 前缀）：相对于当前文件所在目录
       // 例如：从 /Trips/Visited-Places.md 链接到 Plans/夏之北海道 应该解析为 /Trips/Plans/夏之北海道.md
+      // 但如果是 Attachments/xxx，则保持原样（因为它是相对于 vault 根目录的）
       filePath = `${currentDir}/${filePath}`;
     }
   }
@@ -276,12 +288,25 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
  * 创建轨迹文件嵌入节点（简化版本）
  */
 function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
-  const fullTrackUrl = resolvedPath.startsWith('http') 
-    ? resolvedPath 
-    : `${baseUrl}${resolvedPath}`;
+  // 对于轨迹文件，确保路径正确
+  // 如果 resolvedPath 是相对路径（不以 / 开头），则添加 /
+  const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
+  
+  const fullTrackUrl = normalizedPath.startsWith('http') 
+    ? normalizedPath 
+    : `${baseUrl}${normalizedPath}`;
 
   const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
   const placeholder = `TRACK_EMBED_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Log for debugging
+  console.log('[TrackEmbed] Creating track embed:', {
+    originalPath: parsedLink.filePath,
+    resolvedPath,
+    normalizedPath,
+    fullTrackUrl,
+    ext
+  });
 
   return {
     type: 'html',
