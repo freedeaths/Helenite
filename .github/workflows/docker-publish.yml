@@ -72,11 +72,9 @@ jobs:
             # PR 时使用 pr-{number}
             type=ref,event=pr
             # 版本标签触发时的语义化版本（带 v 前缀，如 v0.0.1）
-            type=semver,pattern={{version}}
+            type=semver,pattern={{raw}}
             # 版本标签触发时的语义化版本（不带 v 前缀，如 0.0.1）
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
             # 主分支或标签推送时打 latest 标签
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
 
