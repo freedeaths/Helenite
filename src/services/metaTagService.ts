@@ -153,7 +153,7 @@ export class MetaTagService {
   /**
    * 生成默认分享图片（可以是动态生成的或固定的logo）
    */
-  private static generateDefaultShareImage(title: string): string {
+  private static generateDefaultShareImage(_title: string): string {
     // 可以返回一个动态生成的图片URL，或者默认logo
     // 这里先返回一个默认图片
     return `${window.location.origin}/vite.svg`;

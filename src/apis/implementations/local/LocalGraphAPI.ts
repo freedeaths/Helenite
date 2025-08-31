@@ -1,5 +1,7 @@
 import type { IGraphAPI, GraphData, GraphNode, GraphEdge, GraphStats } from '../../interfaces/IGraphAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
+import { VAULT_PATH } from '../../../config/env';
+import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
  * 本地图谱 API 实现
@@ -7,7 +9,10 @@ import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
  * 基于 metadata.json 构建知识图谱
  */
 export class LocalGraphAPI implements IGraphAPI {
-  constructor(private baseUrl: string = '/vault') {}
+  // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
+  constructor(_baseUrl: string = '/vault') {
+    // 使用 VAULT_PATH 而不是 baseUrl
+  }
 
   /**
    * 获取全局知识图谱
@@ -28,15 +33,15 @@ export class LocalGraphAPI implements IGraphAPI {
         
         // 模拟 checkArray() 验证 - 在前端环境中，所有 metadata 中的文件都认为是存在的
         if (this.checkNodeExists(nodePath, metadata)) {
-          const thisNodeID = nodeID;
+          const thisNodeID = nodeID.toString();
           
           // Add file node to graph
           graphNodes.push({
-            id: nodeID,
+            id: thisNodeID,
             label: node.fileName,
             title: nodePath,
-            path: node.relativePath,
-            group: 'file'
+            type: 'file',
+            path: node.relativePath  // 添加完整路径（包含 .md）用于导航
           });
           nodeID += 1;
 
@@ -46,7 +51,7 @@ export class LocalGraphAPI implements IGraphAPI {
               const tagLabel = '#' + tag;
               
               // Check if tag node already exists
-              let tagID = -1;
+              let tagID = '';
               let tagExists = false;
               
               for (const graphNode of graphNodes) {
@@ -59,18 +64,19 @@ export class LocalGraphAPI implements IGraphAPI {
 
               // Create new tag node if it doesn't exist
               if (!tagExists) {
-                tagID = nodeID;
+                tagID = nodeID.toString();
                 graphNodes.push({
-                  id: nodeID,
+                  id: tagID,
                   label: tagLabel,
                   title: tagLabel,
-                  group: 'tag'
+                  type: 'tag'
+                  // 标签节点不需要 path 字段
                 });
                 nodeID += 1;
               }
 
               // Create edge between file and tag
-              graphEdges.push({ from: thisNodeID, to: tagID });
+              graphEdges.push({ from: thisNodeID, to: tagID, type: 'tag' });
             }
           }
         }
@@ -94,8 +100,8 @@ export class LocalGraphAPI implements IGraphAPI {
 
               if (source && target && this.checkNodeExists(target, metadata)) {
                 // Find source and target node IDs
-                let sourceId = -1;
-                let targetId = -1;
+                let sourceId = '';
+                let targetId = '';
 
                 for (const graphNode of graphNodes) {
                   if (graphNode.title === source) {
@@ -107,14 +113,14 @@ export class LocalGraphAPI implements IGraphAPI {
                 }
 
                 // Check if edge already exists (双向检查)
-                if (sourceId !== -1 && targetId !== -1) {
+                if (sourceId && targetId) {
                   const edgeExists = graphEdges.some(edge => 
                     (edge.from === sourceId && edge.to === targetId) ||
                     (edge.from === targetId && edge.to === sourceId)
                   );
 
                   if (!edgeExists) {
-                    graphEdges.push({ from: sourceId, to: targetId });
+                    graphEdges.push({ from: sourceId, to: targetId, type: 'link' });
                   }
                 }
               }
@@ -134,8 +140,8 @@ export class LocalGraphAPI implements IGraphAPI {
 
               if (source && target && this.checkNodeExists(source, metadata)) {
                 // Find source and target node IDs
-                let sourceId = -1;
-                let targetId = -1;
+                let sourceId = '';
+                let targetId = '';
 
                 for (const graphNode of graphNodes) {
                   if (graphNode.title === source) {
@@ -147,14 +153,14 @@ export class LocalGraphAPI implements IGraphAPI {
                 }
 
                 // Check if edge already exists (双向检查)
-                if (sourceId !== -1 && targetId !== -1) {
+                if (sourceId && targetId) {
                   const edgeExists = graphEdges.some(edge => 
                     (edge.from === sourceId && edge.to === targetId) ||
                     (edge.from === targetId && edge.to === sourceId)
                   );
 
                   if (!edgeExists) {
-                    graphEdges.push({ from: sourceId, to: targetId });
+                    graphEdges.push({ from: sourceId, to: targetId, type: 'link' });
                   }
                 }
               }
@@ -163,11 +169,11 @@ export class LocalGraphAPI implements IGraphAPI {
         }
       }
 
-      // Step 3: Calculate node values based on connections (复刻 PHP 连接计数逻辑)
+      // Step 3: Calculate node sizes based on connections (复刻 PHP 连接计数逻辑)
       for (const edge of graphEdges) {
         for (const node of graphNodes) {
           if (edge.from === node.id || edge.to === node.id) {
-            node.value = (node.value || 0) + 1;
+            node.size = (node.size || 0) + 1;
           }
         }
       }
@@ -213,13 +219,13 @@ export class LocalGraphAPI implements IGraphAPI {
     console.log('✅ Found center node:', centerNode);
 
     // Collect connected nodes within specified depth
-    const connectedNodeIds = new Set<number>([centerNode.id]);
+    const connectedNodeIds = new Set<string>([centerNode.id]);
     const relevantEdges: GraphEdge[] = [];
 
     // BFS to find connected nodes within depth
     let currentLevel = [centerNode.id];
     for (let d = 0; d < depth; d++) {
-      const nextLevel: number[] = [];
+      const nextLevel: string[] = [];
       
       for (const nodeId of currentLevel) {
         for (const edge of globalGraph.edges) {
@@ -266,7 +272,7 @@ export class LocalGraphAPI implements IGraphAPI {
     }
 
     // Find all nodes connected to this tag
-    const connectedNodeIds = new Set<number>([tagNode.id]);
+    const connectedNodeIds = new Set<string>([tagNode.id]);
     const relevantEdges: GraphEdge[] = [];
 
     for (const edge of globalGraph.edges) {
@@ -286,7 +292,7 @@ export class LocalGraphAPI implements IGraphAPI {
         const targetNode = globalGraph.nodes.find(n => n.id === edge.to);
         
         // Only include if both are file nodes (not tags)
-        if (sourceNode?.group !== 'tag' && targetNode?.group !== 'tag') {
+        if (sourceNode?.type !== 'tag' && targetNode?.type !== 'tag') {
           if (!relevantEdges.some(e => 
             (e.from === edge.from && e.to === edge.to) ||
             (e.from === edge.to && e.to === edge.from)
@@ -310,10 +316,10 @@ export class LocalGraphAPI implements IGraphAPI {
     
     const totalNodes = graph.nodes.length;
     const totalEdges = graph.edges.length;
-    const totalTags = graph.nodes.filter(node => node.group === 'tag').length;
+    const totalTags = graph.nodes.filter(node => node.type === 'tag').length;
     
     // Calculate orphaned nodes (nodes with no connections)
-    const connectedNodeIds = new Set<number>();
+    const connectedNodeIds = new Set<string>();
     for (const edge of graph.edges) {
       connectedNodeIds.add(edge.from);
       connectedNodeIds.add(edge.to);
@@ -336,7 +342,7 @@ export class LocalGraphAPI implements IGraphAPI {
    * 获取 metadata.json 数据
    */
   private async getMetadata(): Promise<FileMetadata[]> {
-    const response = await fetch(`${this.baseUrl}/Publish/metadata.json`);
+    const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch metadata: ${response.status}`);
     }

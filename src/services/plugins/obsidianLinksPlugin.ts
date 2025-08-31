@@ -7,6 +7,7 @@ import { visit } from 'unist-util-visit';
 import type { Root, Text } from 'mdast';
 import { parseObsidianLink } from '../../utils/obsidianLinkUtils';
 import { navigateToFile } from '../../utils/routeUtils';
+import { VAULT_PATH } from '../../config/env';
 
 interface ObsidianLinksPluginOptions {
   baseUrl?: string;
@@ -109,7 +110,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
  * 根据解析结果创建对应的 AST 节点（简化版本，不依赖文件树索引）
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
-  const { baseUrl = '/vault/Publish', currentFilePath, metadata } = options;
+  const { baseUrl = VAULT_PATH, currentFilePath, metadata } = options;
   
   // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
   const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath, metadata);
@@ -242,9 +243,19 @@ function createFileLink(parsedLink: any, resolvedPath: string) {
  * 创建图片嵌入节点（简化版本）
  */
 function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
-  const fullImageUrl = resolvedPath.startsWith('http') 
-    ? resolvedPath 
-    : `${baseUrl}${resolvedPath}`;
+  // 处理图片路径
+  let imagePath = resolvedPath;
+  
+  // 如果路径中包含 Attachments，确保路径正确
+  if (!imagePath.toLowerCase().includes('attachments')) {
+    // 如果不包含 Attachments，假定图片在 Attachments 文件夹中
+    imagePath = `/Attachments/${imagePath.replace(/^\/+/, '')}`;
+  }
+  
+  // 构建完整的图片 URL
+  const fullImageUrl = imagePath.startsWith('http') 
+    ? imagePath 
+    : `${baseUrl}${imagePath}`;
 
   return {
     type: 'image',
@@ -253,7 +264,9 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
     data: {
       hProperties: {
         className: ['obsidian-image'],
-        loading: 'lazy'
+        loading: 'lazy',
+        // 添加自定义属性，让前端组件知道需要使用 fetchWithAuth
+        'data-vault-image': 'true'
       }
     }
   };
@@ -279,7 +292,7 @@ function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 /**
  * 创建通用嵌入节点（简化版本）
  */
-function createGenericEmbed(parsedLink: any, resolvedPath: string) {
+function createGenericEmbed(parsedLink: any, _resolvedPath: string) {
   return {
     type: 'text',
     data: {

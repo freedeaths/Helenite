@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import type { FileTree, FileMetadata, SearchResult, GraphNode, GraphEdge } from '../types/vault';
+import type { 
+  FileTree, 
+  FileMetadata, 
+  SearchResult, 
+  GraphNode, 
+  GraphEdge 
+} from '../apis/interfaces';
 
 interface VaultState {
   // File system state

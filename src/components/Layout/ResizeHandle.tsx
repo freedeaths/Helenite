@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 interface ResizeHandleProps {
   direction: 'left' | 'right';
   onResize: (width: number) => void;
-  currentWidth: number;
   minWidth?: number;
   maxWidth?: number;
   sidebarRef: React.RefObject<HTMLDivElement | null>;
@@ -12,7 +11,6 @@ interface ResizeHandleProps {
 export function ResizeHandle({ 
   direction, 
   onResize, 
-  currentWidth, 
   minWidth = 200, 
   maxWidth = 600,
   sidebarRef

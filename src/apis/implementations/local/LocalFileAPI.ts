@@ -1,23 +1,31 @@
 import type { IFileAPI, TOCItem, LinkData } from '../../interfaces/IFileAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
+import { VAULT_PATH } from '../../../config/env';
+import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
  * 本地文件 API 实现
  * 负责从静态文件服务器加载 markdown 文件内容和处理相关操作
  */
 export class LocalFileAPI implements IFileAPI {
-  constructor(private baseUrl: string = '/vault') {}
+  // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
+  constructor(_baseUrl: string = '/vault') {
+    // 使用 VAULT_PATH 而不是 baseUrl
+  }
 
   /**
    * 获取文件内容
    */
   async getFileContent(path: string): Promise<string> {
     const cleanPath = this.normalizePath(path);
-    const fullPath = `${this.baseUrl}/Publish/${cleanPath}`;
+    // VAULT_PATH 已经包含了完整路径，直接拼接清理后的路径即可
+    const fullPath = cleanPath.startsWith('/') 
+      ? `${VAULT_PATH}${cleanPath}`
+      : `${VAULT_PATH}/${cleanPath}`;
     
     try {
       console.log(`📄 Loading file content: ${fullPath}`);
-      const response = await fetch(fullPath);
+      const response = await fetchVault(fullPath);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch file: ${response.status}`);
@@ -41,7 +49,7 @@ export class LocalFileAPI implements IFileAPI {
       console.log(`📊 Loading metadata for: ${path}`);
       
       // 加载 metadata.json
-      const response = await fetch(`${this.baseUrl}/Publish/metadata.json`);
+      const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
       if (!response.ok) {
         throw new Error(`Failed to fetch metadata: ${response.status}`);
       }
@@ -72,8 +80,19 @@ export class LocalFileAPI implements IFileAPI {
    * 获取附件文件的 URL
    */
   getAttachmentUrl(path: string): string {
-    const cleanPath = this.normalizePath(path);
-    return `${this.baseUrl}/Publish/Attachments/${cleanPath}`;
+    // 对于附件，不应该添加 .md 扩展名
+    let cleanPath = path.replace(/^\/+/, '');
+    
+    // 如果路径已包含 Attachments，则直接使用
+    if (cleanPath.toLowerCase().includes('attachments/')) {
+      // 提取 Attachments/ 之后的部分
+      const parts = cleanPath.split(/attachments\//i);
+      if (parts.length > 1) {
+        cleanPath = parts[1];
+      }
+    }
+    
+    return `${VAULT_PATH}/Attachments/${cleanPath}`;
   }
 
   /**
@@ -172,9 +191,12 @@ export class LocalFileAPI implements IFileAPI {
   async exists(path: string): Promise<boolean> {
     try {
       const cleanPath = this.normalizePath(path);
-      const fullPath = `${this.baseUrl}/Publish/${cleanPath}`;
+      // VAULT_PATH 已经包含了完整路径，直接拼接清理后的路径即可
+      const fullPath = cleanPath.startsWith('/') 
+        ? `${VAULT_PATH}${cleanPath}`
+        : `${VAULT_PATH}/${cleanPath}`;
       
-      const response = await fetch(fullPath, { method: 'HEAD' });
+      const response = await fetchVault(fullPath, { method: 'HEAD' });
       return response.ok;
       
     } catch (error) {
@@ -186,11 +208,16 @@ export class LocalFileAPI implements IFileAPI {
    * 标准化文件路径
    */
   private normalizePath(path: string): string {
-    // 移除开头的斜杠，确保 .md 后缀
+    // 移除开头的斜杠
     let cleanPath = path.replace(/^\/+/, '');
-    if (!cleanPath.endsWith('.md') && !cleanPath.includes('.')) {
+    
+    // 只在没有任何扩展名时添加 .md
+    // 检查是否已有扩展名（包括 .md, .png, .jpg, .gpx 等）
+    const hasExtension = /\.[a-zA-Z0-9]+$/.test(cleanPath);
+    if (!hasExtension) {
       cleanPath += '.md';
     }
+    
     return cleanPath;
   }
 

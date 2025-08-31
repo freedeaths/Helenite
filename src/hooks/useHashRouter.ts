@@ -13,12 +13,14 @@ export function useHashRouter() {
   
   // 处理路由变化
   const handleRouteChange = useCallback((route: ParsedRoute) => {
+    console.log('📍 Route change:', route);
     if (route.type === 'welcome') {
       setActiveFile(null);
       setMainContentView('file');
     } else if (route.type === 'global-graph') {
       setMainContentView('globalGraph');
     } else if (route.type === 'file' && route.filePath) {
+      console.log('📍 Setting activeFile to:', route.filePath);
       setActiveFile(route.filePath, route.anchor);
       setMainContentView('file');
       

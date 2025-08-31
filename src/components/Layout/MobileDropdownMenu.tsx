@@ -9,7 +9,7 @@ import { FileExplorer } from '../FileExplorer/FileExplorer';
 import { TOC } from '../MarkdownViewer/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../MarkdownViewer/TagsPanel';
-import type { FileTree } from '../../types/vault';
+import type { FileTree } from '../../apis/interfaces';
 
 export function MobileDropdownMenu() {
   const {

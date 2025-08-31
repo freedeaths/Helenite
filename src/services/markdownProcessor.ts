@@ -7,13 +7,14 @@
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import { VAULT_PATH } from '../config/env';
+import { fetchVault } from '../utils/fetchWithAuth';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeStringify from 'rehype-stringify';
 import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
 import { externalLinksPlugin } from './plugins/externalLinksPlugin';
@@ -48,23 +49,6 @@ function wrapTablesPlugin() {
 
 // Frontmatter tags are now handled by LocalTagAPI in MarkdownViewer component
 
-/**
- * Helper function to extract text content from a HAST element
- */
-function extractTextContent(element: HastElement): string {
-  if (!element.children) return '';
-  
-  return element.children
-    .map((child) => {
-      if (child.type === 'text') {
-        return child.value;
-      } else if (child.type === 'element') {
-        return extractTextContent(child);
-      }
-      return '';
-    })
-    .join('');
-}
 
 /**
  * Markdown processing options
@@ -94,88 +78,6 @@ export const DEFAULT_OPTIONS: MarkdownProcessingOptions = {
   enableTracks: true,
 };
 
-/**
- * Obsidian [[links]] plugin
- */
-function remarkObsidianLinks() {
-  return (tree: MdastRoot) => {
-    visit(tree, 'text', (node, index, parent) => {
-      if (!parent || typeof index !== 'number') return;
-      
-      const value = node.value;
-      const linkRegex = /\[\[([^\]]+)\]\]/g;
-      
-      if (!linkRegex.test(value)) return;
-      
-      const parts: Array<{ type: 'text' | 'link'; value: string; display?: string }> = [];
-      let lastIndex = 0;
-      let match;
-      
-      linkRegex.lastIndex = 0; // Reset regex
-      
-      while ((match = linkRegex.exec(value)) !== null) {
-        // Add text before the link
-        if (match.index > lastIndex) {
-          parts.push({
-            type: 'text',
-            value: value.slice(lastIndex, match.index)
-          });
-        }
-        
-        // Parse link content (handle display text)
-        const linkContent = match[1];
-        let linkPath = linkContent;
-        let displayText = linkContent;
-        
-        if (linkContent.includes('|')) {
-          const [path, display] = linkContent.split('|', 2);
-          linkPath = path.trim();
-          displayText = display.trim();
-        }
-        
-        parts.push({
-          type: 'link',
-          value: linkPath,
-          display: displayText
-        });
-        
-        lastIndex = match.index + match[0].length;
-      }
-      
-      // Add remaining text
-      if (lastIndex < value.length) {
-        parts.push({
-          type: 'text',
-          value: value.slice(lastIndex)
-        });
-      }
-      
-      // Replace the text node with processed parts
-      if (parts.length > 1) {
-        const newNodes: MdastNode[] = parts.map(part => {
-          if (part.type === 'text') {
-            return { type: 'text', value: part.value };
-          } else {
-            return {
-              type: 'link',
-              url: `#${encodeURIComponent(part.value)}`,
-              title: null,
-              children: [{ type: 'text', value: part.display || part.value }],
-              data: {
-                hProperties: {
-                  className: ['internal-link'],
-                  'data-href': part.value
-                }
-              }
-            };
-          }
-        });
-        
-        parent.children.splice(index, 1, ...newNodes);
-      }
-    });
-  };
-}
 
 /**
  * Obsidian #tags plugin
@@ -252,7 +154,7 @@ function remarkObsidianTags() {
           }
         });
         
-        parent.children.splice(index, 1, ...newNodes);
+        (parent.children as any[]).splice(index, 1, ...newNodes);
       }
     });
   };
@@ -320,7 +222,7 @@ function remarkObsidianHighlights() {
           }
         });
         
-        parent.children.splice(index, 1, ...newNodes);
+        (parent.children as any[]).splice(index, 1, ...newNodes);
       }
     });
   };
@@ -414,7 +316,7 @@ function extractMermaidDiagrams(markdown: string) {
   let diagramId = 0;
   
   // Replace mermaid code blocks with placeholders and extract the code
-  const processedMarkdown = markdown.replace(/```mermaid\n([\s\S]*?)\n```/g, (match, code) => {
+  const processedMarkdown = markdown.replace(/```mermaid\n([\s\S]*?)\n```/g, (_, code) => {
     const id = `mermaid-diagram-${diagramId++}`;
     // Use a text-based placeholder that won't be stripped by HTML sanitizer
     const placeholder = `MERMAID_PLACEHOLDER_${id}`;
@@ -442,7 +344,7 @@ function extractTrackMaps(markdown: string) {
   let processedMarkdown = markdown;
   
   // Handle direct GPX content: ```gpx\n<gpx>...</gpx>\n```
-  processedMarkdown = processedMarkdown.replace(/```gpx\n([\s\S]*?)\n```/g, (match, code) => {
+  processedMarkdown = processedMarkdown.replace(/```gpx\n([\s\S]*?)\n```/g, (_, code) => {
     const id = `track-map-${mapId++}`;
     const placeholder = `TRACK_PLACEHOLDER_${id}`;
     
@@ -457,7 +359,7 @@ function extractTrackMaps(markdown: string) {
   });
   
   // Handle GPX file references: ```gpx:@Publish/Attachments/file.gpx```
-  processedMarkdown = processedMarkdown.replace(/```gpx:(.+?)```/g, (match, filePath) => {
+  processedMarkdown = processedMarkdown.replace(/```gpx:(.+?)```/g, (_, filePath) => {
     const id = `track-map-${mapId++}`;
     const placeholder = `TRACK_PLACEHOLDER_${id}`;
     
@@ -472,7 +374,7 @@ function extractTrackMaps(markdown: string) {
   });
   
   // Handle KML file references: ```kml:@Publish/Attachments/file.kml```
-  processedMarkdown = processedMarkdown.replace(/```kml:(.+?)```/g, (match, filePath) => {
+  processedMarkdown = processedMarkdown.replace(/```kml:(.+?)```/g, (_, filePath) => {
     const id = `track-map-${mapId++}`;
     const placeholder = `TRACK_PLACEHOLDER_${id}`;
     
@@ -487,7 +389,7 @@ function extractTrackMaps(markdown: string) {
   });
   
   // Handle direct KML content: ```kml\n<kml>...</kml>\n```
-  processedMarkdown = processedMarkdown.replace(/```kml\n([\s\S]*?)\n```/g, (match, code) => {
+  processedMarkdown = processedMarkdown.replace(/```kml\n([\s\S]*?)\n```/g, (_, code) => {
     const id = `track-map-${mapId++}`;
     const placeholder = `TRACK_PLACEHOLDER_${id}`;
     
@@ -514,20 +416,19 @@ function extractTrackMapsFromHTML(html: string) {
   let processedHtml = html;
   
   // Check if HTML contains track-embed elements
-  const trackEmbedRegex = /<div class="track-embed"[^>]*>/g;
-  const trackEmbedMatches = html.match(trackEmbedRegex);
+  // const trackEmbedRegex = /<div class="track-embed"[^>]*>/g;
   
   // Handle track embeds generated by obsidianLinksPlugin: <div class="track-embed" data-track-url="...">
   processedHtml = processedHtml.replace(
     /<div class="track-embed" data-track-type="(gpx|kml)" data-track-url="([^"]+)" data-placeholder="[^"]+"><\/div>/g,
-    (match, trackType, trackUrl) => {
+    (_, trackType, trackUrl) => {
       const id = `track-map-${mapId++}`;
       const placeholder = `TRACK_PLACEHOLDER_${id}`;
       
       // Extract file path from URL (remove baseUrl prefix)
       let filePath = trackUrl;
-      if (trackUrl.startsWith('/vault/Publish')) {
-        filePath = trackUrl.replace('/vault/Publish', '');
+      if (trackUrl.startsWith(VAULT_PATH)) {
+        filePath = trackUrl.replace(VAULT_PATH, '');
       }
       
       trackMaps.push({
@@ -549,7 +450,7 @@ function extractTrackMapsFromHTML(html: string) {
  * Main markdown processor class
  */
 export class MarkdownProcessor {
-  private processor: ReturnType<typeof unified>;
+  private processor: any;
   
   constructor(options: MarkdownProcessingOptions = DEFAULT_OPTIONS) {
     this.processor = unified()
@@ -644,7 +545,7 @@ export class MarkdownProcessor {
     // Load metadata.json for intelligent link resolution
     let metadataArray: any[] = [];
     try {
-      const metadataResponse = await fetch('/vault/Publish/metadata.json');
+      const metadataResponse = await fetchVault(`${VAULT_PATH}/metadata.json`);
       if (metadataResponse.ok) {
         metadataArray = await metadataResponse.json();
       }
@@ -657,7 +558,7 @@ export class MarkdownProcessor {
       .use(remarkParse)
       .use(remarkGfm)
       .use(obsidianLinksPlugin({ 
-        baseUrl: '/vault/Publish',
+        baseUrl: VAULT_PATH,
         currentFilePath,
         metadata: metadataArray
       }))

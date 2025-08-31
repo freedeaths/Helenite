@@ -108,7 +108,6 @@ export function AppLayout() {
           <ResizeHandle
             direction="left"
             onResize={setLeftSidebarWidth}
-            currentWidth={leftSidebarWidth}
             minWidth={200}
             maxWidth={360}
             sidebarRef={leftSidebarRef}
@@ -125,7 +124,6 @@ export function AppLayout() {
           <ResizeHandle
             direction="right"
             onResize={setRightSidebarWidth}
-            currentWidth={rightSidebarWidth}
             minWidth={200}
             maxWidth={360}
             sidebarRef={rightSidebarRef}

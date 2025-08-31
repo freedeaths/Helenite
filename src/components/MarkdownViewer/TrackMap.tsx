@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet';
 import gpxParser from 'gpx-parser-builder';
 import L from 'leaflet';
+import { VAULT_PATH } from '../../config/env';
+import { fetchVault } from '../../utils/fetchWithAuth';
 
 import 'leaflet/dist/leaflet.css';
 
@@ -236,21 +238,26 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           let filePath = code;
           console.log('🔍 Original file path from code:', filePath);
           
+          // 处理不同格式的文件路径
           if (filePath.startsWith('@Publish/')) {
-            // 转换为相对于 vault 的路径
-            filePath = '/vault/Publish' + filePath.replace('@Publish', '');
+            // @Publish/ 格式：移除 @Publish 前缀，使用 VAULT_PATH
+            filePath = VAULT_PATH + filePath.replace('@Publish', '');
           } else if (filePath.startsWith('/Attachments/')) {
-            // 如果是 /Attachments/ 开头，添加 vault/Publish 前缀
-            filePath = '/vault/Publish' + filePath;
-          } else if (!filePath.startsWith('/')) {
-            // 如果是相对路径，转换为绝对路径
-            filePath = '/vault/Publish/' + filePath;
+            // /Attachments/ 开头：添加 VAULT_PATH 前缀
+            filePath = VAULT_PATH + filePath;
+          } else if (filePath.startsWith('Attachments/')) {
+            // Attachments/ 开头（无斜杠）：添加 VAULT_PATH 前缀
+            filePath = VAULT_PATH + '/' + filePath;
+          } else if (!filePath.startsWith('/') && !filePath.startsWith('http')) {
+            // 相对路径：转换为绝对路径
+            filePath = VAULT_PATH + '/' + filePath;
           }
+          // 如果已经是完整路径（以 / 或 http 开头），保持不变
 
           console.log('🔍 Resolved file path:', filePath);
 
           try {
-            const response = await fetch(filePath);
+            const response = await fetchVault(filePath);
             if (!response.ok) {
               throw new Error(`Failed to load track file: ${response.statusText}`);
             }
@@ -365,7 +372,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       if (!gpx) {
         try {
           if (typeof gpxParser === 'function') {
-            gpx = gpxParser(content);
+            gpx = (gpxParser as any)(content);
           }
         } catch (err) {
           parseError = err;
@@ -387,7 +394,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       if (!gpx) {
         try {
           if (gpxParser.default && typeof gpxParser.default === 'function') {
-            gpx = gpxParser.default(content);
+            gpx = (gpxParser.default as any)(content);
           }
         } catch (err) {
           parseError = err;
@@ -395,7 +402,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       }
       
       if (!gpx) {
-        throw new Error(`GPX parser returned null or undefined. Last error: ${parseError?.message || 'Unknown error'}`);
+        throw new Error(`GPX parser returned null or undefined. Last error: ${(parseError as Error)?.message || 'Unknown error'}`);
       }
 
       const coordinates: [number, number][] = [];

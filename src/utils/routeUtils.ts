@@ -46,9 +46,10 @@ export function parseHashRoute(hash: string): ParsedRoute {
     return { type: 'welcome' };
   }
   
-  if (cleanHash === '/welcome') {
-    return { type: 'welcome' };
-  }
+  // 删除这个条件，让 /Welcome 被当作文件路径处理
+  // if (cleanHash.toLowerCase() === '/welcome') {
+  //   return { type: 'welcome' };
+  // }
   
   if (cleanHash === '/global-graph') {
     return { type: 'global-graph' };

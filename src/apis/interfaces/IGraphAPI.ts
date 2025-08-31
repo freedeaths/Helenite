@@ -1,14 +1,16 @@
 export interface GraphNode {
-  id: number;
+  id: string;
   label: string;
   title: string;
-  group?: string; // 用于区分文件节点和标签节点
-  value?: number; // 连接数，影响节点大小
+  type: 'file' | 'tag';
+  size?: number;
+  path?: string;  // 文件路径，用于导航（仅文件节点有此属性）
 }
 
 export interface GraphEdge {
-  from: number;
-  to: number;
+  from: string;
+  to: string;
+  type: 'link' | 'tag';
 }
 
 export interface GraphData {

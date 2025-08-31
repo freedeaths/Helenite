@@ -3,6 +3,8 @@
  * 控制文件树显示、搜索范围等行为
  */
 
+import { VAULT_PATH } from './env';
+
 export interface VaultConfig {
   /** 基础URL配置 */
   baseUrl: string;
@@ -32,7 +34,7 @@ export interface VaultConfig {
  * 复刻 PHP 版本的过滤逻辑，参考 helper.php isValidFolder() 函数
  */
 export const defaultVaultConfig: VaultConfig = {
-  baseUrl: '/vault/Publish',
+  baseUrl: VAULT_PATH,
   
   // 默认主页文件
   indexFile: 'Welcome.md',

@@ -9,11 +9,12 @@ interface D3Node extends GraphNode {
   y?: number;
   fx?: number | null;
   fy?: number | null;
+  path?: string; // 添加缺失的 path 属性
 }
 
-interface D3Link extends GraphEdge {
-  source: D3Node | number;
-  target: D3Node | number;
+interface D3Link extends Omit<GraphEdge, 'from' | 'to'> {
+  source: D3Node | string;
+  target: D3Node | string;
 }
 
 export function GlobalGraph() {
@@ -48,7 +49,7 @@ export function GlobalGraph() {
     if (!graphData || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    let container = svg.select('.graph-container');
+    let container: d3.Selection<SVGGElement, unknown, null, undefined> = svg.select('.graph-container');
     
     // 清除之前的内容
     svg.selectAll('*').remove();
@@ -70,6 +71,7 @@ export function GlobalGraph() {
     // 准备数据
     const nodes: D3Node[] = graphData.nodes.map(node => ({ ...node }));
     const links: D3Link[] = graphData.edges.map(edge => ({ 
+      ...edge,
       source: edge.from, 
       target: edge.to 
     }));
@@ -80,7 +82,7 @@ export function GlobalGraph() {
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: any) => {
-        if (d.group === 'tag') return 15;
+        if (d.type === 'tag') return 15;
         return 20;
       }));
 
@@ -99,7 +101,7 @@ export function GlobalGraph() {
         const targetNode = nodes.find(n => n.id === d.target.id || n.id === d.target);
         
         // 如果有一端是标签节点，使用虚线
-        if (sourceNode?.group === 'tag' || targetNode?.group === 'tag') {
+        if (sourceNode?.type === 'tag' || targetNode?.type === 'tag') {
           return '5,5'; // 虚线样式
         }
         return 'none'; // 实线
@@ -117,13 +119,13 @@ export function GlobalGraph() {
     // 添加节点圆圈
     node.append('circle')
       .attr('r', (d: D3Node) => {
-        if (d.group === 'tag') return 8;
+        if (d.type === 'tag') return 8;
         // 根据连接数调整大小
-        const connectionCount = d.value || 1;
+        const connectionCount = d.size || 1;
         return Math.min(20, Math.max(8, connectionCount * 3));
       })
       .attr('fill', (d: D3Node) => {
-        if (d.group === 'tag') return '#dc2626';
+        if (d.type === 'tag') return '#dc2626';
         return 'var(--interactive-accent)';
       })
       .attr('stroke', 'var(--background-primary)')
@@ -133,7 +135,7 @@ export function GlobalGraph() {
         event.stopPropagation();
         
         // 只有文件节点（非标签节点）才能跳转
-        if (d.group !== 'tag' && d.path) {
+        if (d.type !== 'tag' && d.path) {
           console.log(`📊 Navigating to file from global graph: ${d.path}`);
           navigateToFile(d.path);
         }
@@ -154,7 +156,7 @@ export function GlobalGraph() {
 
     // 添加悬停提示
     node.append('title')
-      .text((d: D3Node) => `${d.title || d.label}${d.value ? ` (${d.value} connections)` : ''}`);
+      .text((d: D3Node) => `${d.title || d.label}${d.size ? ` (${d.size} connections)` : ''}`);
 
     // 添加拖拽功能到节点组（不会干扰圆圈的点击事件）
     node.call(d3.drag<SVGGElement, D3Node>()
@@ -166,7 +168,7 @@ export function GlobalGraph() {
     simulation.on('tick', () => {
       // 添加边界约束，确保所有节点都在视口内
       nodes.forEach(d => {
-        const radius = d.group === 'tag' ? 15 : 25; // 节点半径
+        const radius = d.type === 'tag' ? 15 : 25; // 节点半径
         d.x = Math.max(radius, Math.min(width - radius, d.x!));
         d.y = Math.max(radius, Math.min(height - radius, d.y!));
       });

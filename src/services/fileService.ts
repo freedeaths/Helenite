@@ -1,11 +1,13 @@
 import type { FileTree, FileMetadata } from '../types/vault';
+import { VAULT_PATH } from '../config/env';
+import { fetchVault } from '../utils/fetchWithAuth';
 
 // 全局类型声明
 declare const __VAULT_BASE_URL__: string;
 
 export class FileService {
   // 基础路径 - 可配置的 Vault 目录
-  private static readonly BASE_PATH = __VAULT_BASE_URL__ || '/src/../../../Publish';
+  private static readonly BASE_PATH = __VAULT_BASE_URL__ || VAULT_PATH;
   
   /**
    * 获取文件树结构
@@ -121,7 +123,7 @@ export class FileService {
       console.log('Loading file from:', fullPath);
       
       // 使用 fetch 获取文件内容
-      const response = await fetch(fullPath);
+      const response = await fetchVault(fullPath);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -149,7 +151,7 @@ export class FileService {
    */
   static async getMetadata(): Promise<Record<string, FileMetadata>> {
     try {
-      const response = await fetch(`${this.BASE_PATH}/metadata.json`);
+      const response = await fetchVault(`${this.BASE_PATH}/metadata.json`);
       
       if (!response.ok) {
         console.warn('Metadata file not found, using fallback');
@@ -167,7 +169,7 @@ export class FileService {
   /**
    * 搜索文件
    */
-  static async searchFiles(query: string): Promise<any[]> {
+  static async searchFiles(_query: string): Promise<any[]> {
     // TODO: 实现搜索功能
     return [];
   }

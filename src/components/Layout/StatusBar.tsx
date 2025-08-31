@@ -41,7 +41,7 @@ export function StatusBar() {
           const inboundLinks = localGraph.edges.filter(edge => 
             edge.to === currentFileNode.id && 
             // 排除标签连接，只计算文件连接
-            localGraph.nodes.find(n => n.id === edge.from)?.group !== 'tag'
+            localGraph.nodes.find(n => n.id === edge.from)?.type !== 'tag'
           );
           
           setBacklinksCount(inboundLinks.length);

@@ -1,5 +1,6 @@
 import type { ISearchAPI, SearchResult, SearchMatch } from '../../interfaces/ISearchAPI';
 import { getVaultConfig, isPathInExcludedFolder, isFileExcluded } from '../../../config/vaultConfig';
+import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
  * 本地搜索 API 实现
@@ -15,7 +16,7 @@ export class LocalSearchAPI implements ISearchAPI {
   private metadataCache: any[] | null = null;
   private contentCache = new Map<string, string>();
 
-  constructor(baseUrl: string = '/vault/Publish') {
+  constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
@@ -28,7 +29,7 @@ export class LocalSearchAPI implements ISearchAPI {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/metadata.json`);
+      const response = await fetchVault(`${this.baseUrl}/metadata.json`);
       if (!response.ok) {
         console.warn('metadata.json not found, falling back to file system search');
         return [];
@@ -54,7 +55,7 @@ export class LocalSearchAPI implements ISearchAPI {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}${normalizedPath}`);
+      const response = await fetchVault(`${this.baseUrl}${normalizedPath}`);
       if (!response.ok) {
         return '';
       }

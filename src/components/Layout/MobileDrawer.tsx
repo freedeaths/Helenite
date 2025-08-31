@@ -1,4 +1,5 @@
-import { ReactNode, useEffect } from 'react';
+import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { ActionIcon } from '@mantine/core';
 

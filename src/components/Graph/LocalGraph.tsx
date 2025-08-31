@@ -11,11 +11,12 @@ interface D3Node extends GraphNode {
   y?: number;
   fx?: number | null;
   fy?: number | null;
+  path?: string; // 添加缺失的 path 属性
 }
 
-interface D3Link extends GraphEdge {
-  source: D3Node | number;
-  target: D3Node | number;
+interface D3Link extends Omit<GraphEdge, 'from' | 'to'> {
+  source: D3Node | string;
+  target: D3Node | string;
 }
 
 export function LocalGraph() {
@@ -57,7 +58,7 @@ export function LocalGraph() {
     if (!graphData || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    let container = svg.select('.graph-container');
+    let container: d3.Selection<SVGGElement, unknown, null, undefined> = svg.select('.graph-container');
     
     // 清除之前的内容
     svg.selectAll('*').remove();
@@ -79,6 +80,7 @@ export function LocalGraph() {
     // 准备数据
     const nodes: D3Node[] = graphData.nodes.map(node => ({ ...node }));
     const links: D3Link[] = graphData.edges.map(edge => ({ 
+      ...edge,
       source: edge.from, 
       target: edge.to 
     }));
@@ -126,7 +128,7 @@ export function LocalGraph() {
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: any) => {
-        if (d.group === 'tag') return 20;  // 增加碰撞半径
+        if (d.type === 'tag') return 20;  // 增加碰撞半径
         if (currentFileNode && d.id === currentFileNode.id) return 40;  // 当前节点更大的碰撞半径
         return 25;  // 其他节点也增加碰撞半径
       }));
@@ -146,7 +148,7 @@ export function LocalGraph() {
         const targetNode = nodes.find(n => n.id === d.target.id || n.id === d.target);
         
         // 如果有一端是标签节点，使用虚线
-        if (sourceNode?.group === 'tag' || targetNode?.group === 'tag') {
+        if (sourceNode?.type === 'tag' || targetNode?.type === 'tag') {
           return '5,5'; // 虚线样式
         }
         return 'none'; // 实线
@@ -164,13 +166,13 @@ export function LocalGraph() {
     // 添加节点圆圈
     node.append('circle')
       .attr('r', (d: D3Node) => {
-        if (d.group === 'tag') return 8;
+        if (d.type === 'tag') return 8;
         // 当前文件节点更大
         if (currentFileNode && d.id === currentFileNode.id) return 15;
         return 12;
       })
       .attr('fill', (d: D3Node) => {
-        if (d.group === 'tag') return '#dc2626';
+        if (d.type === 'tag') return '#dc2626';
         
         // 当前文件节点 - 使用蓝色（红绿色盲友好）
         if (currentFileNode && d.id === currentFileNode.id) {
@@ -203,7 +205,7 @@ export function LocalGraph() {
         event.stopPropagation();
         
         // 只有文件节点（非标签节点）才能跳转，且不是当前文件
-        if (d.group !== 'tag' && d.path && (!currentFileNode || d.id !== currentFileNode.id)) {
+        if (d.type !== 'tag' && d.path && (!currentFileNode || d.id !== currentFileNode.id)) {
           console.log(`📊 Navigating to file from local graph: ${d.path}`);
           navigateToFile(d.path);
         }
@@ -232,7 +234,7 @@ export function LocalGraph() {
     simulation.on('tick', () => {
       // 添加边界约束，确保所有节点都在视口内
       nodes.forEach(d => {
-        const radius = d.group === 'tag' ? 15 : (currentFileNode && d.id === currentFileNode.id ? 25 : 20); // 节点半径
+        const radius = d.type === 'tag' ? 15 : (currentFileNode && d.id === currentFileNode.id ? 25 : 20); // 节点半径
         d.x = Math.max(radius, Math.min(width - radius, d.x!));
         d.y = Math.max(radius, Math.min(height - radius, d.y!));
       });

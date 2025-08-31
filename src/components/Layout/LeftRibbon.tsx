@@ -5,7 +5,7 @@ import { useVaultStore } from '../../stores/vaultStore';
 import { getVaultConfig } from '../../config/vaultConfig';
 import { navigateToFile, navigateToGlobalGraph, getCurrentRoute } from '../../utils/routeUtils';
 import { useState, useCallback, useEffect } from 'react';
-import type { FileTree } from '../../types/vault';
+import type { FileTree } from '../../apis/interfaces';
 
 export function LeftRibbon() {
   const { 

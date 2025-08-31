@@ -1,12 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import type { ITagAPI } from '../interfaces/ITagAPI';
 import { LocalTagAPI } from '../implementations/local/LocalTagAPI';
+import { VAULT_PATH } from '../../config/env';
 
 /**
  * 标签 API Hook
  * 提供统一的标签接口访问
  */
-export function useTagAPI(baseUrl: string = '/vault/Publish'): ITagAPI {
+export function useTagAPI(baseUrl: string = VAULT_PATH): ITagAPI {
   const api = useMemo(() => {
     return new LocalTagAPI(baseUrl);
   }, [baseUrl]);

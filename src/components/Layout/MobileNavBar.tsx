@@ -4,9 +4,7 @@ import { useUIStore } from '../../stores/uiStore';
 export function MobileNavBar() {
   const {
     mobileDrawerOpen,
-    setMobileDrawerOpen,
-    activeMobileTab,
-    setActiveMobileTab
+    setMobileDrawerOpen
   } = useUIStore();
 
   const handleDrawerToggle = () => {

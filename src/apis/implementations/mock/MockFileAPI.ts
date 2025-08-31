@@ -1,12 +1,16 @@
 import type { IFileAPI, TOCItem, LinkData } from '../../interfaces/IFileAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
+import { VAULT_PATH } from '../../../config/env';
 
 /**
  * Mock 文件 API 实现
  * 用于开发和测试环境，提供模拟的文件内容
  */
 export class MockFileAPI implements IFileAPI {
-  constructor(private baseUrl: string = '/vault') {}
+  // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
+  constructor(_baseUrl: string = '/vault') {
+    // 使用 VAULT_PATH 而不是 baseUrl
+  }
 
   /**
    * 获取模拟文件内容
@@ -41,7 +45,7 @@ export class MockFileAPI implements IFileAPI {
    * 获取附件文件的 URL
    */
   getAttachmentUrl(path: string): string {
-    return `${this.baseUrl}/Publish/Attachments/${path}`;
+    return `${VAULT_PATH}/Attachments/${path}`;
   }
 
   /**
@@ -118,7 +122,7 @@ export class MockFileAPI implements IFileAPI {
   /**
    * 检查文件是否存在（Mock 总是返回 true）
    */
-  async exists(path: string): Promise<boolean> {
+  async exists(_path: string): Promise<boolean> {
     return true;
   }
 

@@ -8,10 +8,13 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173
   },
-  // 环境变量定义
-  define: {
-    __VAULT_BASE_URL__: JSON.stringify(
-      process.env.VAULT_BASE_URL || '/vault'
-    )
+  // 环境变量定义 - 现在使用 import.meta.env，不需要 define 了
+  // 构建配置 - 排除 vault 目录
+  publicDir: 'public',
+  build: {
+    copyPublicDir: true,
+    rollupOptions: {
+      external: ['/vault/**']
+    }
   }
 })

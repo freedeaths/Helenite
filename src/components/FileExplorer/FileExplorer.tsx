@@ -1,19 +1,19 @@
 import { useEffect, useState, useMemo } from 'react';
 import { IconSearch, IconX, IconFile, IconHash } from '@tabler/icons-react';
-import { TextInput, Box, Text, Center, Stack } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore';
+import { VAULT_PATH } from '../../config/env';
+import { fetchVault } from '../../utils/fetchWithAuth';
 import { useUIStore } from '../../stores/uiStore';
 import { navigateToFile } from '../../utils/routeUtils';
 import { useFileTreeAPI } from '../../hooks/useAPIs';
 import { useSearch } from '../../apis/hooks/useSearchAPI';
 import { ModernFileTree } from './ModernFileTree';
-import type { FileTree } from '../../types/vault';
+import type { FileTree } from '../../apis/interfaces/IFileTreeAPI';
 import type { SearchResult } from '../../apis/interfaces/ISearchAPI';
 
 
 export function FileExplorer() {
-  const { files, activeFile, setActiveFile, setFiles, setMetadata, setLoading, setError } = useVaultStore();
-  const { setMainContentView } = useUIStore();
+  const { files, activeFile, setFiles, setMetadata, setLoading, setError } = useVaultStore();
   const fileTreeAPI = useFileTreeAPI();
   const { search } = useSearch();
   const [initialized, setInitialized] = useState(false);
@@ -56,7 +56,7 @@ export function FileExplorer() {
   // 加载 metadata.json
   const loadMetadata = async () => {
     try {
-      const response = await fetch('/vault/Publish/metadata.json');
+      const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
       if (!response.ok) {
         console.warn('Metadata file not found');
         return null;
@@ -290,7 +290,7 @@ export function FileExplorer() {
               </div>
             ) : (
               <ModernFileTree
-                files={files}
+                files={filteredFiles}
                 onFileSelect={handleFileSelect}
                 activeFile={activeFile}
               />

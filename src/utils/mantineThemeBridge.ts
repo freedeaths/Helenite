@@ -93,7 +93,7 @@ export function createObsidianMantineTheme(): MantineThemeOverride {
     // Override default component styles to use CSS variables
     components: {
       ActionIcon: {
-        styles: (theme) => ({
+        styles: (_theme: any) => ({
           root: {
             // Default styles that work with CSS variables
             color: 'var(--text-normal)',
@@ -105,7 +105,7 @@ export function createObsidianMantineTheme(): MantineThemeOverride {
       },
       
       Button: {
-        styles: (theme) => ({
+        styles: (_theme: any) => ({
           root: {
             // Default styles that work with CSS variables
             color: 'var(--text-normal)',
@@ -118,7 +118,7 @@ export function createObsidianMantineTheme(): MantineThemeOverride {
       },
 
       Tooltip: {
-        styles: (theme) => ({
+        styles: (_theme: any) => ({
           tooltip: {
             backgroundColor: 'var(--background-secondary)',
             color: 'var(--text-normal)',

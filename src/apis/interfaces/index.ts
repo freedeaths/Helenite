@@ -9,5 +9,5 @@ export * from './ITagAPI';
 export type { FileTree, FileMetadata, HeadingData, LinkData } from './IFileTreeAPI';
 export type { GraphNode, GraphEdge, GraphData } from './IGraphAPI';
 export type { TOCItem } from './IFileAPI';
-export type { SearchResult, SearchMatch, SearchOptions } from './ISearchAPI';
+export type { SearchResult, SearchMatch } from './ISearchAPI';
 export type { TagData } from './ITagAPI';

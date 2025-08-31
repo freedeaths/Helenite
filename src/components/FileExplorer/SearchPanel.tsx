@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { IconSearch, IconFile, IconHash } from '@tabler/icons-react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useSearch } from '../../apis/hooks/useSearchAPI';
@@ -8,7 +8,7 @@ export function SearchPanel() {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const { setCurrentFile } = useVaultStore();
+  const { setActiveFile } = useVaultStore();
   const { search } = useSearch();
 
   // 实时搜索（防抖）
@@ -36,7 +36,7 @@ export function SearchPanel() {
 
   // 点击搜索结果项
   const handleResultClick = (filePath: string) => {
-    setCurrentFile(filePath);
+    setActiveFile(filePath);
   };
 
   // 判断是否为标签搜索

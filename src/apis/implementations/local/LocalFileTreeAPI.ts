@@ -1,12 +1,17 @@
 import type { IFileTreeAPI, FileTree, FileMetadata, FolderStats } from '../../interfaces';
 import { getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../../../config/vaultConfig';
+import { VAULT_PATH } from '../../../config/env';
+import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
  * 基于 metadata.json 的文件树 API 实现
  * 复刻 PHP 版本的 menu() 函数逻辑
  */
 export class LocalFileTreeAPI implements IFileTreeAPI {
-  constructor(private baseUrl: string = '/vault') {}
+  // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
+  constructor(_baseUrl: string = '/vault') {
+    // 使用 VAULT_PATH 而不是 baseUrl
+  }
   
   /**
    * 获取完整的文件树结构
@@ -60,7 +65,7 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
    * 获取 metadata.json 数据
    */
   private async getMetadata(): Promise<any[]> {
-    const response = await fetch(`${this.baseUrl}/Publish/metadata.json`);
+    const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch metadata: ${response.status}`);
     }
@@ -159,6 +164,8 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
    */
   private convertMetadata(item: any): FileMetadata {
     return {
+      fileName: item.fileName || '',
+      relativePath: item.relativePath || '',
       title: item.fileName,
       tags: item.tags || [],
       aliases: item.aliases || [],
@@ -237,50 +244,6 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
     return null;
   }
   
-  /**
-   * 扫描附件文件夹，获取 GPX/KML 等文件列表
-   */
-  private async scanAttachmentFiles(): Promise<Array<{ name: string; relativePath: string }>> {
-    const attachmentFiles: Array<{ name: string; relativePath: string }> = [];
-    const supportedExtensions = ['gpx', 'kml'];
-    
-    try {
-      // 尝试访问 Attachments 目录
-      const attachmentsPath = `${this.baseUrl}/Attachments`;
-      
-      // 由于浏览器限制，我们无法直接列举文件夹内容
-      // 这里我们使用已知的文件列表作为临时解决方案
-      const knownFiles = [
-        'yamap_2025-04-02_08_48.gpx',
-        '中西citywalk.kml',
-        '东西佘山含地铁绿道.kml'
-      ];
-      
-      for (const fileName of knownFiles) {
-        const ext = fileName.split('.').pop()?.toLowerCase();
-        if (ext && supportedExtensions.includes(ext)) {
-          // 验证文件是否存在
-          try {
-            const response = await fetch(`${attachmentsPath}/${fileName}`, { method: 'HEAD' });
-            if (response.ok) {
-              attachmentFiles.push({
-                name: fileName,
-                relativePath: `/Attachments/${fileName}`
-              });
-              console.log(`✅ Found attachment file: ${fileName}`);
-            }
-          } catch (error) {
-            console.warn(`❌ Could not access attachment file: ${fileName}`, error);
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to scan attachment files:', error);
-    }
-    
-    console.log(`📁 Scanned attachment files: found ${attachmentFiles.length} files`);
-    return attachmentFiles;
-  }
 
   /**
    * 计算文件夹统计信息

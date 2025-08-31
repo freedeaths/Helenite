@@ -1,4 +1,4 @@
-import type { IFileTreeAPI, FileTree, FileMetadata, FolderStats } from '../../interfaces';
+import type { IFileTreeAPI, FileTree, FolderStats } from '../../interfaces';
 
 /**
  * Mock 文件树 API 实现
@@ -11,6 +11,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
       path: '/Welcome',
       type: 'file',
       metadata: {
+        fileName: 'Welcome.md',
+        relativePath: '/Welcome.md',
         title: 'Welcome',
         tags: [],
         aliases: ['Welcome'],
@@ -30,6 +32,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
       path: '/How-to-Implement-obsidian-sharing-space',
       type: 'file',
       metadata: {
+        fileName: 'How-to-Implement-obsidian-sharing-space.md',
+        relativePath: '/How-to-Implement-obsidian-sharing-space.md',
         title: 'How-to-Implement-obsidian-sharing-space',
         tags: ['tech'],
         aliases: ['How-to-Implement-obsidian-sharing-space'],
@@ -54,6 +58,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
           path: '/LLM/Multi-agent-Voyager-Play-Minecraft',
           type: 'file',
           metadata: {
+            fileName: 'Multi-agent-Voyager-Play-Minecraft.md',
+            relativePath: '/LLM/Multi-agent-Voyager-Play-Minecraft.md',
             title: 'Multi-agent-Voyager-Play-Minecraft',
             tags: [],
             aliases: [],
@@ -73,6 +79,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
           path: '/LLM/Contribute-Groupchat-to-Autogen',
           type: 'file',
           metadata: {
+            fileName: 'Contribute-Groupchat-to-Autogen.md',
+            relativePath: '/LLM/Contribute-Groupchat-to-Autogen.md',
             title: 'Contribute-Groupchat-to-Autogen',
             tags: [],
             aliases: [],
@@ -98,6 +106,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
           path: '/Trips/Visited-Places',
           type: 'file',
           metadata: {
+            fileName: 'Visited-Places.md',
+            relativePath: '/Trips/Visited-Places.md',
             title: 'Visited-Places',
             tags: [],
             aliases: [],
@@ -124,6 +134,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
               path: '/Trips/Plans/夏之北海道',
               type: 'file',
               metadata: {
+                fileName: '夏之北海道.md',
+                relativePath: '/Trips/Plans/夏之北海道.md',
                 title: '夏之北海道',
                 tags: ['japan', 'travel'],
                 aliases: [],
@@ -155,6 +167,8 @@ export class MockFileTreeAPI implements IFileTreeAPI {
           path: '/FunFacts/阳台植物',
           type: 'file',
           metadata: {
+            fileName: '阳台植物.md',
+            relativePath: '/FunFacts/阳台植物.md',
             title: '阳台植物',
             tags: [],
             aliases: [],

@@ -1,12 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import type { ISearchAPI } from '../interfaces/ISearchAPI';
 import { LocalSearchAPI } from '../implementations/local/LocalSearchAPI';
+import { VAULT_PATH } from '../../config/env';
 
 /**
  * 搜索 API Hook
  * 提供统一的搜索接口访问
  */
-export function useSearchAPI(baseUrl: string = '/vault/Publish'): ISearchAPI {
+export function useSearchAPI(baseUrl: string = VAULT_PATH): ISearchAPI {
   const api = useMemo(() => {
     return new LocalSearchAPI(baseUrl);
   }, [baseUrl]);

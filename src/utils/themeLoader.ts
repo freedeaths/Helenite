@@ -1,3 +1,5 @@
+import { getObsidianPath } from '../config/env';
+
 export interface ObsidianTheme {
   name: string;
   version: string;
@@ -10,19 +12,19 @@ export const AVAILABLE_THEMES: ObsidianTheme[] = [
     name: 'Royal Velvet',
     version: '0.11.2',
     author: 'caro401',
-    cssPath: '/vault/.obsidian/themes/Royal Velvet/theme.css'
+    cssPath: getObsidianPath('themes/Royal Velvet/theme.css')
   },
   {
     name: 'Shiba Inu',
     version: '1.0.0',
     author: 'faroukx',
-    cssPath: '/vault/.obsidian/themes/Shiba Inu/theme.css'
+    cssPath: getObsidianPath('themes/Shiba Inu/theme.css')
   },
   {
     name: 'Terminal',
     version: '1.0.0',
     author: 'unknown',
-    cssPath: '/vault/.obsidian/themes/Terminal/theme.css'
+    cssPath: getObsidianPath('themes/Terminal/theme.css')
   }
 ];
 

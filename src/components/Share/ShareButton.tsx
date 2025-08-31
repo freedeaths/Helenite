@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { ActionIcon, Menu, Tooltip, Button, Text } from '@mantine/core';
-import { IconLink, IconBrandTwitter, IconBrandWechat, IconCopy, IconCheck, IconShare, IconBug } from '@tabler/icons-react';
+import { useState } from 'react';
+import { ActionIcon, Menu, Tooltip, Text } from '@mantine/core';
+import { IconLink, IconBrandTwitter, IconBrandWechat, IconCopy, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { QRCodeModal } from './QRCodeModal';
 
@@ -15,10 +15,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
   
   const currentUrl = window.location.href;
   const pageTitle = document.title;
-  
-  // 检测移动端和原生分享支持
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const supportsNativeShare = 'share' in navigator;
   
   // URL处理策略：根据不同平台需求
   const getDecodedUrl = () => {
@@ -127,39 +123,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
     }
   };
 
-  // 检测浏览器支持情况（调试用）
-  const handleBrowserCheck = () => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isWechat = /MicroMessenger/i.test(navigator.userAgent);
-    const hasNativeShare = 'share' in navigator;
-    const isSecureContext = window.isSecureContext;
-    
-    notifications.show({
-      title: '🔍 浏览器检测结果',
-      message: `移动端:${isMobile} | 微信:${isWechat} | 原生分享:${hasNativeShare} | HTTPS:${isSecureContext}`,
-      color: 'blue',
-      autoClose: 8000,
-    });
-
-    // 显示URL对比
-    setTimeout(() => {
-      notifications.show({
-        title: '🔗 URL对比',
-        message: `编码前: ${encodedUrl.substring(encodedUrl.lastIndexOf('/') + 1)}`,
-        color: 'orange',
-        autoClose: 6000,
-      });
-    }, 1000);
-
-    setTimeout(() => {
-      notifications.show({
-        title: '🔗 URL对比',
-        message: `解码后: ${decodedUrl.substring(decodedUrl.lastIndexOf('/') + 1)}`,
-        color: 'green',
-        autoClose: 6000,
-      });
-    }, 2000);
-  };
 
   // 分享到微信（移动端检测）
   const handleShareToWechat = () => {
@@ -203,15 +166,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
         <Menu.Dropdown>
           <Menu.Label>分享到</Menu.Label>
           
-          {/* 原生分享（移动端优先显示） */}
-          {/* {supportsNativeShare && (
-            <Menu.Item
-              leftSection={<IconShare size={16} />}
-              onClick={handleNativeShare}
-            >
-              <Text size="sm">分享到其他应用</Text>
-            </Menu.Item>
-          )} */}
           
           <Menu.Item
             leftSection={<IconCopy size={16} />}
@@ -238,34 +192,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
             <Text size="sm">分享到微信</Text>
           </Menu.Item>
 
-          {/* <Menu.Divider /> */}
-          
-          {/* <Menu.Item
-            leftSection={<IconBug size={16} />}
-            onClick={handleBrowserCheck}
-            color="gray"
-          >
-            <Text size="sm">检测浏览器支持</Text>
-          </Menu.Item> */}
-
-          {/* <Menu.Item
-            leftSection={<IconBug size={16} />}
-            onClick={() => {
-              const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content');
-              const ogDesc = document.querySelector('meta[property="og:description"]')?.getAttribute('content');
-              const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
-              
-              notifications.show({
-                title: '📋 OG标签检测',
-                message: `标题:${ogTitle} | 描述:${ogDesc?.substring(0, 30)}... | 图片:${ogImage}`,
-                color: 'purple',
-                autoClose: 8000,
-              });
-            }}
-            color="purple"
-          >
-            <Text size="sm">检测OG标签</Text>
-          </Menu.Item> */}
         </Menu.Dropdown>
       </Menu>
 

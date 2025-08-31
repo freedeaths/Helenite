@@ -1,4 +1,5 @@
 import type { ITagAPI, TagData } from '../../interfaces/ITagAPI';
+import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
  * 本地标签 API 实现
@@ -10,7 +11,7 @@ export class LocalTagAPI implements ITagAPI {
   private metadataCache: any[] | null = null;
   private tagsCache: Map<string, TagData> | null = null;
 
-  constructor(baseUrl: string = '/vault/Publish') {
+  constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
@@ -23,7 +24,7 @@ export class LocalTagAPI implements ITagAPI {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/metadata.json`);
+      const response = await fetchVault(`${this.baseUrl}/metadata.json`);
       if (!response.ok) {
         console.warn('metadata.json not found, no tags available');
         return [];

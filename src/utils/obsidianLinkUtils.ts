@@ -42,7 +42,7 @@ export function parseObsidianLink(linkText: string): ParsedObsidianLink | null {
   // 判断文件类型
   const fileExtension = filePath.split('.').pop()?.toLowerCase();
   const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(fileExtension || '');
-  const isTrack = ['gpx', 'kml'].includes(fileExtension || '');
+  // const isTrack = ['gpx', 'kml'].includes(fileExtension || '');
   
   // 判断是否为相对路径
   const isRelativePath = filePath.startsWith('../') || filePath.startsWith('./');

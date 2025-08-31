@@ -375,7 +375,7 @@ export class TrackDataParserFactory {
 
     if (!bestParser) {
       // 如果没有找到特定的解析器，使用通用解析器
-      bestParser = this.parsers.find(p => p.canParse(content));
+      bestParser = this.parsers.find(p => p.canParse(content)) || null;
     }
 
     if (!bestParser) {

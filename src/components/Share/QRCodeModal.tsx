@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, Text, Stack, Button, Center } from '@mantine/core';
-import { IconX, IconCopy } from '@tabler/icons-react';
+import { IconCopy } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import QRCode from 'qrcode';
 
