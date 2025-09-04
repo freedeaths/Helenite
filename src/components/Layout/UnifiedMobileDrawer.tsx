@@ -26,7 +26,7 @@ export function UnifiedMobileDrawer() {
   const ActiveComponent = tabs.find(tab => tab.id === activeMobileTab)?.component || FileExplorer;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setMobileDrawerOpen(false)}>
+    <div className="fixed inset-0 z-50 bg-black/50" data-testid="mobile-drawer" onClick={() => setMobileDrawerOpen(false)}>
       {/* Drawer */}
       <div 
         className="absolute top-0 left-0 right-0 bg-[var(--background-primary)] border-b border-[var(--background-modifier-border)] shadow-lg max-h-[70vh] overflow-hidden flex flex-col"

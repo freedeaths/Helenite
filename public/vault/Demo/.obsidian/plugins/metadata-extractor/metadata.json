@@ -1,0 +1,211 @@
+[
+  {
+    "fileName": "Usages",
+    "relativePath": "Usages.md",
+    "headings": [
+      {
+        "heading": "Configurations",
+        "level": 2
+      },
+      {
+        "heading": "Plugin",
+        "level": 2
+      },
+      {
+        "heading": "TODO",
+        "level": 2
+      }
+    ],
+    "backlinks": [
+      {
+        "fileName": "Abilities",
+        "link": "Usages",
+        "relativePath": "FolderA/SubFolder/Abilities.md"
+      },
+      {
+        "fileName": "Welcome",
+        "link": "Usages",
+        "relativePath": "Welcome.md"
+      }
+    ]
+  },
+  {
+    "fileName": "linkB",
+    "relativePath": "FolderA/linkB.md"
+  },
+  {
+    "fileName": "Embedded",
+    "relativePath": "FolderA/SubFolder/Embedded.md"
+  },
+  {
+    "fileName": "Abilities",
+    "relativePath": "FolderA/SubFolder/Abilities.md",
+    "tags": [
+      "test",
+      "react",
+      "markdown",
+      "obsidian",
+      "typescript"
+    ],
+    "frontmatter": {
+      "uuid": "115e245b-8b76-43b8-9728-472b60e47705"
+    },
+    "headings": [
+      {
+        "heading": "Welcome to Helenite",
+        "level": 1
+      },
+      {
+        "heading": "Key Features",
+        "level": 2
+      },
+      {
+        "heading": "Useful Links",
+        "level": 2
+      },
+      {
+        "heading": "Obsidian Syntax Support",
+        "level": 2
+      },
+      {
+        "heading": "Internal Links",
+        "level": 3
+      },
+      {
+        "heading": "Tag System",
+        "level": 3
+      },
+      {
+        "heading": "Highlight",
+        "level": 3
+      },
+      {
+        "heading": "Callouts",
+        "level": 3
+      },
+      {
+        "heading": "Mathematical Formulas",
+        "level": 2
+      },
+      {
+        "heading": "Code Block Example",
+        "level": 2
+      },
+      {
+        "heading": "Charts and Visualizations",
+        "level": 2
+      },
+      {
+        "heading": "Mermaid Flowchart",
+        "level": 3
+      },
+      {
+        "heading": "System Architecture Diagram",
+        "level": 3
+      },
+      {
+        "heading": "Hiking Route Tracking",
+        "level": 2
+      },
+      {
+        "heading": "GPX Track File Test",
+        "level": 3
+      },
+      {
+        "heading": "Lu Yu Ancient Path Loop (Inline GPX)",
+        "level": 4
+      },
+      {
+        "heading": "YAMAP Hiking Route (External GPX File)",
+        "level": 4
+      },
+      {
+        "heading": "KML File Test",
+        "level": 3
+      },
+      {
+        "heading": "City Stroll Route",
+        "level": 4
+      },
+      {
+        "heading": "Qishan Greenway Route",
+        "level": 4
+      },
+      {
+        "heading": "Red Leaves",
+        "level": 4
+      },
+      {
+        "heading": "a",
+        "level": 4
+      },
+      {
+        "heading": "Task List",
+        "level": 2
+      },
+      {
+        "heading": "References and Footnotes",
+        "level": 2
+      },
+      {
+        "heading": "Table Support",
+        "level": 2
+      },
+      {
+        "heading": "Multimedia Content",
+        "level": 2
+      },
+      {
+        "heading": "Pictures",
+        "level": 3
+      },
+      {
+        "heading": "Horizontal Line",
+        "level": 3
+      },
+      {
+        "heading": "Fun Stuff",
+        "level": 2
+      },
+      {
+        "heading": "Contact",
+        "level": 2
+      },
+      {
+        "heading": "Pictures",
+        "level": 2
+      },
+      {
+        "heading": "Tracks",
+        "level": 2
+      }
+    ],
+    "links": [
+      {
+        "link": "Usages",
+        "relativePath": "Usages.md"
+      },
+      {
+        "link": "Welcome",
+        "relativePath": "Welcome.md"
+      }
+    ]
+  },
+  {
+    "fileName": "Welcome",
+    "relativePath": "Welcome.md",
+    "links": [
+      {
+        "link": "Usages",
+        "relativePath": "Usages.md"
+      }
+    ],
+    "backlinks": [
+      {
+        "fileName": "Abilities",
+        "link": "Welcome",
+        "relativePath": "FolderA/SubFolder/Abilities.md"
+      }
+    ]
+  }
+]

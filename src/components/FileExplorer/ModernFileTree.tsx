@@ -168,7 +168,7 @@ export function ModernFileTree({ files: propFiles, activeFile, onFileSelect }: M
   }
 
   return (
-    <div className="h-full overflow-auto p-2">
+    <div className="h-full overflow-auto p-2" data-testid="file-tree">
       {files.map((file) => (
         <FileTreeNode
           key={file.path}

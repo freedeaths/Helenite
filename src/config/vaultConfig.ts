@@ -45,16 +45,15 @@ export const defaultVaultConfig: VaultConfig = {
     '.obsidian',       // Obsidian 配置文件夹
     '.git',           // Git 仓库文件夹
     '.vscode',        // VSCode 配置文件夹
-    'node_modules',   // Node.js 依赖
-    '.DS_Store',      // macOS 系统文件
-    'Thumbs.db'       // Windows 缩略图文件
+    'node_modules'    // Node.js 依赖
   ],
   
   // 默认过滤的文件扩展名
   excludedExtensions: [
-    '.DS_Store',
-    '.gitignore',
-    'desktop.ini'
+    '.DS_Store',      // macOS 系统文件
+    '.gitignore',     // Git 忽略文件
+    'desktop.ini',    // Windows 桌面配置
+    'Thumbs.db'       // Windows 缩略图文件
   ],
   
   // 搜索配置

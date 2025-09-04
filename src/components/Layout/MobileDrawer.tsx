@@ -51,6 +51,7 @@ export function MobileDrawer({ isOpen, onClose, side, children, title }: MobileD
       
       {/* Drawer */}
       <div
+        data-testid="mobile-drawer"
         className={`
           fixed top-0 bottom-0 z-50 w-80 max-w-[85vw]
           bg-[var(--background-primary)] border-[var(--background-modifier-border)]

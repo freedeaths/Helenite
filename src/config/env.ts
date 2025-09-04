@@ -4,7 +4,7 @@
  */
 
 // Vault 路径配置
-export const VAULT_PATH = import.meta.env.VITE_VAULT_PATH || '/vault/Publish';
+export const VAULT_PATH = import.meta.env.VITE_VAULT_PATH || '/vault/Demo';
 export const VAULT_ROOT = import.meta.env.VITE_VAULT_ROOT || '/vault';
 
 // 派生路径

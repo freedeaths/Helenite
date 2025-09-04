@@ -6,9 +6,9 @@ import { MobileDropdownMenu } from './MobileDropdownMenu';
 import { ShareButton } from '../Share';
 
 export function ViewHeader() {
-  const { 
-    toggleLeftSidebar, 
-    toggleRightSidebar, 
+  const {
+    toggleLeftSidebar,
+    toggleRightSidebar,
     isMobile,
     isTablet,
     leftSidebarOpen,
@@ -26,6 +26,7 @@ export function ViewHeader() {
           {/* Desktop sidebar toggle */}
           {!isMobile && (
             <ActionIcon
+              data-testid="toggle-left-sidebar"
               onClick={toggleLeftSidebar}
               variant={leftSidebarOpen ? 'light' : 'subtle'}
               color="gray"
@@ -34,10 +35,11 @@ export function ViewHeader() {
               <IconLayoutSidebar size={18} />
             </ActionIcon>
           )}
-          
+
           {/* Mobile dropdown toggle */}
           {isMobile && (
             <ActionIcon
+              data-testid="mobile-dropdown-button"
               data-mobile-dropdown-toggle
               onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
               variant={mobileDropdownOpen ? 'light' : 'subtle'}
@@ -71,7 +73,7 @@ export function ViewHeader() {
           )}
         </div>
       </div>
-      
+
       {/* Mobile dropdown menu */}
       {isMobile && <MobileDropdownMenu />}
     </div>

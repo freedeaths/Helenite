@@ -9,8 +9,10 @@ import { fetchVault } from '../../../utils/fetchWithAuth';
  */
 export class LocalFileAPI implements IFileAPI {
   // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
-  constructor(_baseUrl: string = '/vault') {
+  constructor(baseUrl: string = '/vault') {
     // 使用 VAULT_PATH 而不是 baseUrl
+    // TODO: 将来可能使用 baseUrl 参数实现多 vault 支持
+    console.log(`LocalFileAPI initialized with baseUrl: ${baseUrl}, using VAULT_PATH: ${VAULT_PATH}`);
   }
 
   /**

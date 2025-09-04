@@ -2,12 +2,9 @@ import type { FileTree, FileMetadata } from '../types/vault';
 import { VAULT_PATH } from '../config/env';
 import { fetchVault } from '../utils/fetchWithAuth';
 
-// 全局类型声明
-declare const __VAULT_BASE_URL__: string;
-
 export class FileService {
-  // 基础路径 - 可配置的 Vault 目录
-  private static readonly BASE_PATH = __VAULT_BASE_URL__ || VAULT_PATH;
+  // 基础路径 - 使用配置的 Vault 目录
+  private static readonly BASE_PATH = VAULT_PATH;
   
   /**
    * 获取文件树结构

@@ -34,14 +34,6 @@ export function parseFrontMatter(rawContent: string): ParsedContent {
     // 简单的 YAML 解析（支持基本格式）
     const frontMatter = parseSimpleYaml(yamlContent);
     
-    console.log('🔍 Front Matter 解析结果:', {
-      file: 'Welcome.md',
-      frontMatter,
-      detectedKeys: Object.keys(frontMatter),
-      uuid: frontMatter.uuid,
-      tags: frontMatter.tags
-    });
-    
     return {
       frontMatter,
       content: markdownContent

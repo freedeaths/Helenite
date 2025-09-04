@@ -1,0 +1,9 @@
+{
+	"nodes":[
+		{"id":"71c0494c42075307","x":-320,"y":-180,"width":250,"height":60,"type":"text","text":"Test"},
+		{"id":"bcbad51e6bd26e1a","x":-70,"y":-40,"width":250,"height":60,"type":"text","text":"Step 2"}
+	],
+	"edges":[
+		{"id":"192a08b8f0e0b75e","fromNode":"71c0494c42075307","fromSide":"right","toNode":"bcbad51e6bd26e1a","toSide":"left"}
+	]
+}

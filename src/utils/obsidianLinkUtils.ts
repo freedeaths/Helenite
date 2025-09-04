@@ -157,13 +157,11 @@ export function findFilePath(
   fileIndex: Map<string, string>,
   currentFileDir?: string
 ): string | null {
-  console.log(`🔍 findFilePath: searching for "${linkPath}" in index with ${fileIndex.size} entries`);
   
   // 处理相对路径
   if (currentFileDir && (linkPath.startsWith('../') || linkPath.startsWith('./'))) {
     try {
       const resolvedPath = new URL(linkPath, `file://${currentFileDir}/`).pathname;
-      console.log(`🔍 Resolved relative path "${linkPath}" to "${resolvedPath}"`);
       return resolvedPath;
     } catch {
       return null;
@@ -173,14 +171,12 @@ export function findFilePath(
   // 1. 直接查找
   const directMatch = fileIndex.get(linkPath.toLowerCase());
   if (directMatch) {
-    console.log(`✅ Direct match found: "${linkPath}" → "${directMatch}"`);
     return directMatch;
   }
   
   // 2. 添加 .md 扩展名再查找
   const withMdExt = fileIndex.get(`${linkPath.toLowerCase()}.md`);
   if (withMdExt) {
-    console.log(`✅ Match with .md extension: "${linkPath}.md" → "${withMdExt}"`);
     return withMdExt;
   }
   
@@ -188,7 +184,6 @@ export function findFilePath(
   const withoutExt = linkPath.replace(/\.(md|txt)$/, '').toLowerCase();
   const withoutExtMatch = fileIndex.get(withoutExt);
   if (withoutExtMatch) {
-    console.log(`✅ Match without extension: "${withoutExt}" → "${withoutExtMatch}"`);
     return withoutExtMatch;
   }
   
@@ -197,14 +192,12 @@ export function findFilePath(
   if (fileName && fileName !== linkPath) {
     const fileNameMatch = fileIndex.get(fileName.toLowerCase());
     if (fileNameMatch) {
-      console.log(`✅ Filename match: extracted "${fileName}" from "${linkPath}" → "${fileNameMatch}"`);
       return fileNameMatch;
     }
     
     // 也尝试添加 .md 扩展名
     const fileNameWithMd = fileIndex.get(`${fileName.toLowerCase()}.md`);
     if (fileNameWithMd) {
-      console.log(`✅ Filename with .md match: "${fileName}.md" → "${fileNameWithMd}"`);
       return fileNameWithMd;
     }
   }
@@ -213,7 +206,6 @@ export function findFilePath(
   for (const [key, value] of fileIndex.entries()) {
     // 检查文件路径是否以链接路径结尾（处理部分路径匹配）
     if (key.endsWith(linkPath.toLowerCase()) || key.endsWith(`${linkPath.toLowerCase()}.md`)) {
-      console.log(`✅ Fuzzy match: "${linkPath}" found in "${key}" → "${value}"`);
       return value;
     }
     
@@ -222,12 +214,10 @@ export function findFilePath(
     if (linkParts.length > 1) {
       const lastPart = linkParts[linkParts.length - 1];
       if (key.includes(lastPart) && key.includes(linkParts[0])) {
-        console.log(`✅ Multi-part match: "${linkPath}" parts found in "${key}" → "${value}"`);
         return value;
       }
     }
   }
   
-  console.log(`❌ No match found for "${linkPath}"`);
   return null;
 }

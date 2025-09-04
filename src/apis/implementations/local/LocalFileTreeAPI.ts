@@ -9,8 +9,9 @@ import { fetchVault } from '../../../utils/fetchWithAuth';
  */
 export class LocalFileTreeAPI implements IFileTreeAPI {
   // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
-  constructor(_baseUrl: string = '/vault') {
+  constructor(baseUrl: string = '/vault') {
     // 使用 VAULT_PATH 而不是 baseUrl
+    console.log(`LocalFileTreeAPI initialized with baseUrl: ${baseUrl}, using VAULT_PATH: ${VAULT_PATH}`);
   }
   
   /**

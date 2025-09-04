@@ -457,7 +457,7 @@ export function MarkdownViewer() {
       }
 
       return (
-        <div className="markdown-viewer" ref={contentRef}>
+        <div className="markdown-viewer" ref={contentRef} data-testid="markdown-content">
           {/* File name as document title */}
           {activeFile && (
             <h1 className="text-2xl font-bold mb-6 text-[var(--text-normal)] border-b border-[var(--background-modifier-border)] pb-4">
@@ -501,7 +501,7 @@ export function MarkdownViewer() {
 
     // Fallback for no rendered content
     return (
-      <div className="markdown-viewer">
+      <div className="markdown-viewer" data-testid="markdown-content">
         {/* File name as document title */}
         {activeFile && (
           <h1 className="text-2xl font-bold mb-6 text-[var(--text-normal)] border-b border-[var(--background-modifier-border)] pb-4">
