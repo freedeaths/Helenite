@@ -11,7 +11,7 @@ This is a modern React-based Obsidian Vault viewer.
 ## Key Features
 
 - 🎨 **Modern Interface** - Built with React 18 + TypeScript
-- 📱 **Responsive Design** - Perfectly adapted for desktop, tablet, and mobile devices  
+- 📱 **Responsive Design** - Perfectly adapted for desktop, tablet, and mobile devices
 - ⚡ **High Performance** - Built with Vite 5
 - 🎯 **Focused Reading** - Read-only mode for distraction-free content browsing
 
@@ -48,13 +48,13 @@ This is an example of ==important highlighted content==.
 
 > [!note] Technical Architecture
 > - React 18 + TypeScript
-> - Mantine UI 7 + Tailwind CSS  
+> - Mantine UI 7 + Tailwind CSS
 > - Zustand State Management
 > - Unified + Remark Markdown Processing
 
 > [!note] Technical Architecture A
 > 1. React 18 + TypeScript
-> 2. Mantine UI 7 + Tailwind CSS  
+> 2. Mantine UI 7 + Tailwind CSS
 
 ## Mathematical Formulas
 
@@ -69,14 +69,14 @@ $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
 // React Component Example
 function MarkdownViewer() {
   const [content, setContent] = useState('');
-  
+
   useEffect(() => {
     markdownProcessor.processWithMetadata(content)
       .then(result => {
         setRenderedContent(result.html);
       });
   }, [content]);
-  
+
   return <div className="markdown-viewer">{renderedContent}</div>;
 }
 ```
@@ -104,20 +104,20 @@ graph LR
         B[Zustand Store]
         C[API Hooks]
     end
-    
+
     subgraph "API Layer"
         D[FileTree API]
         subgraph "Data Layer"
         D[File System]
         E[Database]
     end
-    
+
     subgraph "Toolchain"
         F[Vite]
         G[TypeScript]
         H[ESLint]
     end
-    
+
     A --> B
     B --> C
     C --> D
@@ -245,7 +245,6 @@ Here are some important resources [^1] and technical documentation [^2].
 
 ## Fun Stuff
 
-[FIRE (Financial Independence, Retire Early) Early Retirement Financial Planning Calculator](https://fire.freedeaths.com)
 [FIRE (Financial Independence, Retire Early) Early Retirement Financial Planning Calculator](https://fire.freedeaths.com)
 
 ## Contact

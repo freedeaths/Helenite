@@ -240,24 +240,27 @@ export function TOC() {
 
   if (!currentDocumentMetadata?.headings?.length) {
     return (
-      <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
+      <div className="h-full flex flex-col">
+        <div className="text-sm font-medium mb-4 text-[var(--text-normal)] px-4 pt-4">
           Table of Contents
         </div>
-        <div className="text-sm text-[var(--text-muted)]">
-          No headings found in this document
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="text-sm text-[var(--text-muted)]">
+            No headings found in this document
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full p-4">
-      <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
+    <div className="h-full flex flex-col">
+      <div className="text-sm font-medium mb-4 text-[var(--text-normal)] px-4 pt-4">
         Table of Contents
       </div>
-      <div className="space-y-1 text-sm">
-        {currentDocumentMetadata.headings.map((heading, index) => {
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="space-y-1 text-sm">
+          {currentDocumentMetadata.headings.map((heading, index) => {
           const indent = (heading.level - 1) * 12; // 12px per level for cleaner look
           const isActive = activeHeadingId === heading.id;
           
@@ -297,7 +300,8 @@ export function TOC() {
               </span>
             </div>
           );
-        })}
+          })}
+        </div>
       </div>
     </div>
   );
