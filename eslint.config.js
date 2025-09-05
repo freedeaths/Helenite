@@ -19,5 +19,26 @@ export default tseslint.config([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Existing code quality - allow current state but discourage
+      '@typescript-eslint/no-explicit-any': 'warn',
+      
+      // Strict rules for new code - must be fixed
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+      
+      // Code style consistency
+      'prefer-const': 'error',
+      'no-useless-escape': 'error',
+      'no-case-declarations': 'error',
+      
+      // React best practices
+      'react-hooks/exhaustive-deps': 'warn', // Allow flexibility for complex effects
+      
+      // Allow console in development
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    },
   },
 ])

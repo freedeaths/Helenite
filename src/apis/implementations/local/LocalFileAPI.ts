@@ -201,7 +201,7 @@ export class LocalFileAPI implements IFileAPI {
       const response = await fetchVault(fullPath, { method: 'HEAD' });
       return response.ok;
       
-    } catch (error) {
+    } catch {
       return false;
     }
   }

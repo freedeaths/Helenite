@@ -99,28 +99,36 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph "Frontend Layer"
+    subgraph "前端层"
         A[React App]
         B[Zustand Store]
         C[API Hooks]
     end
 
-    subgraph "API Layer"
+    subgraph "API 层"
         D[FileTree API]
-        subgraph "Data Layer"
-        D[File System]
-        E[Database]
+        E[Graph API]
+        F[File API]
+        G[Search API]
     end
 
-    subgraph "Toolchain"
-        F[Vite]
-        G[TypeScript]
-        H[ESLint]
+    subgraph "数据层"
+        H[metadata.json]
+        I[Markdown 文件]
+        J[附件资源]
     end
 
     A --> B
     B --> C
     C --> D
+    C --> E
+    C --> F
+    C --> G
+    D --> H
+    E --> H
+    F --> I
+    G --> H
+    F --> J
 ```
 
 ## Hiking Route Tracking

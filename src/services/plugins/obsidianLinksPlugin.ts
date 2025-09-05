@@ -125,7 +125,7 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       result = createImageEmbed(parsedLink, resolvedPath, baseUrl);
       break;
     
-    case 'embed':
+    case 'embed': {
       // 检查是否为轨迹文件
       const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
       if (ext === 'gpx' || ext === 'kml') {
@@ -134,6 +134,7 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
         result = createGenericEmbed(parsedLink, resolvedPath);
       }
       break;
+    }
     
     default:
       result = {

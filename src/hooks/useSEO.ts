@@ -81,12 +81,12 @@ export function useSEO() {
       }
       metaDescription.setAttribute('content', 'A modern, web-based viewer for Obsidian vaults. Browse your notes with beautiful typography and interactive features.');
       
-      let ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) {
         ogTitle.setAttribute('content', 'Helenite - Modern Obsidian Vault Viewer');
       }
       
-      let canonical = document.querySelector('link[rel="canonical"]');
+      const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) {
         canonical.setAttribute('href', `${window.location.origin}${window.location.pathname}#/welcome`);
       }

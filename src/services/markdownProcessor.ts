@@ -88,7 +88,7 @@ function remarkObsidianTags() {
       if (!parent || typeof index !== 'number') return;
       
       const value = node.value;
-      const tagRegex = /(^|[\s：:,，])(#[\w\-\/]+)/g;
+      const tagRegex = /(^|[\s：:,，])(#[\w\-/]+)/g;
       
       if (!tagRegex.test(value)) return;
       
@@ -242,7 +242,7 @@ function remarkObsidianCallouts() {
       
       // Check for callout syntax: [!type] title (handle multiline content)
       const fullText = firstText.value;
-      const calloutRegex = /^\[!([\w\-]+)\]\s*(.*?)$/s; // 's' flag for multiline
+      const calloutRegex = /^\[!([\w-]+)\]\s*(.*?)$/s; // 's' flag for multiline
       const match = fullText.match(calloutRegex);
       
       if (!match) return;
@@ -596,9 +596,9 @@ export class MarkdownProcessor {
           .join('');
         
         // Generate a more robust ID that preserves unicode characters
-        let baseId = text.toLowerCase()
+        const baseId = text.toLowerCase()
           .replace(/\s+/g, '-')
-          .replace(/[^\w\u4e00-\u9fff\-]/g, '') // Keep Chinese characters
+          .replace(/[^\w\u4e00-\u9fff-]/g, '') // Keep Chinese characters
           .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
           
         // Ensure ID is unique by adding a suffix if needed
