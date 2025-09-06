@@ -1,0 +1,72 @@
+{
+  "folders": [
+    {
+      "name": "",
+      "relativePath": "/"
+    },
+    {
+      "name": "Attachments",
+      "relativePath": "Attachments"
+    },
+    {
+      "name": "FolderA",
+      "relativePath": "FolderA"
+    },
+    {
+      "name": "SubFolder",
+      "relativePath": "FolderA/SubFolder"
+    }
+  ],
+  "nonMdFiles": [
+    {
+      "name": "metadata.json",
+      "basename": "metadata",
+      "relativePath": "metadata.json"
+    },
+    {
+      "name": "Get_Started_With_Smallpdf.pdf",
+      "basename": "Get_Started_With_Smallpdf",
+      "relativePath": "Attachments/Get_Started_With_Smallpdf.pdf"
+    },
+    {
+      "name": "Pasted image 20250902131727.png",
+      "basename": "Pasted image 20250902131727",
+      "relativePath": "Attachments/Pasted image 20250902131727.png"
+    },
+    {
+      "name": "Pasted image 20250902132222.png",
+      "basename": "Pasted image 20250902132222",
+      "relativePath": "Attachments/Pasted image 20250902132222.png"
+    },
+    {
+      "name": "Pasted image 20250902132358.png",
+      "basename": "Pasted image 20250902132358",
+      "relativePath": "Attachments/Pasted image 20250902132358.png"
+    },
+    {
+      "name": "Pasted image 20250902132433.png",
+      "basename": "Pasted image 20250902132433",
+      "relativePath": "Attachments/Pasted image 20250902132433.png"
+    },
+    {
+      "name": "inversed mt fuji.png",
+      "basename": "inversed mt fuji",
+      "relativePath": "Attachments/inversed mt fuji.png"
+    },
+    {
+      "name": "yamap_2025-04-02_08_48.gpx",
+      "basename": "yamap_2025-04-02_08_48",
+      "relativePath": "Attachments/yamap_2025-04-02_08_48.gpx"
+    },
+    {
+      "name": "BaseExample.base",
+      "basename": "BaseExample",
+      "relativePath": "FolderA/BaseExample.base"
+    },
+    {
+      "name": "Canvas.canvas",
+      "basename": "Canvas",
+      "relativePath": "FolderA/Canvas.canvas"
+    }
+  ]
+}

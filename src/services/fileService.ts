@@ -1,5 +1,5 @@
 import type { FileTree, FileMetadata } from '../types/vault';
-import { VAULT_PATH } from '../config/env';
+import { VAULT_PATH } from '../config/vaultConfig';
 import { fetchVault } from '../utils/fetchWithAuth';
 
 export class FileService {

@@ -31,12 +31,12 @@ export const API_CONFIG = {
   TAG_MODE: 'mock' as APIMode,        // 未实现：回退到 mock
 };
 
-import { VAULT_ROOT } from '../config/env';
+import { VAULT_PATH } from '../config/vaultConfig';
 
 /**
  * Vault 基础 URL
  */
-export const VAULT_BASE_URL = VAULT_ROOT;
+export const VAULT_BASE_URL = VAULT_PATH;
 
 /**
  * 创建文件树 API 实例

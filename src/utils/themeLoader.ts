@@ -1,4 +1,10 @@
-import { getObsidianPath } from '../config/env';
+import { VAULT_PATH } from '../config/vaultConfig';
+
+// 内联主题路径生成函数
+function getThemePath(relativePath: string): string {
+  const cleanPath = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
+  return `${VAULT_PATH}/.obsidian/${cleanPath}`;
+}
 
 export interface ObsidianTheme {
   name: string;
@@ -12,19 +18,19 @@ export const AVAILABLE_THEMES: ObsidianTheme[] = [
     name: 'Royal Velvet',
     version: '0.11.2',
     author: 'caro401',
-    cssPath: getObsidianPath('themes/Royal Velvet/theme.css')
+    cssPath: getThemePath('themes/Royal Velvet/theme.css')
   },
   {
     name: 'Shiba Inu',
     version: '1.0.0',
     author: 'faroukx',
-    cssPath: getObsidianPath('themes/Shiba Inu/theme.css')
+    cssPath: getThemePath('themes/Shiba Inu/theme.css')
   },
   {
     name: 'Terminal',
     version: '1.0.0',
     author: 'unknown',
-    cssPath: getObsidianPath('themes/Terminal/theme.css')
+    cssPath: getThemePath('themes/Terminal/theme.css')
   }
 ];
 

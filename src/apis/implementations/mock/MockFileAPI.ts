@@ -1,6 +1,6 @@
 import type { IFileAPI, TOCItem, LinkData } from '../../interfaces/IFileAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
-import { VAULT_PATH } from '../../../config/env';
+import { VAULT_PATH } from '../../../config/vaultConfig';
 
 /**
  * Mock 文件 API 实现
@@ -8,7 +8,7 @@ import { VAULT_PATH } from '../../../config/env';
  */
 export class MockFileAPI implements IFileAPI {
   // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
-  constructor(baseUrl: string = '/vault') {
+  constructor(baseUrl: string = '/vaults/Demo') {
     // 使用 VAULT_PATH 而不是 baseUrl
     console.log(`MockFileAPI initialized with baseUrl: ${baseUrl}, using VAULT_PATH: ${VAULT_PATH}`);
   }

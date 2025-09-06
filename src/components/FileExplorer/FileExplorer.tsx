@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { IconSearch, IconX, IconFile, IconHash } from '@tabler/icons-react';
 import { useVaultStore } from '../../stores/vaultStore';
-import { VAULT_PATH } from '../../config/env';
+import { VAULT_PATH } from '../../config/vaultConfig';
 import { fetchVault } from '../../utils/fetchWithAuth';
 import { useUIStore } from '../../stores/uiStore';
 import { navigateToFile } from '../../utils/routeUtils';
@@ -32,11 +32,11 @@ export function FileExplorer() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // 使用真实的 FileTreeAPI 加载文件树
       const fileStructure = await fileTreeAPI.getFileTree();
       setFiles(fileStructure);
-      
+
       // 同时加载并存储 metadata 到 vaultStore
       const metadataArray = await loadMetadata();
       if (metadataArray) {
@@ -44,7 +44,7 @@ export function FileExplorer() {
         setMetadata(metadataMap);
         console.log('Loaded metadata for tags:', Object.keys(metadataMap).length, 'files');
       }
-      
+
     } catch (error) {
       console.error('Failed to load files:', error);
       setError(error instanceof Error ? error.message : '加载文件失败');
@@ -71,7 +71,7 @@ export function FileExplorer() {
   // 将 metadata 数组转换为 path -> FileMetadata 的映射
   const buildMetadataMap = (metadataArray: any[]) => {
     const metadataMap: Record<string, any> = {};
-    
+
     metadataArray.forEach(item => {
       if (item.relativePath) {
         const normalizedPath = `/${item.relativePath}`;
@@ -86,7 +86,7 @@ export function FileExplorer() {
         };
       }
     });
-    
+
     return metadataMap;
   };
 
@@ -118,7 +118,7 @@ export function FileExplorer() {
     // 使用路由导航到文件
     navigateToFile(path);
     console.log('Selected file:', path);
-    
+
     // 在手机端点击文件后收回抽屉 - 使用正确的 setMobileDropdownOpen
     const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
     if (isMobile) {
@@ -128,7 +128,7 @@ export function FileExplorer() {
 
   const handleSearchResultClick = (filePath: string) => {
     navigateToFile(filePath);
-    
+
     // 在手机端点击搜索结果后收回抽屉 - 使用正确的 setMobileDropdownOpen
     const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
     if (isMobile) {
@@ -139,11 +139,11 @@ export function FileExplorer() {
   // 过滤文件树
   const filteredFiles = useMemo(() => {
     if (!searchQuery.trim()) return files;
-    
+
     const filterTree = (items: FileTree[]): FileTree[] => {
       return items.reduce((acc: FileTree[], item) => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
         if (item.type === 'folder' && item.children) {
           const filteredChildren = filterTree(item.children);
           if (filteredChildren.length > 0 || matchesSearch) {
@@ -155,11 +155,11 @@ export function FileExplorer() {
         } else if (item.type === 'file' && matchesSearch) {
           acc.push(item);
         }
-        
+
         return acc;
       }, []);
     };
-    
+
     return filterTree(files);
   }, [files, searchQuery]);
 
@@ -183,7 +183,7 @@ export function FileExplorer() {
               className="w-full px-3 py-2 text-sm bg-[var(--background-secondary)] border border-[var(--background-modifier-border)] rounded focus:outline-none focus:border-[var(--interactive-accent)] text-[var(--text-normal)] placeholder-[var(--text-muted)] h-8"
             />
           </div>
-          
+
           {/* 清除按钮 */}
           {searchQuery && (
             <button
@@ -194,7 +194,7 @@ export function FileExplorer() {
               <IconX size={14} />
             </button>
           )}
-          
+
           {/* 搜索状态指示 */}
           <div className="px-2 h-8 flex items-center">
             {isSearching ? (
@@ -205,7 +205,7 @@ export function FileExplorer() {
           </div>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-auto">
         {searchQuery.trim() ? (
           /* 搜索模式 */
@@ -219,7 +219,7 @@ export function FileExplorer() {
           ) : searchResults.length > 0 ? (
             <div className="p-2">
               <div className="text-xs text-[var(--text-muted)] mb-2 px-2">
-                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} 
+                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
                 {isTagSearch ? ' for tag' : ''} "{searchQuery}"
               </div>
               {searchResults.map((result, index) => (
@@ -261,7 +261,7 @@ export function FileExplorer() {
                         <div className="text-xs text-[var(--text-muted)] mb-1">
                           {match.lineNumber && `Line ${match.lineNumber}`}
                         </div>
-                        <div 
+                        <div
                           className="text-sm text-[var(--text-normal)] leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: match.highlighted }}
                         />

@@ -7,7 +7,7 @@
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
-import { VAULT_PATH } from '../config/env';
+import { VAULT_PATH } from '../config/vaultConfig';
 import { fetchVault } from '../utils/fetchWithAuth';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';

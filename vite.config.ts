@@ -14,7 +14,7 @@ export default defineConfig({
   build: {
     copyPublicDir: true,
     rollupOptions: {
-      external: ['/vault/**']
+      external: ['/vaults/**']
     }
   }
 })

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { ISearchAPI } from '../interfaces/ISearchAPI';
 import { LocalSearchAPI } from '../implementations/local/LocalSearchAPI';
-import { VAULT_PATH } from '../../config/env';
+import { VAULT_PATH } from '../../config/vaultConfig';
 
 /**
  * 搜索 API Hook

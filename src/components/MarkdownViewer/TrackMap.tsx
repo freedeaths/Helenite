@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet';
 import gpxParser from 'gpx-parser-builder';
 import L from 'leaflet';
-import { VAULT_PATH } from '../../config/env';
+import { VAULT_PATH } from '../../config/vaultConfig';
 import { fetchVault } from '../../utils/fetchWithAuth';
 
 import 'leaflet/dist/leaflet.css';
@@ -44,10 +44,10 @@ L.Icon.Default.mergeOptions({
 const createCustomIcon = (color: string, type: 'start' | 'end' | 'waypoint' | 'photo') => {
   const iconHtml = `
     <div style="
-      background-color: ${color}; 
-      width: 20px; 
-      height: 20px; 
-      border-radius: 50%; 
+      background-color: ${color};
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
       border: 2px solid white;
       display: flex;
       align-items: center;
@@ -72,20 +72,20 @@ const createCustomIcon = (color: string, type: 'start' | 'end' | 'waypoint' | 'p
 const VENDOR_PATTERNS = {
   // YAMAP - 日本户外应用
   yamap: {
-    detect: (content: string) => 
-      content.includes('creator="YAMAP') || 
-      content.includes('YAMAP') || 
+    detect: (content: string) =>
+      content.includes('creator="YAMAP') ||
+      content.includes('YAMAP') ||
       content.includes('yamap.com'),
     formats: {
       gpx: ['trk > trkseg > trkpt']
     },
     candidateKeywords: ['YAMAP', 'yamap.com', 'creator="YAMAP']
   },
-  
+
   // Garmin - GPS设备厂商
   garmin: {
-    detect: (content: string) => 
-      content.includes('Garmin') || 
+    detect: (content: string) =>
+      content.includes('Garmin') ||
       content.includes('garmin') ||
       content.includes('GPSBabel'),
     formats: {
@@ -93,23 +93,23 @@ const VENDOR_PATTERNS = {
     },
     candidateKeywords: ['Garmin', 'garmin', 'GPSBabel']
   },
-  
+
   // 2bulu (两步路) - 中国户外应用
   '2bulu': {
-    detect: (content: string) => 
-      content.includes('2bulu') || 
+    detect: (content: string) =>
+      content.includes('2bulu') ||
       content.includes('二步路') ||
       content.includes('TbuluKmlVersion'),
     formats: {
-      kml: ['gx:Track > gx:coord', 'LineString > coordinates'], 
+      kml: ['gx:Track > gx:coord', 'LineString > coordinates'],
       gpx: ['trk > trkseg > trkpt']
     },
     candidateKeywords: ['2bulu', '二步路', 'TbuluKmlVersion', 'TwoStepsFromHell']
   },
-  
-  // foooooot - 户外运动应用  
+
+  // foooooot - 户外运动应用
   foooooot: {
-    detect: (content: string) => 
+    detect: (content: string) =>
       content.includes('foooooot') ||
       content.includes('foooooot.com'),
     formats: {
@@ -118,12 +118,12 @@ const VENDOR_PATTERNS = {
     },
     candidateKeywords: ['foooooot', 'foooooot.com', 'six-foot.lvye.cn']
   },
-  
+
   // Example/示例数据
   example: {
-    detect: (content: string) => 
-      content.includes('creator="Example"') || 
-      content.includes('陆羽古道') || 
+    detect: (content: string) =>
+      content.includes('creator="Example"') ||
+      content.includes('陆羽古道') ||
       content.includes('示例'),
     formats: {
       gpx: ['trk > trkseg > trkpt']
@@ -135,21 +135,21 @@ const VENDOR_PATTERNS = {
 // 检测提供商 (改进版 - 支持候选关键词匹配)
 const detectProvider = (content: string): string => {
   const detectionResults: Array<{vendor: string, score: number, keywords: string[]}> = [];
-  
+
   for (const [vendor, config] of Object.entries(VENDOR_PATTERNS)) {
     // 主要检测逻辑
     if (config.detect(content)) {
       // 计算匹配度分数 - 基于候选关键词匹配数量
       let score = 1; // 基础分数
       const matchedKeywords: string[] = [];
-      
+
       config.candidateKeywords.forEach(keyword => {
         if (content.includes(keyword)) {
           score += 1;
           matchedKeywords.push(keyword);
         }
       });
-      
+
       detectionResults.push({
         vendor,
         score,
@@ -157,7 +157,7 @@ const detectProvider = (content: string): string => {
       });
     }
   }
-  
+
   // 如果有多个匹配，选择得分最高的
   if (detectionResults.length > 0) {
     detectionResults.sort((a, b) => b.score - a.score);
@@ -165,7 +165,7 @@ const detectProvider = (content: string): string => {
     console.log(`Provider detection: ${bestMatch.vendor} (score: ${bestMatch.score}, keywords: [${bestMatch.keywords.join(', ')}])`);
     return bestMatch.vendor;
   }
-  
+
   return 'unknown';
 };
 
@@ -184,13 +184,13 @@ const getTrackColor = (provider?: string) => {
 // 获取地图实例的组件
 function MapInstanceCapture({ onMapReady }: { onMapReady: (map: any) => void }) {
   const map = useMapEvents({});
-  
+
   useEffect(() => {
     if (map) {
       onMapReady(map);
     }
   }, [map, onMapReady]);
-  
+
   return null;
 }
 
@@ -237,7 +237,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           // 处理文件路径
           let filePath = code;
           console.log('🔍 Original file path from code:', filePath);
-          
+
           // 处理不同格式的文件路径
           if (filePath.startsWith('@Publish/')) {
             // @Publish/ 格式：移除 @Publish 前缀，使用 VAULT_PATH
@@ -281,7 +281,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
 
         // 优先使用 fileType 参数进行格式检测（来自 obsidianLinksPlugin 的文件类型信息）
         let isKML: boolean, isGPX: boolean;
-        
+
         if (isFile && fileType) {
           // 如果有明确的文件类型信息，优先使用
           isGPX = fileType.toLowerCase() === 'gpx';
@@ -293,7 +293,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           isGPX = content.includes('<gpx') || content.includes('xmlns="http://www.topografix.com/GPX');
           console.log(`Content-based detection: isGPX: ${isGPX}, isKML: ${isKML}`);
         }
-        
+
         if (isKML && !isGPX) {
           // KML 解析
           console.log('Using KML parser');
@@ -349,7 +349,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       // 尝试多种解析方式
       let gpx;
       let parseError;
-      
+
       // 方法1: 尝试直接调用 parseGpx
       try {
         if (gpxParser.parseGpx && typeof gpxParser.parseGpx === 'function') {
@@ -358,7 +358,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       } catch (err) {
         parseError = err;
       }
-      
+
       // 方法2: 尝试调用 parse
       if (!gpx) {
         try {
@@ -369,7 +369,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           parseError = err;
         }
       }
-      
+
       // 方法3: 尝试直接调用 default
       if (!gpx) {
         try {
@@ -380,7 +380,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           parseError = err;
         }
       }
-      
+
       // 方法4: 尝试 default.parseGpx
       if (!gpx) {
         try {
@@ -391,7 +391,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           parseError = err;
         }
       }
-      
+
       // 方法5: 尝试 default 作为函数
       if (!gpx) {
         try {
@@ -402,7 +402,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           parseError = err;
         }
       }
-      
+
       if (!gpx) {
         throw new Error(`GPX parser returned null or undefined. Last error: ${(parseError as Error)?.message || 'Unknown error'}`);
       }
@@ -495,10 +495,10 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
   const parseKMLData = async (content: string, provider: string): Promise<TrackData> => {
     try {
       console.log('Parsing KML content, length:', content.length, 'Provider:', provider);
-      
+
       const coordinates: [number, number][] = [];
       const waypoints: Array<{ lat: number; lon: number; name?: string; description?: string }> = [];
-      
+
       // 提取轨迹名称
       let trackName = `${provider.toUpperCase()} Track`;
       const nameMatches = content.match(/<name[^>]*>([^<]*)<\/name>/gi);
@@ -511,11 +511,11 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           }
         }
       }
-      
+
       // 基于供应商的智能解析策略选择
       const getParseStrategiesForProvider = (provider: string) => {
         const strategies = [];
-        
+
         if (provider === '2bulu') {
           // 2bulu 优先使用 gx:Track 格式，后备使用标准 LineString
           strategies.push(
@@ -532,7 +532,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                       if (parts.length >= 2) {
                         const longitude = parseFloat(parts[0]);
                         const latitude = parseFloat(parts[1]);
-                        if (!isNaN(longitude) && !isNaN(latitude) && 
+                        if (!isNaN(longitude) && !isNaN(latitude) &&
                             Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                           coordinates.push([latitude, longitude]);
                         }
@@ -550,11 +550,11 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                 if (coordMatch) {
                   const coordText = coordMatch[1].trim();
                   const coordLines = coordText.split(/[\n\r\s,]+/).filter(line => line.trim());
-                  
+
                   for (let i = 0; i < coordLines.length - 1; i += 2) {
                     const longitude = parseFloat(coordLines[i]);
                     const latitude = parseFloat(coordLines[i + 1]);
-                    if (!isNaN(longitude) && !isNaN(latitude) && 
+                    if (!isNaN(longitude) && !isNaN(latitude) &&
                         Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                       coordinates.push([latitude, longitude]);
                     }
@@ -567,7 +567,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           // foooooot 专用解析策略
           strategies.push(
             {
-              name: 'foooooot_placemark_linestring', 
+              name: 'foooooot_placemark_linestring',
               pattern: /<Placemark[^>]*>[\s\S]*?<LineString[^>]*>[\s\S]*?<coordinates[^>]*>([\s\S]*?)<\/coordinates>[\s\S]*?<\/LineString>[\s\S]*?<\/Placemark>/gi,
               parser: (match: string) => {
                 const coordMatch = match.match(/<coordinates[^>]*>([\s\S]*?)<\/coordinates>/i);
@@ -575,13 +575,13 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                   const coordText = coordMatch[1].trim();
                   // foooooot 特殊格式：空格分隔的坐标对
                   const coordPairs = coordText.split(/\s+/).filter(pair => pair.trim());
-                  
+
                   coordPairs.forEach(pair => {
                     const coords = pair.split(',');
                     if (coords.length >= 2) {
                       const longitude = parseFloat(coords[0]);
                       const latitude = parseFloat(coords[1]);
-                      if (!isNaN(longitude) && !isNaN(latitude) && 
+                      if (!isNaN(longitude) && !isNaN(latitude) &&
                           Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                         coordinates.push([latitude, longitude]);
                       }
@@ -598,11 +598,11 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                 if (coordMatch) {
                   const coordText = coordMatch[1].trim();
                   const coordLines = coordText.split(/[\n\r\s,]+/).filter(line => line.trim());
-                  
+
                   for (let i = 0; i < coordLines.length - 1; i += 2) {
                     const longitude = parseFloat(coordLines[i]);
                     const latitude = parseFloat(coordLines[i + 1]);
-                    if (!isNaN(longitude) && !isNaN(latitude) && 
+                    if (!isNaN(longitude) && !isNaN(latitude) &&
                         Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                       coordinates.push([latitude, longitude]);
                     }
@@ -627,7 +627,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                       if (parts.length >= 2) {
                         const longitude = parseFloat(parts[0]);
                         const latitude = parseFloat(parts[1]);
-                        if (!isNaN(longitude) && !isNaN(latitude) && 
+                        if (!isNaN(longitude) && !isNaN(latitude) &&
                             Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                           coordinates.push([latitude, longitude]);
                         }
@@ -645,11 +645,11 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
                 if (coordMatch) {
                   const coordText = coordMatch[1].trim();
                   const coordLines = coordText.split(/[\n\r\s,]+/).filter(line => line.trim());
-                  
+
                   for (let i = 0; i < coordLines.length - 1; i += 2) {
                     const longitude = parseFloat(coordLines[i]);
                     const latitude = parseFloat(coordLines[i + 1]);
-                    if (!isNaN(longitude) && !isNaN(latitude) && 
+                    if (!isNaN(longitude) && !isNaN(latitude) &&
                         Math.abs(longitude) <= 180 && Math.abs(latitude) <= 90) {
                       coordinates.push([latitude, longitude]);
                     }
@@ -659,12 +659,12 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
             }
           );
         }
-        
+
         return strategies;
       };
-      
+
       const parseStrategies = getParseStrategiesForProvider(provider);
-      
+
       // 按策略顺序尝试解析轨迹坐标
       for (const strategy of parseStrategies) {
         const matches = content.match(strategy.pattern);
@@ -677,22 +677,22 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           }
         }
       }
-      
+
       // 查找Point坐标 (航点)
       const pointMatches = content.match(/<Placemark[^>]*>[\s\S]*?<Point[^>]*>[\s\S]*?<coordinates[^>]*>([^<]*)<\/coordinates>[\s\S]*?<\/Point>[\s\S]*?<\/Placemark>/gi);
-      
+
       if (pointMatches) {
         pointMatches.forEach(pointMatch => {
           const coordMatch = pointMatch.match(/<coordinates[^>]*>([^<]*)<\/coordinates>/i);
           const nameMatch = pointMatch.match(/<name[^>]*>([^<]*)<\/name>/i);
           const descMatch = pointMatch.match(/<description[^>]*>([\s\S]*?)<\/description>/i);
-          
+
           if (coordMatch) {
             const coords = coordMatch[1].trim().split(/[,\s]+/);
             if (coords.length >= 2) {
               const longitude = parseFloat(coords[0]);
               const latitude = parseFloat(coords[1]);
-              
+
               if (!isNaN(longitude) && !isNaN(latitude)) {
                 waypoints.push({
                   lat: latitude,
@@ -705,31 +705,31 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           }
         });
       }
-      
+
       // 如果没有找到轨迹点，但有航点，仍然可以显示
       if (coordinates.length === 0 && waypoints.length === 0) {
         // 作为最后的尝试，查找任何包含坐标的文本，但要更严格的验证
         const allCoordMatches = content.match(/([+-]?\d+\.\d+),([+-]?\d+\.\d+)/g);
         if (allCoordMatches && allCoordMatches.length > 2) {
           console.log('Found coordinate pairs as fallback:', allCoordMatches.length);
-          
+
           // 验证坐标是否在合理范围内（中国地区）
           const validCoords: [number, number][] = [];
           allCoordMatches.slice(0, Math.min(1000, allCoordMatches.length)).forEach(coordStr => {
             const coords = coordStr.split(',');
             const longitude = parseFloat(coords[0]);
             const latitude = parseFloat(coords[1]);
-            
+
             // 更严格的坐标验证：确保在地球范围内，且看起来像真实坐标
-            if (!isNaN(longitude) && !isNaN(latitude) && 
-                longitude >= -180 && longitude <= 180 && 
+            if (!isNaN(longitude) && !isNaN(latitude) &&
+                longitude >= -180 && longitude <= 180 &&
                 latitude >= -90 && latitude <= 90 &&
                 // 排除明显错误的坐标（太小的数字可能是其他数据）
                 Math.abs(longitude) > 0.01 && Math.abs(latitude) > 0.01) {
               validCoords.push([latitude, longitude]);
             }
           });
-          
+
           // 只有找到足够多的有效坐标才使用
           if (validCoords.length > 10) {
             coordinates.push(...validCoords);
@@ -737,13 +737,13 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           }
         }
       }
-      
+
       if (coordinates.length === 0 && waypoints.length === 0) {
         throw new Error('No valid track points or waypoints found in KML data');
       }
-      
+
       console.log(`Parsed KML: ${coordinates.length} track points, ${waypoints.length} waypoints`);
-      
+
       return {
         name: trackName,
         coordinates,
@@ -751,7 +751,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
         provider,
         photos: [] // KML 照片支持待实现
       };
-      
+
     } catch (err) {
       console.error('KML parsing error:', err);
       throw err;
@@ -827,7 +827,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
     ...trackData.coordinates,
     ...trackData.waypoints.map(w => [w.lat, w.lon] as [number, number])
   ];
-  
+
   if (allPoints.length === 0) {
     return (
       <div className={`track-container ${className}`} style={{ margin: '1rem 0' }}>
@@ -846,7 +846,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       </div>
     );
   }
-  
+
   const bounds = allPoints.reduce(
     (acc, [lat, lon]) => ({
       minLat: Math.min(acc.minLat, lat),
@@ -874,7 +874,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
   ];
 
   // 验证边界是否有效
-  if (isNaN(center[0]) || isNaN(center[1]) || 
+  if (isNaN(center[0]) || isNaN(center[1]) ||
       Math.abs(bounds.maxLat - bounds.minLat) === 0 && Math.abs(bounds.maxLon - bounds.minLon) === 0) {
     return (
       <div className={`track-container ${className}`} style={{ margin: '1rem 0' }}>
@@ -897,8 +897,8 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
   const trackColor = getTrackColor(trackData.provider);
 
   return (
-    <div 
-      className={`track-container ${className}`} 
+    <div
+      className={`track-container ${className}`}
       style={{
         margin: '1rem auto',
         width: isExpanded ? '100vw' : '80%',
@@ -956,9 +956,9 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
       <MapContainer
         center={center}
         zoom={13}
-        style={{ 
-          height: isExpanded ? 'calc(100vh - 60px)' : 'calc(100% - 40px)', 
-          width: '100%' 
+        style={{
+          height: isExpanded ? 'calc(100vh - 60px)' : 'calc(100% - 40px)',
+          width: '100%'
         }}
         bounds={[[bounds.minLat, bounds.minLon], [bounds.maxLat, bounds.maxLon]]}
         boundsOptions={{ padding: [20, 20] }}
@@ -1030,7 +1030,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
           </Marker>
         ))}
       </MapContainer>
-      
+
       {/* 浮动工具栏 - 重置按钮 */}
       {!isLoading && !error && trackData && (
         <div style={{
@@ -1075,7 +1075,7 @@ export function TrackMap({ code, isFile = false, fileType, className = '' }: Tra
             backgroundColor: 'rgba(224, 224, 224, 0.5)',
             margin: window.innerWidth <= 768 ? '0 3px' : '0 4px' // 移动端更小间距
           }} />
-          
+
           <button
             onClick={toggleExpanded}
             style={{

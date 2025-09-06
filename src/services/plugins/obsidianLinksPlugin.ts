@@ -7,7 +7,7 @@ import { visit } from 'unist-util-visit';
 import type { Root, Text } from 'mdast';
 import { parseObsidianLink } from '../../utils/obsidianLinkUtils';
 import { navigateToFile } from '../../utils/routeUtils';
-import { VAULT_PATH } from '../../config/env';
+import { VAULT_PATH } from '../../config/vaultConfig';
 
 interface ObsidianLinksPluginOptions {
   baseUrl?: string;

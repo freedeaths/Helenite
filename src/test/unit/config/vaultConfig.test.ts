@@ -15,7 +15,7 @@ describe('vaultConfig', () => {
     it('should return default configuration', () => {
       const config = getVaultConfig();
       
-      expect(config.baseUrl).toBe('/vault/Demo');
+      expect(config.baseUrl).toBe('/vaults/Demo');
       expect(config.indexFile).toBe('Welcome.md');
       expect(config.excludedFolders).toContain('.obsidian');
       expect(config.excludedFolders).toContain('Attachments');

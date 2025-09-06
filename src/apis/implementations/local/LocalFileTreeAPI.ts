@@ -1,6 +1,6 @@
 import type { IFileTreeAPI, FileTree, FileMetadata, FolderStats } from '../../interfaces';
 import { getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../../../config/vaultConfig';
-import { VAULT_PATH } from '../../../config/env';
+import { VAULT_PATH } from '../../../config/vaultConfig';
 import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
@@ -9,7 +9,7 @@ import { fetchVault } from '../../../utils/fetchWithAuth';
  */
 export class LocalFileTreeAPI implements IFileTreeAPI {
   // baseUrl 参数保留用于接口兼容性，但现在使用 VAULT_PATH
-  constructor(baseUrl: string = '/vault') {
+  constructor(baseUrl: string = '/vaults/Demo') {
     // 使用 VAULT_PATH 而不是 baseUrl
     console.log(`LocalFileTreeAPI initialized with baseUrl: ${baseUrl}, using VAULT_PATH: ${VAULT_PATH}`);
   }

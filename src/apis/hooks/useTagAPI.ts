@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { ITagAPI } from '../interfaces/ITagAPI';
 import { LocalTagAPI } from '../implementations/local/LocalTagAPI';
-import { VAULT_PATH } from '../../config/env';
+import { VAULT_PATH } from '../../config/vaultConfig';
 
 /**
  * 标签 API Hook
