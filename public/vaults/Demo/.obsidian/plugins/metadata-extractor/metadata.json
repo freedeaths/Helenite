@@ -1,18 +1,484 @@
 [
   {
-    "fileName": "Welcome",
-    "relativePath": "Welcome.md",
-    "links": [
+    "fileName": "markdown-and-plugins",
+    "relativePath": "helenite-docs/components/markdown-and-plugins.md",
+    "headings": [
       {
-        "link": "Usages",
-        "relativePath": "Usages.md"
+        "heading": "Markdown 渲染和插件系统",
+        "level": 1
+      },
+      {
+        "heading": "概述",
+        "level": 2
+      },
+      {
+        "heading": "unified 处理流水线",
+        "level": 2
+      },
+      {
+        "heading": "标准处理流程",
+        "level": 3
+      },
+      {
+        "heading": "架构原理",
+        "level": 3
+      },
+      {
+        "heading": "remark 插件 (MDAST 处理)",
+        "level": 2
+      },
+      {
+        "heading": "Obsidian 语法支持",
+        "level": 3
+      },
+      {
+        "heading": "地图插件 (统一地图组件)",
+        "level": 3
+      },
+      {
+        "heading": "数学公式和图表",
+        "level": 3
+      },
+      {
+        "heading": "统一地图组件设计",
+        "level": 2
+      },
+      {
+        "heading": "核心设计理念",
+        "level": 3
+      },
+      {
+        "heading": "统一地图组件",
+        "level": 3
+      },
+      {
+        "heading": "地图数据加载逻辑",
+        "level": 3
+      },
+      {
+        "heading": "使用语法示例",
+        "level": 2
+      },
+      {
+        "heading": "单个轨迹地图 (TrackMap)",
+        "level": 3
+      },
+      {
+        "heading": "图表",
+        "level": 3
+      },
+      {
+        "heading": "MarkdownProcessor 服务",
+        "level": 2
+      },
+      {
+        "heading": "性能优化策略",
+        "level": 2
+      },
+      {
+        "heading": "组件懒加载",
+        "level": 3
+      },
+      {
+        "heading": "AST 缓存",
+        "level": 3
+      },
+      {
+        "heading": "错误处理",
+        "level": 2
       }
     ],
     "backlinks": [
       {
-        "fileName": "Abilities",
-        "link": "Welcome",
-        "relativePath": "FolderA/SubFolder/Abilities.md"
+        "fileName": "services-architecture",
+        "link": "markdown-and-plugins",
+        "relativePath": "helenite-docs/services-architecture.md"
+      }
+    ]
+  },
+  {
+    "fileName": "map-and-tracks-analysis",
+    "relativePath": "helenite-docs/components/map-and-tracks-analysis.md",
+    "headings": [
+      {
+        "heading": "地图和轨迹系统分析与设计",
+        "level": 1
+      },
+      {
+        "heading": "现有 TrackMap 实现分析",
+        "level": 2
+      },
+      {
+        "heading": "数据结构",
+        "level": 3
+      },
+      {
+        "heading": "TrackData 接口定义",
+        "level": 4
+      },
+      {
+        "heading": "数据解析流程",
+        "level": 3
+      },
+      {
+        "heading": "GPX 解析结果",
+        "level": 4
+      },
+      {
+        "heading": "KML 解析结果",
+        "level": 4
+      },
+      {
+        "heading": "Footprints 数据源分析",
+        "level": 2
+      },
+      {
+        "heading": "三个输入源，两种数据类型",
+        "level": 3
+      },
+      {
+        "heading": "两种输出数据类型",
+        "level": 3
+      },
+      {
+        "heading": "统一地图组件设计",
+        "level": 2
+      },
+      {
+        "heading": "核心设计理念",
+        "level": 3
+      },
+      {
+        "heading": "统一地图组件",
+        "level": 3
+      },
+      {
+        "heading": "访问状态区分渲染",
+        "level": 3
+      },
+      {
+        "heading": "样式设计约定",
+        "level": 4
+      },
+      {
+        "heading": "自动状态检测策略",
+        "level": 4
+      },
+      {
+        "heading": "智能化UI逻辑",
+        "level": 3
+      },
+      {
+        "heading": "数据处理流程",
+        "level": 3
+      },
+      {
+        "heading": "使用示例",
+        "level": 2
+      },
+      {
+        "heading": "单个轨迹地图",
+        "level": 3
+      },
+      {
+        "heading": "足迹地图",
+        "level": 3
+      },
+      {
+        "heading": "配置接口",
+        "level": 2
+      },
+      {
+        "heading": "FootprintsConfig (Markdown语法配置)",
+        "level": 3
+      },
+      {
+        "heading": "Markdown语法示例",
+        "level": 3
+      }
+    ],
+    "backlinks": [
+      {
+        "fileName": "services-architecture",
+        "link": "map-and-tracks-analysis",
+        "relativePath": "helenite-docs/services-architecture.md"
+      }
+    ]
+  },
+  {
+    "fileName": "services-architecture",
+    "relativePath": "helenite-docs/services-architecture.md",
+    "headings": [
+      {
+        "heading": "Helenite 服务架构概览",
+        "level": 1
+      },
+      {
+        "heading": "服务分层架构（基于数字分层）",
+        "level": 2
+      },
+      {
+        "heading": "3️⃣ 协调层 (Coordination Layer)",
+        "level": 2
+      },
+      {
+        "heading": "VaultService",
+        "level": 3
+      },
+      {
+        "heading": "2️⃣ 领域服务层 (Domain Services)",
+        "level": 2
+      },
+      {
+        "heading": "SearchService",
+        "level": 3
+      },
+      {
+        "heading": "GraphService",
+        "level": 3
+      },
+      {
+        "heading": "TagService",
+        "level": 3
+      },
+      {
+        "heading": "FileTreeService",
+        "level": 3
+      },
+      {
+        "heading": "FootprintsService",
+        "level": 3
+      },
+      {
+        "heading": "FrontMatterService",
+        "level": 3
+      },
+      {
+        "heading": "1️⃣ 基础服务层 (Basic Services)",
+        "level": 2
+      },
+      {
+        "heading": "MetadataService",
+        "level": 3
+      },
+      {
+        "heading": "ExifService",
+        "level": 3
+      },
+      {
+        "heading": "0️⃣ 基础设施层 (Infrastructure Layer)",
+        "level": 2
+      },
+      {
+        "heading": "StorageService",
+        "level": 3
+      },
+      {
+        "heading": "CacheService",
+        "level": 3
+      },
+      {
+        "heading": "📁 配置管理器 (非服务)",
+        "level": 2
+      },
+      {
+        "heading": "VaultConfig",
+        "level": 3
+      },
+      {
+        "heading": "📊 服务统计",
+        "level": 2
+      },
+      {
+        "heading": "按分层统计",
+        "level": 3
+      },
+      {
+        "heading": "服务依赖层级 (单向依赖)",
+        "level": 3
+      },
+      {
+        "heading": "单向依赖原则",
+        "level": 3
+      },
+      {
+        "heading": "🎯 核心功能映射",
+        "level": 3
+      },
+      {
+        "heading": "4️⃣ UI/渲染层 (UI/Render Layer)",
+        "level": 2
+      },
+      {
+        "heading": "MarkdownRenderer ⚡",
+        "level": 3
+      },
+      {
+        "heading": "FileTreeRenderer",
+        "level": 3
+      },
+      {
+        "heading": "GraphRenderer",
+        "level": 3
+      },
+      {
+        "heading": "FootprintsRenderer",
+        "level": 3
+      },
+      {
+        "heading": "TagsRenderer",
+        "level": 3
+      },
+      {
+        "heading": "🔄 服务生命周期",
+        "level": 2
+      },
+      {
+        "heading": "初始化顺序",
+        "level": 3
+      },
+      {
+        "heading": "销毁顺序",
+        "level": 3
+      },
+      {
+        "heading": "🚀 性能考虑",
+        "level": 2
+      },
+      {
+        "heading": "服务启动优化",
+        "level": 3
+      },
+      {
+        "heading": "运行时优化",
+        "level": 3
+      },
+      {
+        "heading": "📚 相关文档",
+        "level": 2
+      },
+      {
+        "heading": "当前可用",
+        "level": 3
+      },
+      {
+        "heading": "计划中的文档",
+        "level": 3
+      },
+      {
+        "heading": "🔍 快速查找",
+        "level": 2
+      },
+      {
+        "heading": "我需要... → 使用哪个服务",
+        "level": 3
+      },
+      {
+        "heading": "服务状态检查",
+        "level": 3
+      },
+      {
+        "heading": "💡 架构决策总结",
+        "level": 2
+      },
+      {
+        "heading": "✅ 采纳的设计决策",
+        "level": 3
+      },
+      {
+        "heading": "🎯 关键架构原则",
+        "level": 3
+      }
+    ],
+    "links": [
+      {
+        "link": "map-and-tracks-analysis",
+        "relativePath": "helenite-docs/components/map-and-tracks-analysis.md"
+      },
+      {
+        "link": "markdown-and-plugins",
+        "relativePath": "helenite-docs/components/markdown-and-plugins.md"
+      },
+      {
+        "link": "服务依赖关系详解"
+      },
+      {
+        "link": "DDD 领域边界分析"
+      },
+      {
+        "link": "服务架构设计"
+      },
+      {
+        "link": "地理数据抽象"
+      },
+      {
+        "link": "Markdown 插件架构"
+      },
+      {
+        "link": "块级插件系统"
+      }
+    ]
+  },
+  {
+    "fileName": "README",
+    "relativePath": "helenite-docs/README.md",
+    "headings": [
+      {
+        "heading": "📚 Helenite 技术文档",
+        "level": 1
+      },
+      {
+        "heading": "🏗️ 核心架构",
+        "level": 2
+      },
+      {
+        "heading": "[[core/services-architecture|服务架构概览]]",
+        "level": 3
+      },
+      {
+        "heading": "[[core/map-and-tracks-analysis|地图和轨迹系统]]",
+        "level": 3
+      },
+      {
+        "heading": "[[core/markdown-and-plugins|Markdown 渲染和插件系统]]",
+        "level": 3
+      },
+      {
+        "heading": "🎯 设计原则",
+        "level": 2
+      },
+      {
+        "heading": "🚀 快速导航",
+        "level": 2
+      }
+    ],
+    "links": [
+      {
+        "link": "services-architecture",
+        "displayText": "服务架构概览"
+      },
+      {
+        "link": "map-and-tracks-analysis",
+        "displayText": "地图和轨迹系统"
+      },
+      {
+        "link": "markdown-and-plugins",
+        "displayText": "Markdown 渲染和插件系统"
+      },
+      {
+        "link": "services-architecture#🔍-快速查找",
+        "cleanLink": "services-architecture",
+        "displayText": "服务快速查找"
+      },
+      {
+        "link": "map-and-tracks-analysis#使用示例",
+        "cleanLink": "map-and-tracks-analysis",
+        "displayText": "地图组件使用示例"
+      },
+      {
+        "link": "markdown-and-plugins#remark-插件-mdast-处理",
+        "cleanLink": "markdown-and-plugins",
+        "displayText": "remark 插件开发"
       }
     ]
   },
@@ -42,6 +508,23 @@
       {
         "fileName": "Abilities",
         "link": "Usages",
+        "relativePath": "FolderA/SubFolder/Abilities.md"
+      }
+    ]
+  },
+  {
+    "fileName": "Welcome",
+    "relativePath": "Welcome.md",
+    "links": [
+      {
+        "link": "Usages",
+        "relativePath": "Usages.md"
+      }
+    ],
+    "backlinks": [
+      {
+        "fileName": "Abilities",
+        "link": "Welcome",
         "relativePath": "FolderA/SubFolder/Abilities.md"
       }
     ]

@@ -15,14 +15,17 @@
     {
       "name": "SubFolder",
       "relativePath": "FolderA/SubFolder"
+    },
+    {
+      "name": "helenite-docs",
+      "relativePath": "helenite-docs"
+    },
+    {
+      "name": "components",
+      "relativePath": "helenite-docs/components"
     }
   ],
   "nonMdFiles": [
-    {
-      "name": "metadata.json",
-      "basename": "metadata",
-      "relativePath": "metadata.json"
-    },
     {
       "name": "Get_Started_With_Smallpdf.pdf",
       "basename": "Get_Started_With_Smallpdf",
@@ -59,14 +62,14 @@
       "relativePath": "Attachments/yamap_2025-04-02_08_48.gpx"
     },
     {
-      "name": "BaseExample.base",
-      "basename": "BaseExample",
-      "relativePath": "FolderA/BaseExample.base"
-    },
-    {
       "name": "Canvas.canvas",
       "basename": "Canvas",
       "relativePath": "FolderA/Canvas.canvas"
+    },
+    {
+      "name": "BaseExample.base",
+      "basename": "BaseExample",
+      "relativePath": "FolderA/BaseExample.base"
     }
   ]
 }

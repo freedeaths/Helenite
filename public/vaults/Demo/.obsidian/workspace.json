@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "FolderA/SubFolder/Abilities.md",
+                "file": "helenite-docs/components/map-and-tracks-analysis.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Abilities"
+              "title": "map-and-tracks-analysis"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "tag:#typescript",
+                "query": "tag:#FF9800",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -170,11 +170,26 @@
       "obsidian-leaflet-plugin:Open Leaflet Map": false
     }
   },
-  "active": "82994c854825da75",
+  "active": "278919dfa40220f8",
   "lastOpenFiles": [
+    "helenite-docs/services-architecture.md",
+    "helenite-docs/components/markdown-and-plugins.md",
+    "helenite-docs/components/map-and-tracks-analysis.md",
+    "helenite-docs/components",
+    "helenite-docs/core/map-and-tracks-analysis.md",
+    "helenite-docs/map-and-tracks-analysis.md",
+    "docs/core/services-architecture.md",
+    "helenite-docs/core/services-architecture.md",
+    "helenite-docs/core/markdown-and-plugins.md",
+    "helenite-docs/core",
+    "helenite-docs/README.md",
+    "helenite-docs",
+    "docs/core/services-architecture.md.tmp.83376.1757331240905",
+    "docs/core/markdown-and-plugins.md",
+    "docs/core/map-and-tracks-analysis.md",
+    "FolderA/SubFolder/Abilities.md",
     "2025-09-05.md",
     "Untitled.canvas",
-    "FolderA/SubFolder/Abilities.md",
     "metadata.json",
     "Attachments/inversed mt fuji.png",
     "FolderA/SubFolder/Embedded.md",
@@ -192,7 +207,6 @@
     "Attachments/yamap_2025-04-02_08_48.gpx",
     "Attachments",
     "逆富士1.png",
-    "FolderA/SubFolder",
-    "FolderA"
+    "FolderA/SubFolder"
   ]
 }
