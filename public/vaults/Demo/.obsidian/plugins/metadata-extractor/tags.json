@@ -1,5 +1,12 @@
 [
   {
+    "tag": "helenite",
+    "tagCount": 1,
+    "relativePaths": [
+      "helenite-docs/services-architecture.md"
+    ]
+  },
+  {
     "tag": "test",
     "tagCount": 1,
     "relativePaths": [

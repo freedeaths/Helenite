@@ -232,7 +232,7 @@ export class IndexedDBCache implements ICacheService {
   /**
    * 通知上层服务数据已更新
    */
-  private notifyUpstreamServices(key: string, newContent: any): void {
+  private notifyUpstreamServices(key: string, newContent: unknown): void {
     // 发送自定义事件，上层服务可以监听
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('cacheUpdated', {
@@ -273,7 +273,7 @@ export class IndexedDBCache implements ICacheService {
     }
   }
 
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     await this.ensureInitialized();
     
     try {
@@ -311,7 +311,7 @@ export class IndexedDBCache implements ICacheService {
   /**
    * 增强的set方法，支持分层存储和MD5检测
    */
-  async set<T = any>(
+  async set<T = unknown>(
     key: string, 
     value: T, 
     ttl?: number, 
@@ -361,7 +361,7 @@ export class IndexedDBCache implements ICacheService {
     }
   }
 
-  async getOrSet<T = any>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
+  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
@@ -405,7 +405,7 @@ export class IndexedDBCache implements ICacheService {
     }
   }
 
-  async getMultiple<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getMultiple<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
     const result = new Map<string, T | null>();
     
     for (const key of keys) {
@@ -415,7 +415,7 @@ export class IndexedDBCache implements ICacheService {
     return result;
   }
 
-  async setMultiple<T = any>(entries: Map<string, T>, ttl?: number): Promise<void> {
+  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void> {
     for (const [key, value] of entries) {
       await this.set(key, value, ttl);
     }
@@ -909,7 +909,7 @@ export class IndexedDBCache implements ICacheService {
     return new RegExp(`^${regex}$`);
   }
 
-  private estimateSize(value: any): number {
+  private estimateSize(value: unknown): number {
     if (typeof value === 'string') {
       return value.length * 2; // UTF-16
     }
@@ -936,15 +936,15 @@ class NamespacedCache implements ICacheService {
     return `${this.namespace}:${key}`;
   }
 
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     return this.cache.get<T>(this.getNamespacedKey(key));
   }
 
-  async set<T = any>(key: string, value: T, ttl?: number): Promise<void> {
+  async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
     return this.cache.set(this.getNamespacedKey(key), value, ttl);
   }
 
-  async getOrSet<T = any>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
+  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
     return this.cache.getOrSet(this.getNamespacedKey(key), factory, ttl);
   }
 
@@ -956,7 +956,7 @@ class NamespacedCache implements ICacheService {
     return this.cache.has(this.getNamespacedKey(key));
   }
 
-  async getMultiple<T = any>(keys: string[]): Promise<Map<string, T | null>> {
+  async getMultiple<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
     const namespacedKeys = keys.map(k => this.getNamespacedKey(k));
     const result = await this.cache.getMultiple<T>(namespacedKeys);
     
@@ -969,7 +969,7 @@ class NamespacedCache implements ICacheService {
     return converted;
   }
 
-  async setMultiple<T = any>(entries: Map<string, T>, ttl?: number): Promise<void> {
+  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void> {
     const namespacedEntries = new Map<string, T>();
     for (const [key, value] of entries) {
       namespacedEntries.set(this.getNamespacedKey(key), value);

@@ -10,9 +10,9 @@ export interface CacheMethodConfig {
   /** 生存时间(毫秒) */
   ttl: number;
   /** 缓存条件判断函数 */
-  condition?: (...args: any[]) => boolean;
+  condition?: (...args: unknown[]) => boolean;
   /** 自定义缓存键生成函数 */
-  keyGenerator?: (...args: any[]) => string;
+  keyGenerator?: (...args: unknown[]) => string;
 }
 
 export type CacheConfig<T> = {
@@ -37,7 +37,7 @@ export function createCachedService<T extends object>(
   
   return new Proxy(service, {
     get(target, prop: string | symbol) {
-      const originalMethod = (target as any)[prop];
+      const originalMethod = (target as Record<string, unknown>)[prop];
       
       // 只代理配置了缓存的方法
       if (typeof originalMethod === 'function' && config[prop as keyof T]) {
@@ -63,9 +63,9 @@ function createCachedMethod(
   cache: ICacheService,
   methodName: string,
   config: CacheMethodConfig,
-  context: any
+  context: unknown
 ): Function {
-  return async function(...args: any[]) {
+  return async function(...args: unknown[]) {
     // 检查缓存条件
     if (config.condition && !config.condition(...args)) {
       return originalMethod.apply(context, args);
@@ -87,7 +87,7 @@ function createCachedMethod(
 /**
  * 默认的缓存键生成算法
  */
-function generateDefaultCacheKey(methodName: string, args: any[]): string {
+function generateDefaultCacheKey(methodName: string, args: unknown[]): string {
   const argsHash = args.length > 0 ? JSON.stringify(args) : 'no-args';
   return `${methodName}:${argsHash}`;
 }
@@ -125,12 +125,12 @@ export class MethodConfigBuilder<T, K extends keyof T> {
     return this;
   }
 
-  condition(predicate: (...args: any[]) => boolean): this {
+  condition(predicate: (...args: unknown[]) => boolean): this {
     this.ensureConfig().condition = predicate;
     return this;
   }
 
-  keyGenerator(generator: (...args: any[]) => string): this {
+  keyGenerator(generator: (...args: unknown[]) => string): this {
     this.ensureConfig().keyGenerator = generator;
     return this;
   }

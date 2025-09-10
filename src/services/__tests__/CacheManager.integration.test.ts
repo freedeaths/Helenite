@@ -318,7 +318,7 @@ describe('CacheManager Integration Tests', () => {
       const nonExistentFile = '/ThisFileDoesNotExist.md';
       
       // 第一次尝试 - 应该抛出错误或返回特定值
-      let error1: any;
+      let error1: unknown;
       try {
         await cachedStorageService.readFile(nonExistentFile);
       } catch (e) {
@@ -326,7 +326,7 @@ describe('CacheManager Integration Tests', () => {
       }
       
       // 第二次尝试 - 应该有相同的行为（错误也会被缓存）
-      let error2: any;
+      let error2: unknown;
       try {
         await cachedStorageService.readFile(nonExistentFile);
       } catch (e) {
@@ -351,7 +351,7 @@ describe('CacheManager Integration Tests', () => {
       const cachedTimeoutService = cacheManager.createCachedStorageService(timeoutStorageService);
       
       // 尝试读取文件 - 应该失败
-      let error: any;
+      let error: unknown;
       try {
         await timeoutStorageService.initialize();
         // 如果初始化成功，说明网络很快，跳过这个测试

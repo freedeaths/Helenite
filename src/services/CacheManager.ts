@@ -9,6 +9,22 @@ import { IStorageService } from './interfaces/IStorageService.js';
 import { IndexedDBCache } from './cache/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './cache/CacheProxyFactory.js';
 
+// 扩展接口定义，用于类型安全的方法调用
+interface ExtendedCacheService extends ICacheService {
+  clearTier?: (tier: 'persistent' | 'lru') => Promise<number>;
+  getTierStatistics?: () => Promise<{
+    persistent: { count: number; sizeMB: number };
+    lru: { count: number; sizeMB: number };
+  }>;
+  enablePolling?: (baseUrl?: string) => void;
+  disablePolling?: () => void;
+  checkForUpdates?: () => Promise<void>;
+  updateTierConfig?: (tier: 'persistent' | 'lru', config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }) => void;
+  clearPersistent?: (confirmMessage?: string) => Promise<number>;
+  getExpiredPersistentData?: () => Promise<string[]>;
+  forceCleanupExpiredPersistent?: () => Promise<number>;
+}
+
 export interface CacheManagerConfig {
   /** 数据库名称 */
   dbName?: string;
@@ -44,8 +60,8 @@ export interface CacheManagerConfig {
  * 缓存管理器 - 统一管理所有服务的缓存代理
  */
 export class CacheManager {
-  private _cache: ICacheService;
-  private _cachedServices = new Map<string, any>();
+  private _cache: ExtendedCacheService;
+  private _cachedServices = new Map<string, unknown>();
 
   constructor(config: CacheManagerConfig = {}) {
     this._cache = new IndexedDBCache({
@@ -63,7 +79,7 @@ export class CacheManager {
   /**
    * 获取缓存服务实例
    */
-  get cache(): ICacheService {
+  get cache(): ExtendedCacheService {
     return this._cache;
   }
 
@@ -126,7 +142,7 @@ export class CacheManager {
           // 只缓存文本文件，排除二进制大文件
           path.endsWith('.md') || path.endsWith('.json') || path.endsWith('.txt') || path.endsWith('.css')
         )
-        .keyGenerator((path: string, options?: any) => 
+        .keyGenerator((path: string, options?: Record<string, unknown>) => 
           `file:${path}:${JSON.stringify(options || {})}`
         )
       .and()
@@ -141,7 +157,7 @@ export class CacheManager {
       .method('readFileWithInfo')
         .ttl(600000) // 10分钟
         .condition((path: string) => path.endsWith('.md') || path.endsWith('.json'))
-        .keyGenerator((path: string, options?: any) => 
+        .keyGenerator((path: string, options?: Record<string, unknown>) => 
           `file-with-info:${path}:${JSON.stringify(options || {})}`
         )
       .build();
@@ -259,7 +275,7 @@ export class CacheManager {
    */
   async clearTier(tier: 'persistent' | 'lru'): Promise<number> {
     if (this._cache instanceof IndexedDBCache) {
-      return (this._cache as any).clearTier(tier);
+      return this._cache.clearTier?.(tier) ?? 0;
     }
     return 0;
   }
@@ -279,7 +295,10 @@ export class CacheManager {
     lru: { count: number; sizeMB: number };
   }> {
     if (this._cache instanceof IndexedDBCache) {
-      return (this._cache as any).getTierStatistics();
+      return this._cache.getTierStatistics?.() ?? {
+        persistent: { count: 0, sizeMB: 0 },
+        lru: { count: 0, sizeMB: 0 }
+      };
     }
     return {
       persistent: { count: 0, sizeMB: 0 },
@@ -292,7 +311,7 @@ export class CacheManager {
    */
   enablePolling(baseUrl?: string): void {
     if (this._cache instanceof IndexedDBCache) {
-      (this._cache as any).enablePolling(baseUrl);
+      this._cache.enablePolling?.(baseUrl);
     }
   }
 
@@ -301,7 +320,7 @@ export class CacheManager {
    */
   disablePolling(): void {
     if (this._cache instanceof IndexedDBCache) {
-      (this._cache as any).disablePolling();
+      this._cache.disablePolling?.();
     }
   }
 
@@ -310,7 +329,7 @@ export class CacheManager {
    */
   async checkForUpdates(): Promise<void> {
     if (this._cache instanceof IndexedDBCache) {
-      await (this._cache as any).checkForUpdates();
+      await this._cache.checkForUpdates?.();
     }
   }
 
@@ -319,7 +338,7 @@ export class CacheManager {
    */
   updateTierConfig(tier: 'persistent' | 'lru', config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }): void {
     if (this._cache instanceof IndexedDBCache) {
-      (this._cache as any).updateTierConfig(tier, config);
+      this._cache.updateTierConfig?.(tier, config);
     }
   }
 
@@ -328,7 +347,7 @@ export class CacheManager {
    */
   async clearPersistent(confirmMessage?: string): Promise<number> {
     if (this._cache instanceof IndexedDBCache) {
-      return (this._cache as any).clearPersistent(confirmMessage);
+      return this._cache.clearPersistent?.(confirmMessage) ?? 0;
     }
     return 0;
   }
@@ -338,7 +357,7 @@ export class CacheManager {
    */
   async getExpiredPersistentData(): Promise<string[]> {
     if (this._cache instanceof IndexedDBCache) {
-      return (this._cache as any).getExpiredPersistentData();
+      return this._cache.getExpiredPersistentData?.() ?? [];
     }
     return [];
   }
@@ -348,7 +367,7 @@ export class CacheManager {
    */
   async forceCleanupExpiredPersistent(): Promise<number> {
     if (this._cache instanceof IndexedDBCache) {
-      return (this._cache as any).forceCleanupExpiredPersistent();
+      return this._cache.forceCleanupExpiredPersistent?.() ?? 0;
     }
     return 0;
   }

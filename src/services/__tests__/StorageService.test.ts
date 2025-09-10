@@ -8,7 +8,7 @@ import { StorageConfig, StorageError, StorageErrorType } from '../types/StorageT
 
 // Mock fetch
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof global.fetch;
 
 describe('StorageService', () => {
   let storageService: StorageService;

@@ -5,16 +5,12 @@
       "relativePath": "/"
     },
     {
-      "name": "Attachments",
-      "relativePath": "Attachments"
-    },
-    {
       "name": "FolderA",
       "relativePath": "FolderA"
     },
     {
-      "name": "SubFolder",
-      "relativePath": "FolderA/SubFolder"
+      "name": "Attachments",
+      "relativePath": "Attachments"
     },
     {
       "name": "helenite-docs",
@@ -23,6 +19,10 @@
     {
       "name": "components",
       "relativePath": "helenite-docs/components"
+    },
+    {
+      "name": "SubFolder",
+      "relativePath": "FolderA/SubFolder"
     }
   ],
   "nonMdFiles": [
@@ -42,11 +42,6 @@
       "relativePath": "Attachments/Pasted image 20250902132222.png"
     },
     {
-      "name": "Pasted image 20250902132358.png",
-      "basename": "Pasted image 20250902132358",
-      "relativePath": "Attachments/Pasted image 20250902132358.png"
-    },
-    {
       "name": "Pasted image 20250902132433.png",
       "basename": "Pasted image 20250902132433",
       "relativePath": "Attachments/Pasted image 20250902132433.png"
@@ -60,6 +55,11 @@
       "name": "yamap_2025-04-02_08_48.gpx",
       "basename": "yamap_2025-04-02_08_48",
       "relativePath": "Attachments/yamap_2025-04-02_08_48.gpx"
+    },
+    {
+      "name": "Pasted image 20250902132358.png",
+      "basename": "Pasted image 20250902132358",
+      "relativePath": "Attachments/Pasted image 20250902132358.png"
     },
     {
       "name": "Canvas.canvas",

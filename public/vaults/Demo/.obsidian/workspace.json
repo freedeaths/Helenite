@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "helenite-docs/components/map-and-tracks-analysis.md",
+                "file": "helenite-docs/services-architecture.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "map-and-tracks-analysis"
+              "title": "services-architecture"
             }
           }
         ]
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "FolderA/SubFolder/Abilities.md",
+                "file": "helenite-docs/services-architecture.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Abilities"
+              "title": "Outline of services-architecture"
             }
           }
         ],
@@ -172,9 +172,11 @@
   },
   "active": "278919dfa40220f8",
   "lastOpenFiles": [
+    "Welcome.md",
     "helenite-docs/services-architecture.md",
-    "helenite-docs/components/markdown-and-plugins.md",
+    "helenite-docs/README.md",
     "helenite-docs/components/map-and-tracks-analysis.md",
+    "helenite-docs/components/markdown-and-plugins.md",
     "helenite-docs/components",
     "helenite-docs/core/map-and-tracks-analysis.md",
     "helenite-docs/map-and-tracks-analysis.md",
@@ -182,7 +184,6 @@
     "helenite-docs/core/services-architecture.md",
     "helenite-docs/core/markdown-and-plugins.md",
     "helenite-docs/core",
-    "helenite-docs/README.md",
     "helenite-docs",
     "docs/core/services-architecture.md.tmp.83376.1757331240905",
     "docs/core/markdown-and-plugins.md",
@@ -196,7 +197,6 @@
     "Attachments/Get_Started_With_Smallpdf.pdf",
     "Attachments/Pasted image 20250902131727.png",
     "Usages.md",
-    "Welcome.md",
     "FolderA/BaseExample.base",
     "test.md",
     "FolderA/Canvas.canvas",

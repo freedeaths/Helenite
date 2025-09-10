@@ -4,7 +4,7 @@
  * 职责：提供统一的缓存抽象，支持多种存储策略和缓存层级
  */
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   value: T;
   timestamp: number;
   ttl?: number; // Time to live in milliseconds
@@ -24,12 +24,12 @@ export interface ICacheService {
   /**
    * 获取缓存值
    */
-  get<T = any>(key: string): Promise<T | null>;
+  get<T = unknown>(key: string): Promise<T | null>;
 
   /**
    * 设置缓存值
    */
-  set<T = any>(key: string, value: T, ttl?: number): Promise<void>;
+  set<T = unknown>(key: string, value: T, ttl?: number): Promise<void>;
 
   /**
    * 获取或设置缓存值（核心方法）
@@ -38,7 +38,7 @@ export interface ICacheService {
    * @param ttl 生存时间(毫秒)
    * @returns 缓存值或新计算的值
    */
-  getOrSet<T = any>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T>;
+  getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T>;
 
   /**
    * 删除缓存项
@@ -54,12 +54,12 @@ export interface ICacheService {
   /**
    * 批量获取
    */
-  getMultiple<T = any>(keys: string[]): Promise<Map<string, T | null>>;
+  getMultiple<T = unknown>(keys: string[]): Promise<Map<string, T | null>>;
 
   /**
    * 批量设置
    */
-  setMultiple<T = any>(entries: Map<string, T>, ttl?: number): Promise<void>;
+  setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void>;
 
   /**
    * 批量删除
@@ -134,12 +134,12 @@ export interface ICacheService {
   /**
    * 监听缓存事件
    */
-  on?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: any) => void): void;
+  on?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: unknown) => void): void;
 
   /**
    * 移除事件监听
    */
-  off?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: any) => void): void;
+  off?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: unknown) => void): void;
 
   // === 持久化支持（可选）===
   /**

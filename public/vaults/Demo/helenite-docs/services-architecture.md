@@ -1,25 +1,34 @@
+---
+aliases:
+  - helenite
+  - design
+tags:
+  - helenite
+uuid: 215e245b-8b86-43b8-9728-472b60e47711
+---
+
 # Helenite 服务架构概览
 > 明确存在的服务有:
-> - 0 StorageService: filepath: str --> {filetype, raw cotent}
-> - 0 CacheService:
-> - 1 MetadataService: metadata.json raw content --> metaData
-> - 1 ExifService: raw binary(png, jpg/jpeg, web) --> ExifData (geolocation)
-> - 2 SearchService: all raw contents & metaData --> searchResults
-> - 2 GraphService: metaData --> localGraph & globalGraph
-> - 2 TagService: tags.json raw content & metaData --> globalTags & localTags
-> - 2 FileTreeService: metaData --> fileTree
-> - 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
-> - 2 FrontMatterService: metaData --> uuid (for comments)
-> - 3 VaultService: organize 0-2 level services
-> - 4 MarkdownRenderer{raw content}
+> - [x] 0 StorageService: filepath: str --> {filetype, raw cotent}
+> - [x] 0 CacheService:
+> - [] 1 MetadataService: metadata.json raw content --> metaData
+> - [] 1 ExifService: raw binary(png, jpg/jpeg, web) --> ExifData (geolocation)
+> - [] 2 SearchService: all raw contents & metaData --> searchResults
+> - [] 2 GraphService: metaData --> localGraph & globalGraph
+> - [] 2 TagService: tags.json raw content & metaData --> globalTags & localTags
+> - [] 2 FileTreeService: metaData --> fileTree
+> - [] 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
+> - [] 2 FrontMatterService: metaData --> uuid (for comments)
+> - [] 3 VaultService: organize 0-2 level services
+> - [] 4 MarkdownRenderer{raw content}
 >   - remark-frontmatter (去除 front matter 的渲染， metadata 里有相关信息) 
 >   - remark-obsidian 有现成的 npm install @heavycircle/remark-obsidian，This plugin is best used with [remark-gfm](https://www.npmjs.com/package/remark-gfm), [rehype-raw](https://www.npmjs.com/package/rehype-raw), and [remark-wiki-link-plus](https://www.npmjs.com/package/remark-wiki-link-plus).
 >   - remarkPlugins: mdast node --> new mdast node 识别 gpx/kml 内嵌
 >   - rehypePlugins: hast node --> React component
-> - 4 FootprintsRenderer{FootPrints}
-> - 4 GraphRenderer{globalGraph/localGraph}
-> - 4 FileTreeRenderer{fileTree}
-> - 4 TagsRenderer
+> - [] 4 FootprintsRenderer{FootPrints}
+> - [] 4 GraphRenderer{globalGraph/localGraph}
+> - [] 4 FileTreeRenderer{fileTree}
+> - [] 4 TagsRenderer
 >  问题：
 >  - AttachmentService 需要吗？
 >  - Config 算是一个服务吗？
