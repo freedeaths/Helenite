@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { IconSearch, IconX, IconFile, IconHash } from '@tabler/icons-react';
 import { useVaultStore } from '../../stores/vaultStore';
-import { VAULT_PATH } from '../../config/vaultConfig';
+import { VAULT_PATH, getMetadataUrl } from '../../config/vaultConfig';
 import { fetchVault } from '../../utils/fetchWithAuth';
 import { useUIStore } from '../../stores/uiStore';
 import { navigateToFile } from '../../utils/routeUtils';
@@ -56,7 +56,7 @@ export function FileExplorer() {
   // 加载 metadata.json
   const loadMetadata = async () => {
     try {
-      const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
+      const response = await fetchVault(getMetadataUrl());
       if (!response.ok) {
         console.warn('Metadata file not found');
         return null;

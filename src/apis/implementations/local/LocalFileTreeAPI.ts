@@ -1,5 +1,5 @@
 import type { IFileTreeAPI, FileTree, FileMetadata, FolderStats } from '../../interfaces';
-import { getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../../../config/vaultConfig';
+import { getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder, getMetadataUrl } from '../../../config/vaultConfig';
 import { VAULT_PATH } from '../../../config/vaultConfig';
 import { fetchVault } from '../../../utils/fetchWithAuth';
 
@@ -66,7 +66,7 @@ export class LocalFileTreeAPI implements IFileTreeAPI {
    * 获取 metadata.json 数据
    */
   private async getMetadata(): Promise<any[]> {
-    const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
+    const response = await fetchVault(getMetadataUrl());
     if (!response.ok) {
       throw new Error(`Failed to fetch metadata: ${response.status}`);
     }

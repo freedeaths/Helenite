@@ -1,6 +1,6 @@
 import type { IFileAPI, TOCItem, LinkData } from '../../interfaces/IFileAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
-import { VAULT_PATH } from '../../../config/vaultConfig';
+import { VAULT_PATH, getMetadataUrl } from '../../../config/vaultConfig';
 import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
@@ -51,7 +51,7 @@ export class LocalFileAPI implements IFileAPI {
       console.log(`📊 Loading metadata for: ${path}`);
       
       // 加载 metadata.json
-      const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
+      const response = await fetchVault(getMetadataUrl());
       if (!response.ok) {
         throw new Error(`Failed to fetch metadata: ${response.status}`);
       }

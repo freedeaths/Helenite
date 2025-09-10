@@ -1,6 +1,6 @@
 import type { IGraphAPI, GraphData, GraphNode, GraphEdge, GraphStats } from '../../interfaces/IGraphAPI';
 import type { FileMetadata } from '../../interfaces/IFileTreeAPI';
-import { VAULT_PATH } from '../../../config/vaultConfig';
+import { VAULT_PATH, getMetadataUrl } from '../../../config/vaultConfig';
 import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
@@ -91,6 +91,11 @@ export class LocalGraphAPI implements IGraphAPI {
           // Process outbound links (当前文件引用的其他文件)
           if (node.links && node.links.length > 0) {
             for (const link of node.links) {
+              // 检查 relativePath 是否存在
+              if (!link.relativePath) {
+                continue;
+              }
+              
               // 过滤掉 Attachments 目录下的文件链接
               if (link.relativePath.includes('Attachments/')) {
                 continue;
@@ -131,6 +136,11 @@ export class LocalGraphAPI implements IGraphAPI {
           // Process backlinks (引用当前文件的其他文件)
           if (node.backlinks && node.backlinks.length > 0) {
             for (const backlink of node.backlinks) {
+              // 检查 relativePath 是否存在
+              if (!backlink.relativePath) {
+                continue;
+              }
+              
               // 过滤掉 Attachments 目录下的文件链接
               if (backlink.relativePath.includes('Attachments/')) {
                 continue;
@@ -343,7 +353,7 @@ export class LocalGraphAPI implements IGraphAPI {
    * 获取 metadata.json 数据
    */
   private async getMetadata(): Promise<FileMetadata[]> {
-    const response = await fetchVault(`${VAULT_PATH}/metadata.json`);
+    const response = await fetchVault(getMetadataUrl());
     if (!response.ok) {
       throw new Error(`Failed to fetch metadata: ${response.status}`);
     }

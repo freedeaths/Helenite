@@ -1,5 +1,6 @@
 import type { ITagAPI, TagData } from '../../interfaces/ITagAPI';
 import { fetchVault } from '../../../utils/fetchWithAuth';
+import { getMetadataUrl } from '../../../config/vaultConfig';
 
 /**
  * 本地标签 API 实现
@@ -24,7 +25,7 @@ export class LocalTagAPI implements ITagAPI {
     }
 
     try {
-      const response = await fetchVault(`${this.baseUrl}/metadata.json`);
+      const response = await fetchVault(getMetadataUrl());
       if (!response.ok) {
         console.warn('metadata.json not found, no tags available');
         return [];

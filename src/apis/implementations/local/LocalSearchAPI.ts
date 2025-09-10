@@ -1,5 +1,5 @@
 import type { ISearchAPI, SearchResult, SearchMatch } from '../../interfaces/ISearchAPI';
-import { getVaultConfig, isPathInExcludedFolder, isFileExcluded } from '../../../config/vaultConfig';
+import { getVaultConfig, isPathInExcludedFolder, isFileExcluded, getMetadataUrl } from '../../../config/vaultConfig';
 import { fetchVault } from '../../../utils/fetchWithAuth';
 
 /**
@@ -29,7 +29,7 @@ export class LocalSearchAPI implements ISearchAPI {
     }
 
     try {
-      const response = await fetchVault(`${this.baseUrl}/metadata.json`);
+      const response = await fetchVault(getMetadataUrl());
       if (!response.ok) {
         console.warn('metadata.json not found, falling back to file system search');
         return [];

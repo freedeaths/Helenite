@@ -25,7 +25,8 @@ export interface HeadingData {
 
 export interface LinkData {
   link: string;
-  relativePath: string;
+  relativePath?: string;  // 可选，某些链接可能没有路径信息
+  displayText?: string;   // 可选，链接的显示文本
 }
 
 /**
