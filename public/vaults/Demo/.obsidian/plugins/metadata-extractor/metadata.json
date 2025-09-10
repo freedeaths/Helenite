@@ -1,5 +1,135 @@
 [
   {
+    "fileName": "cache-README",
+    "relativePath": "helenite-docs/cache-README.md",
+    "headings": [
+      {
+        "heading": "Helenite 缓存系统",
+        "level": 1
+      },
+      {
+        "heading": "概述",
+        "level": 2
+      },
+      {
+        "heading": "🎯 设计目标",
+        "level": 2
+      },
+      {
+        "heading": "🏗️ 架构设计",
+        "level": 2
+      },
+      {
+        "heading": "🚀 核心特性",
+        "level": 2
+      },
+      {
+        "heading": "1. TypeScript Proxy 动态代理",
+        "level": 3
+      },
+      {
+        "heading": "2. 灵活的缓存配置",
+        "level": 3
+      },
+      {
+        "heading": "3. 高性能持久化缓存",
+        "level": 3
+      },
+      {
+        "heading": "📁 文件结构",
+        "level": 2
+      },
+      {
+        "heading": "💻 使用指南",
+        "level": 2
+      },
+      {
+        "heading": "基础用法",
+        "level": 3
+      },
+      {
+        "heading": "应用级集成",
+        "level": 3
+      },
+      {
+        "heading": "自定义服务缓存",
+        "level": 3
+      },
+      {
+        "heading": "🎛️ 配置选项",
+        "level": 2
+      },
+      {
+        "heading": "CacheManager 配置",
+        "level": 3
+      },
+      {
+        "heading": "方法级缓存配置",
+        "level": 3
+      },
+      {
+        "heading": "📊 性能数据",
+        "level": 2
+      },
+      {
+        "heading": "缓存统计示例",
+        "level": 3
+      },
+      {
+        "heading": "🧪 测试覆盖",
+        "level": 2
+      },
+      {
+        "heading": "单元测试 (19个测试)",
+        "level": 3
+      },
+      {
+        "heading": "集成测试 (5个测试)",
+        "level": 3
+      },
+      {
+        "heading": "使用示例测试 (9个测试)",
+        "level": 3
+      },
+      {
+        "heading": "🎯 最佳实践",
+        "level": 2
+      },
+      {
+        "heading": "1. 缓存策略选择",
+        "level": 3
+      },
+      {
+        "heading": "2. 存储管理",
+        "level": 3
+      },
+      {
+        "heading": "3. 缓存预热",
+        "level": 3
+      },
+      {
+        "heading": "4. 监控和调试",
+        "level": 3
+      },
+      {
+        "heading": "🔄 生命周期管理",
+        "level": 2
+      },
+      {
+        "heading": "🚨 注意事项",
+        "level": 2
+      },
+      {
+        "heading": "🔮 扩展方向",
+        "level": 2
+      },
+      {
+        "heading": "📝 更新日志",
+        "level": 2
+      }
+    ]
+  },
+  {
     "fileName": "services-architecture",
     "relativePath": "helenite-docs/services-architecture.md",
     "tags": [

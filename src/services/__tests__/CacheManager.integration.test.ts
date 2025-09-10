@@ -10,11 +10,16 @@ import { CacheManager } from '../CacheManager.js';
 import { StorageService } from '../infra/StorageService.js';
 import type { StorageConfig } from '../types/StorageTypes.js';
 import fetch from 'node-fetch';
+import { spawn, ChildProcess } from 'child_process';
+import { promisify } from 'util';
+
+const sleep = promisify(setTimeout);
 
 describe('CacheManager Integration Tests', () => {
   let cacheManager: CacheManager;
   let storageService: StorageService;
   let cachedStorageService: StorageService;
+  let viteProcess: ChildProcess | null = null;
   const serverUrl = 'http://localhost:5173'; // Vite 默认开发服务器端口
 
   beforeAll(async () => {
@@ -22,7 +27,7 @@ describe('CacheManager Integration Tests', () => {
     // @ts-ignore
     global.fetch = fetch;
 
-    // 检查服务器是否已经在运行 (复用 StorageService.integration.test.ts 的逻辑)
+    // 检查服务器是否已经在运行
     const isServerRunning = async (): Promise<boolean> => {
       try {
         const response = await fetch(`${serverUrl}/vaults/Demo/Welcome.md`);
@@ -33,10 +38,38 @@ describe('CacheManager Integration Tests', () => {
       }
     };
 
-    if (!(await isServerRunning())) {
-      console.log('⚠️ 开发服务器未运行在', serverUrl);
-      console.log('💡 请运行 "npm run dev" 来启用集成测试');
-      return; // 跳过初始化，所有测试将被标记为跳过
+    if (await isServerRunning()) {
+      console.log('✅ 检测到开发服务器已运行在', serverUrl);
+    } else {
+      console.log('🚀 启动临时开发服务器...');
+      
+      // 启动 Vite 开发服务器
+      viteProcess = spawn('npm', ['run', 'dev'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...process.env, CI: 'true' },
+        detached: false
+      });
+
+      // 等待服务器启动
+      let attempts = 0;
+      const maxAttempts = 30; // 30秒超时
+      
+      while (attempts < maxAttempts) {
+        await sleep(1000);
+        if (await isServerRunning()) {
+          console.log('✅ 开发服务器启动成功');
+          break;
+        }
+        attempts++;
+      }
+
+      if (attempts >= maxAttempts) {
+        if (viteProcess) {
+          viteProcess.kill('SIGTERM');
+          viteProcess = null;
+        }
+        throw new Error('❌ 启动开发服务器超时');
+      }
     }
 
     console.log('✅ 检测到开发服务器已运行在', serverUrl);
@@ -79,31 +112,38 @@ describe('CacheManager Integration Tests', () => {
     if (storageService) {
       await storageService.dispose();
     }
+
+    // 如果我们启动了临时服务器，现在关闭它
+    if (viteProcess) {
+      console.log('🛑 关闭临时开发服务器...');
+      viteProcess.kill('SIGTERM');
+      
+      // 等待进程关闭
+      await new Promise<void>((resolve) => {
+        viteProcess!.on('exit', () => {
+          console.log('✅ 开发服务器已关闭');
+          resolve();
+        });
+        
+        // 强制关闭超时
+        setTimeout(() => {
+          if (viteProcess && !viteProcess.killed) {
+            viteProcess.kill('SIGKILL');
+          }
+          resolve();
+        }, 5000);
+      });
+    }
   });
 
   beforeEach(() => {
-    // 如果服务器不可用，跳过测试
-    if (!storageService) {
-      return;
-    }
-    
     // 每个测试前清理缓存
     cacheManager.clearCache();
     cachedStorageService = cacheManager.createCachedStorageService(storageService);
   });
 
-  // Helper 函数检查是否应该跳过测试
-  const skipIfNoServer = () => {
-    if (!storageService) {
-      console.log('⏭️ 跳过测试：开发服务器未运行');
-      return true;
-    }
-    return false;
-  };
-
   describe('Real File Caching', () => {
     it('should cache markdown file reading', async () => {
-      if (skipIfNoServer()) return;
       
       const filePath = '/Welcome.md';
       
@@ -130,7 +170,6 @@ describe('CacheManager Integration Tests', () => {
     }, 15000); // 增加超时时间用于网络请求
 
     it('should cache file info requests', async () => {
-      if (skipIfNoServer()) return;
       const filePath = '/Welcome.md';
       
       // 第一次获取文件信息
@@ -154,7 +193,6 @@ describe('CacheManager Integration Tests', () => {
     }, 10000);
 
     it('should cache file existence checks', async () => {
-      if (skipIfNoServer()) return;
       const filePath = '/Welcome.md';
       
       // 第一次检查存在性
@@ -177,7 +215,6 @@ describe('CacheManager Integration Tests', () => {
     }, 10000);
 
     it('should cache readFileWithInfo for markdown files', async () => {
-      if (skipIfNoServer()) return;
       const filePath = '/Welcome.md';
       
       // 第一次读取文件和信息
@@ -198,7 +235,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Cache Behavior Verification', () => {
     it('should respect cache conditions for different file types', async () => {
-      if (skipIfNoServer()) return;
       // 测试 Markdown 文件 - 应该被缓存
       await cachedStorageService.readFile('/Welcome.md');
       
@@ -222,7 +258,6 @@ describe('CacheManager Integration Tests', () => {
     }, 15000);
 
     it('should generate unique cache keys for different options', async () => {
-      if (skipIfNoServer()) return;
       const filePath = '/Welcome.md';
       
       // 以文本模式读取
@@ -246,7 +281,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Cache Performance', () => {
     it('should demonstrate significant performance improvement', async () => {
-      if (skipIfNoServer()) return;
       const filePath = '/Welcome.md';
       
       // 测量无缓存的性能（直接使用原始服务）
@@ -282,7 +316,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Cache Warmup Integration', () => {
     it('should warmup cache with real files', async () => {
-      if (skipIfNoServer()) return;
       const commonFiles = [
         '/Welcome.md',
         // 其他可能存在的文件
@@ -314,7 +347,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle non-existent files properly', async () => {
-      if (skipIfNoServer()) return;
       const nonExistentFile = '/ThisFileDoesNotExist.md';
       
       // 第一次尝试 - 应该抛出错误或返回特定值
@@ -340,7 +372,6 @@ describe('CacheManager Integration Tests', () => {
     });
 
     it('should handle network errors gracefully', async () => {
-      if (skipIfNoServer()) return;
       // 创建一个会超时的配置
       const timeoutConfig: StorageConfig = {
         basePath: '/vaults/Demo',
@@ -366,7 +397,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Memory Usage', () => {
     it('should respect max cache size limits', async () => {
-      if (skipIfNoServer()) return;
       // 创建一个小容量的缓存管理器
       const smallCacheManager = new CacheManager({
         tiers: {

@@ -73,8 +73,8 @@ const cacheConfig = cacheConfig<IStorageService>()
 ## 📁 文件结构
 
 ```
-src/services/cache/
-├── README.md                    # 本文档
+src/services/infra/
+├── cache-README.md             # 本文档
 ├── IndexedDBCache.ts           # IndexedDB 持久化缓存实现
 ├── CacheProxyFactory.ts        # 代理工厂和配置建造器
 └── interfaces/

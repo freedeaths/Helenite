@@ -6,8 +6,9 @@
 
 import { ICacheService } from './interfaces/ICacheService.js';
 import { IStorageService } from './interfaces/IStorageService.js';
-import { IndexedDBCache } from './cache/IndexedDBCache.js';
-import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './cache/CacheProxyFactory.js';
+import { IMetadataService } from './interfaces/IMetadataService.js';
+import { IndexedDBCache } from './infra/IndexedDBCache.js';
+import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './infra/CacheProxyFactory.js';
 
 // 扩展接口定义，用于类型安全的方法调用
 interface ExtendedCacheService extends ICacheService {
@@ -109,6 +110,27 @@ export class CacheManager {
   }
 
   /**
+   * 为 MetadataService 创建缓存代理
+   */
+  createCachedMetadataService(metadataService: IMetadataService): IMetadataService {
+    const cacheKey = 'metadata';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      metadataService,
+      this._cache,
+      'metadata',
+      this.createMetadataServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
    * 通用服务缓存代理创建方法
    */
   createCachedService<T extends object>(
@@ -160,6 +182,33 @@ export class CacheManager {
         .keyGenerator((path: string, options?: Record<string, unknown>) => 
           `file-with-info:${path}:${JSON.stringify(options || {})}`
         )
+      .build();
+  }
+
+  /**
+   * MetadataService 缓存配置
+   */
+  private createMetadataServiceCacheConfig(): CacheConfig<IMetadataService> {
+    return cacheConfig<IMetadataService>()
+      .method('getMetadata')
+        .ttl(1800000) // 30分钟，metadata.json 更新频率低
+        .keyGenerator(() => 'metadata:all')
+      .and()
+      .method('getFileMetadata')
+        .ttl(600000) // 10分钟
+        .keyGenerator((filePath: string) => `metadata:file:${filePath}`)
+      .and()
+      .method('getAllTags')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'metadata:tags:all')
+      .and()
+      .method('searchInMetadata')
+        .ttl(300000) // 5分钟
+        .keyGenerator((query: string) => `metadata:search:${query.toLowerCase()}`)
+      .and()
+      .method('getFilesByTag')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string) => `metadata:tag:${tag}`)
       .build();
   }
 
