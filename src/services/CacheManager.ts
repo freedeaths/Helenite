@@ -9,6 +9,7 @@ import { IStorageService } from './interfaces/IStorageService.js';
 import { IMetadataService } from './interfaces/IMetadataService.js';
 import { IFileTreeService } from './interfaces/IFileTreeService.js';
 import { IGraphService } from './interfaces/IGraphService.js';
+import { ITagService } from './interfaces/ITagService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './infra/CacheProxyFactory.js';
 
@@ -168,6 +169,27 @@ export class CacheManager {
       this._cache,
       'graph',
       this.createGraphServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
+   * 为 TagService 创建缓存代理
+   */
+  createCachedTagService(tagService: ITagService): ITagService {
+    const cacheKey = 'tag';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      tagService,
+      this._cache,
+      'tag',
+      this.createTagServiceCacheConfig()
     );
 
     this._cachedServices.set(cacheKey, cachedService);
@@ -353,6 +375,82 @@ export class CacheManager {
       .method('analyzeNodeConnectivity')
         .ttl(600000) // 10分钟
         .keyGenerator((nodeId: string) => `graph:connectivity:${nodeId}`)
+      .build();
+  }
+
+  /**
+   * TagService 缓存配置
+   */
+  private createTagServiceCacheConfig(): CacheConfig<ITagService> {
+    return cacheConfig<ITagService>()
+      .method('getAllTags')
+        .ttl(1800000) // 30分钟，从 tags.json 读取，更新频率低
+        .keyGenerator((options?: Record<string, unknown>) => 
+          `tag:all:${JSON.stringify(options || {})}`)
+      .and()
+      .method('getFileTags')
+        .ttl(900000) // 15分钟
+        .keyGenerator((filePath: string) => `tag:file:${filePath}`)
+      .and()
+      .method('getFilesByTag')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string) => `tag:files:${tag}`)
+      .and()
+      .method('getTagStats')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'tag:stats')
+      .and()
+      .method('searchTags')
+        .ttl(300000) // 5分钟
+        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+          `tag:search:${query}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('filterTags')
+        .ttl(600000) // 10分钟
+        .keyGenerator((options: Record<string, unknown>) => 
+          `tag:filter:${JSON.stringify(options)}`)
+      .and()
+      .method('getTagDetails')
+        .ttl(900000) // 15分钟
+        .keyGenerator((tag: string) => `tag:details:${tag}`)
+      .and()
+      .method('hasTag')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string) => `tag:exists:${tag}`)
+      .and()
+      .method('getMostUsedTags')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((limit?: number) => `tag:most-used:${limit || 10}`)
+      .and()
+      .method('getLeastUsedTags')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((limit?: number) => `tag:least-used:${limit || 10}`)
+      .and()
+      .method('getOrphanTags')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'tag:orphan')
+      .and()
+      .method('getRelatedTags')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string, limit?: number) => 
+          `tag:related:${tag}:${limit || 5}`)
+      .and()
+      .method('analyzeFileTagPattern')
+        .ttl(600000) // 10分钟
+        .keyGenerator((filePath: string) => `tag:pattern:${filePath}`)
+      .and()
+      .method('getTagCooccurrence')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string) => `tag:cooccurrence:${tag}`)
+      .and()
+      .method('getFolderTagDistribution')
+        .ttl(900000) // 15分钟
+        .keyGenerator((folderPath?: string) => `tag:folder:${folderPath || 'root'}`)
+      .and()
+      .method('suggestTags')
+        .ttl(300000) // 5分钟
+        .keyGenerator((filePath: string, limit?: number) => 
+          `tag:suggest:${filePath}:${limit || 5}`)
       .build();
   }
 
