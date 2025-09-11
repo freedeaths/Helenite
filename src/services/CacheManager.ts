@@ -11,6 +11,7 @@ import { IFileTreeService } from './interfaces/IFileTreeService.js';
 import { IGraphService } from './interfaces/IGraphService.js';
 import { ITagService } from './interfaces/ITagService.js';
 import { IExifService } from './interfaces/IExifService.js';
+import { SearchService } from './SearchService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
 
@@ -212,6 +213,27 @@ export class CacheManager {
       this._cache,
       'exif',
       this.createExifServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
+   * 为 SearchService 创建缓存代理
+   */
+  createCachedSearchService(searchService: SearchService): SearchService {
+    const cacheKey = 'search';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      searchService,
+      this._cache,
+      'search',
+      this.createSearchServiceCacheConfig()
     );
 
     this._cachedServices.set(cacheKey, cachedService);
@@ -551,6 +573,33 @@ export class CacheManager {
       .method('getGpsBounds')
         .ttl(1800000) // 30分钟
         .keyGenerator(() => 'exif:gps-bounds')
+      .build();
+  }
+
+  /**
+   * SearchService 缓存配置
+   */
+  private createSearchServiceCacheConfig(): CacheConfig<SearchService> {
+    return cacheConfig<SearchService>()
+      .method('search')
+        .ttl(300000) // 5分钟，搜索结果变化较快
+        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+          `search:unified:${query}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchContent')
+        .ttl(600000) // 10分钟，内容搜索相对稳定
+        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+          `search:content:${query}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchByTag')
+        .ttl(900000) // 15分钟，标签搜索更稳定
+        .keyGenerator((tag: string, options?: Record<string, unknown>) => 
+          `search:tag:${tag}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('getSearchStatistics')
+        .ttl(300000) // 5分钟，统计信息
+        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+          `search:stats:${query}:${JSON.stringify(options || {})}`)
       .build();
   }
 
