@@ -10,8 +10,9 @@ import { IMetadataService } from './interfaces/IMetadataService.js';
 import { IFileTreeService } from './interfaces/IFileTreeService.js';
 import { IGraphService } from './interfaces/IGraphService.js';
 import { ITagService } from './interfaces/ITagService.js';
+import { IExifService } from './interfaces/IExifService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
-import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './infra/CacheProxyFactory.js';
+import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
 
 // 扩展接口定义，用于类型安全的方法调用
 interface ExtendedCacheService extends ICacheService {
@@ -190,6 +191,27 @@ export class CacheManager {
       this._cache,
       'tag',
       this.createTagServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
+   * 为 ExifService 创建缓存代理
+   */
+  createCachedExifService(exifService: IExifService): IExifService {
+    const cacheKey = 'exif';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      exifService,
+      this._cache,
+      'exif',
+      this.createExifServiceCacheConfig()
     );
 
     this._cachedServices.set(cacheKey, cachedService);
@@ -451,6 +473,84 @@ export class CacheManager {
         .ttl(300000) // 5分钟
         .keyGenerator((filePath: string, limit?: number) => 
           `tag:suggest:${filePath}:${limit || 5}`)
+      .build();
+  }
+
+  /**
+   * ExifService 缓存配置
+   */
+  private createExifServiceCacheConfig(): CacheConfig<IExifService> {
+    return cacheConfig<IExifService>()
+      .method('parseExif')
+        .ttl(3600000) // 60分钟，EXIF 数据很少变化
+        .keyGenerator((filePath: string) => `exif:parse:${filePath}`)
+      .and()
+      .method('parseMultipleExif')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePaths: string[]) => `exif:batch:${JSON.stringify(filePaths.sort())}`)
+      .and()
+      .method('scanDirectoryForExif')
+        .ttl(1800000) // 30分钟，目录扫描结果
+        .keyGenerator((dirPath?: string) => `exif:scan:${dirPath || 'Attachments'}`)
+      .and()
+      .method('getGpsCoordinates')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePath: string) => `exif:gps:${filePath}`)
+      .and()
+      .method('getCameraInfo')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePath: string) => `exif:camera:${filePath}`)
+      .and()
+      .method('getShootingParams')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePath: string) => `exif:shooting:${filePath}`)
+      .and()
+      .method('getDateTimeInfo')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePath: string) => `exif:datetime:${filePath}`)
+      .and()
+      .method('searchImagesWithGps')
+        .ttl(900000) // 15分钟，搜索结果
+        .keyGenerator((options?: Record<string, unknown>) => `exif:search:gps:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchImagesByCamera')
+        .ttl(900000) // 15分钟
+        .keyGenerator((make?: string, model?: string, options?: Record<string, unknown>) => 
+          `exif:search:camera:${make || ''}:${model || ''}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchImagesByDateRange')
+        .ttl(900000) // 15分钟
+        .keyGenerator((startDate: Date, endDate: Date, options?: Record<string, unknown>) => 
+          `exif:search:date:${startDate.getTime()}:${endDate.getTime()}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchImagesByGeoBounds')
+        .ttl(900000) // 15分钟
+        .keyGenerator((bounds?: Record<string, unknown>, options?: Record<string, unknown>) => 
+          `exif:search:geo:${JSON.stringify(bounds)}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('searchExif')
+        .ttl(900000) // 15分钟
+        .keyGenerator((options: Record<string, unknown>) => `exif:search:${JSON.stringify(options)}`)
+      .and()
+      .method('getExifStatistics')
+        .ttl(1800000) // 30分钟，统计信息
+        .keyGenerator(() => 'exif:stats')
+      .and()
+      .method('getAllCameraMakes')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'exif:makes')
+      .and()
+      .method('getAllCameraModels')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'exif:models')
+      .and()
+      .method('getDateTimeRange')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'exif:date-range')
+      .and()
+      .method('getGpsBounds')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'exif:gps-bounds')
       .build();
   }
 

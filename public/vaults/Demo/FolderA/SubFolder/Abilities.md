@@ -272,7 +272,7 @@ Select other files from the left sidebar to explore more content.
 
 ## Pictures
 
-![[inversed mt fuji.png]]
+![[Attachments/inversed mt fuji.png]]
 
 ## Tracks
 
