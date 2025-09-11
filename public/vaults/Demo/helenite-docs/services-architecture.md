@@ -11,12 +11,12 @@ uuid: 215e245b-8b86-43b8-9728-472b60e47711
 > 明确存在的服务有:
 > - [x] 0 StorageService: filepath: str --> {filetype, raw cotent}
 > - [x] 0 CacheService:
-> - [] 1 MetadataService: metadata.json raw content --> metaData
+> - [x] 1 MetadataService: metadata.json raw content --> metaData
 > - [] 1 ExifService: raw binary(png, jpg/jpeg, web) --> ExifData (geolocation)
 > - [] 2 SearchService: all raw contents & metaData --> searchResults
 > - [] 2 GraphService: metaData --> localGraph & globalGraph
 > - [] 2 TagService: tags.json raw content & metaData --> globalTags & localTags
-> - [] 2 FileTreeService: metaData --> fileTree
+> - [x] 2 FileTreeService: metaData --> fileTree
 > - [] 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
 > - [] 2 FrontMatterService: metaData --> uuid (for comments)
 > - [] 3 VaultService: organize 0-2 level services

@@ -10,6 +10,7 @@ import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { MetadataService } from '../MetadataService.js';
 import { CacheManager } from '../CacheManager.js';
+import type { IMetadataService } from '../interfaces/IMetadataService.js';
 import fetch from 'node-fetch';
 import { spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
@@ -19,7 +20,7 @@ const sleep = promisify(setTimeout);
 describe('MetadataService Integration Tests', () => {
   let metadataService: MetadataService;
   let cacheManager: CacheManager;
-  let cachedMetadataService: any;
+  let cachedMetadataService: IMetadataService;
   let viteProcess: ChildProcess | null = null;
   const serverUrl = 'http://localhost:5173'; // Vite 默认开发服务器端口
 
@@ -118,7 +119,7 @@ describe('MetadataService Integration Tests', () => {
       expect(metadata!.length).toBeGreaterThan(0);
       
       // 验证实际文件数量 (基于读取到的数据)
-      expect(metadata!.length).toBe(9); // services-architecture, markdown-and-plugins, map-and-tracks-analysis, README, Welcome, Usages, Abilities, Embedded, linkB
+      expect(metadata!.length).toBe(10); // services-architecture, markdown-and-plugins, map-and-tracks-analysis, cache-README, README, Welcome, Usages, Abilities, Embedded, linkB
       
       console.log(`📄 Loaded ${metadata!.length} files from real vault`);
     });

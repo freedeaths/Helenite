@@ -7,6 +7,7 @@
 import { ICacheService } from './interfaces/ICacheService.js';
 import { IStorageService } from './interfaces/IStorageService.js';
 import { IMetadataService } from './interfaces/IMetadataService.js';
+import { IFileTreeService } from './interfaces/IFileTreeService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './infra/CacheProxyFactory.js';
 
@@ -131,6 +132,27 @@ export class CacheManager {
   }
 
   /**
+   * 为 FileTreeService 创建缓存代理
+   */
+  createCachedFileTreeService(fileTreeService: IFileTreeService): IFileTreeService {
+    const cacheKey = 'filetree';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      fileTreeService,
+      this._cache,
+      'filetree',
+      this.createFileTreeServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
    * 通用服务缓存代理创建方法
    */
   createCachedService<T extends object>(
@@ -209,6 +231,46 @@ export class CacheManager {
       .method('getFilesByTag')
         .ttl(600000) // 10分钟
         .keyGenerator((tag: string) => `metadata:tag:${tag}`)
+      .build();
+  }
+
+  /**
+   * FileTreeService 缓存配置
+   */
+  private createFileTreeServiceCacheConfig(): CacheConfig<IFileTreeService> {
+    return cacheConfig<IFileTreeService>()
+      .method('getFileTree')
+        .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
+        .keyGenerator((options?: Record<string, unknown>) => 
+          `filetree:tree:${JSON.stringify(options || {})}`)
+      .and()
+      .method('getChildren')
+        .ttl(900000) // 15分钟
+        .keyGenerator((path: string) => `filetree:children:${path}`)
+      .and()
+      .method('findNode')
+        .ttl(600000) // 10分钟
+        .keyGenerator((path: string) => `filetree:node:${path}`)
+      .and()
+      .method('getFolderStats')
+        .ttl(300000) // 5分钟
+        .keyGenerator((path?: string) => `filetree:stats:${path || 'root'}`)
+      .and()
+      .method('getAllFolders')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'filetree:folders:all')
+      .and()
+      .method('getAllFiles')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'filetree:files:all')
+      .and()
+      .method('getFilesByFolder')
+        .ttl(600000) // 10分钟
+        .keyGenerator((folderPath?: string) => `filetree:folder-files:${folderPath || 'root'}`)
+      .and()
+      .method('searchFiles')
+        .ttl(300000) // 5分钟
+        .keyGenerator((query: string) => `filetree:search:${query.toLowerCase()}`)
       .build();
   }
 

@@ -8,14 +8,16 @@ import { CacheManager } from '../CacheManager.js';
 import { StorageService } from '../infra/StorageService.js';
 import { MetadataService } from '../MetadataService.js';
 import type { StorageConfig } from '../types/StorageTypes.js';
+import type { IStorageService } from '../interfaces/IStorageService.js';
+import type { IMetadataService } from '../interfaces/IMetadataService.js';
 
 /**
  * 应用服务管理器 - 使用 CacheManager 统一管理所有服务的缓存
  */
 export class ApplicationServices {
   private cacheManager: CacheManager;
-  private cachedStorageService?: any;
-  private cachedMetadataService?: any;
+  private cachedStorageService?: IStorageService;
+  private cachedMetadataService?: IMetadataService;
 
   constructor() {
     this.cacheManager = new CacheManager({
@@ -171,7 +173,7 @@ export async function serviceComposition() {
   
   // 模拟一个 GraphService 依赖 MetadataService
   class GraphService {
-    constructor(private metadataService: any) {}
+    constructor(private metadataService: IMetadataService) {}
     
     async buildGraph() {
       // 这里调用的 metadataService 自动享受缓存，完全透明
@@ -181,7 +183,10 @@ export async function serviceComposition() {
       return {
         nodes: metadata?.length || 0,
         tags: tags.length,
-        edges: metadata?.reduce((sum: number, file: any) => sum + (file.links?.length || 0), 0) || 0
+        edges: metadata?.reduce((sum: number, file: unknown) => {
+          const fileObj = file as { links?: unknown[] };
+          return sum + (fileObj.links?.length || 0);
+        }, 0) || 0
       };
     }
   }
