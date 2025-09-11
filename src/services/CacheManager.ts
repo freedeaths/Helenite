@@ -8,6 +8,7 @@ import { ICacheService } from './interfaces/ICacheService.js';
 import { IStorageService } from './interfaces/IStorageService.js';
 import { IMetadataService } from './interfaces/IMetadataService.js';
 import { IFileTreeService } from './interfaces/IFileTreeService.js';
+import { IGraphService } from './interfaces/IGraphService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig, CachePresets } from './infra/CacheProxyFactory.js';
 
@@ -153,6 +154,27 @@ export class CacheManager {
   }
 
   /**
+   * 为 GraphService 创建缓存代理
+   */
+  createCachedGraphService(graphService: IGraphService): IGraphService {
+    const cacheKey = 'graph';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      graphService,
+      this._cache,
+      'graph',
+      this.createGraphServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
    * 通用服务缓存代理创建方法
    */
   createCachedService<T extends object>(
@@ -271,6 +293,66 @@ export class CacheManager {
       .method('searchFiles')
         .ttl(300000) // 5分钟
         .keyGenerator((query: string) => `filetree:search:${query.toLowerCase()}`)
+      .build();
+  }
+
+  /**
+   * GraphService 缓存配置
+   */
+  private createGraphServiceCacheConfig(): CacheConfig<IGraphService> {
+    return cacheConfig<IGraphService>()
+      .method('getGlobalGraph')
+        .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
+        .keyGenerator((options?: Record<string, unknown>) => 
+          `graph:global:${JSON.stringify(options || {})}`)
+      .and()
+      .method('getLocalGraph')
+        .ttl(900000) // 15分钟
+        .keyGenerator((filePath: string, options?: Record<string, unknown>) => 
+          `graph:local:${filePath}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('filterByTag')
+        .ttl(600000) // 10分钟
+        .keyGenerator((tag: string, options?: Record<string, unknown>) => 
+          `graph:tag:${tag}:${JSON.stringify(options || {})}`)
+      .and()
+      .method('getGraphStats')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'graph:stats')
+      .and()
+      .method('findNode')
+        .ttl(600000) // 10分钟
+        .keyGenerator((identifier: string) => `graph:node:${identifier}`)
+      .and()
+      .method('getNodeNeighbors')
+        .ttl(600000) // 10分钟
+        .keyGenerator((nodeId: string, depth?: number) => 
+          `graph:neighbors:${nodeId}:${depth || 1}`)
+      .and()
+      .method('getPathBetweenNodes')
+        .ttl(300000) // 5分钟
+        .keyGenerator((fromId: string, toId: string) => 
+          `graph:path:${fromId}:${toId}`)
+      .and()
+      .method('getMostConnectedNodes')
+        .ttl(900000) // 15分钟
+        .keyGenerator((limit?: number) => `graph:hubs:${limit || 10}`)
+      .and()
+      .method('getAllTagNodes')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'graph:tags:all')
+      .and()
+      .method('getAllFileNodes')
+        .ttl(900000) // 15分钟
+        .keyGenerator(() => 'graph:files:all')
+      .and()
+      .method('getOrphanedNodes')
+        .ttl(600000) // 10分钟
+        .keyGenerator(() => 'graph:orphaned')
+      .and()
+      .method('analyzeNodeConnectivity')
+        .ttl(600000) // 10分钟
+        .keyGenerator((nodeId: string) => `graph:connectivity:${nodeId}`)
       .build();
   }
 

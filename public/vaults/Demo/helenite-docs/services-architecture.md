@@ -14,7 +14,7 @@ uuid: 215e245b-8b86-43b8-9728-472b60e47711
 > - [x] 1 MetadataService: metadata.json raw content --> metaData
 > - [] 1 ExifService: raw binary(png, jpg/jpeg, web) --> ExifData (geolocation)
 > - [] 2 SearchService: all raw contents & metaData --> searchResults
-> - [] 2 GraphService: metaData --> localGraph & globalGraph
+> - [x] 2 GraphService: metaData --> localGraph & globalGraph
 > - [] 2 TagService: tags.json raw content & metaData --> globalTags & localTags
 > - [x] 2 FileTreeService: metaData --> fileTree
 > - [] 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
