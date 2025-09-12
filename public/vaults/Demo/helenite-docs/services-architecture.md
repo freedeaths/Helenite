@@ -17,7 +17,7 @@ uuid: 215e245b-8b86-43b8-9728-472b60e47711
 > - [x] 2 GraphService: metaData --> localGraph & globalGraph
 > - [x] 2 TagService: tags.json raw content & metaData --> globalTags & localTags
 > - [x] 2 FileTreeService: metaData --> fileTree
-> - [] 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
+> - [x] 2 FootprintsService: config.json raw content & .gpx/.kml raw content & ExifData (geolocation)--> FootPrints 
 > - [x] 2 FrontMatterService: metaData --> uuid (for comments)
 > - [] 3 VaultService: organize 0-2 level services
 > - [] 4 MarkdownRenderer{raw content}

@@ -13,6 +13,7 @@ import { ITagService } from './interfaces/ITagService.js';
 import { IExifService } from './interfaces/IExifService.js';
 import { SearchService } from './SearchService.js';
 import { FrontMatterService } from './FrontMatterService.js';
+import { FootprintsService } from './FootprintsService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
 
@@ -256,6 +257,27 @@ export class CacheManager {
       this._cache,
       'frontmatter',
       this.createFrontMatterServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
+   * 为 FootprintsService 创建缓存代理
+   */
+  createCachedFootprintsService(footprintsService: FootprintsService): FootprintsService {
+    const cacheKey = 'footprints';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      footprintsService,
+      this._cache,
+      'footprints',
+      this.createFootprintsServiceCacheConfig()
     );
 
     this._cachedServices.set(cacheKey, cachedService);
@@ -729,6 +751,75 @@ export class CacheManager {
       .method('analyzeFrontMatterPatterns')
         .ttl(3600000) // 60分钟，分析结果变化较少
         .keyGenerator(() => 'frontmatter:patterns')
+      .build();
+  }
+
+  /**
+   * FootprintsService 缓存配置
+   */
+  private createFootprintsServiceCacheConfig(): CacheConfig<FootprintsService> {
+    return cacheConfig<FootprintsService>()
+      .method('parseSingleTrack')
+        .ttl(3600000) // 60分钟，轨迹文件解析结果很少变化
+        .keyGenerator((filePath: string) => `footprints:single:${filePath}`)
+      .and()
+      .method('parseMultipleTracks')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((filePaths: string[]) => 
+          `footprints:multiple:${JSON.stringify(filePaths.sort())}`)
+      .and()
+      .method('aggregateFootprints')
+        .ttl(1800000) // 30分钟，聚合结果可能因配置变化
+        .keyGenerator((config: Record<string, unknown>) => 
+          `footprints:aggregate:${JSON.stringify(config)}`)
+      .and()
+      .method('scanTrackFiles')
+        .ttl(900000) // 15分钟，目录扫描结果
+        .keyGenerator((dirPath: string) => `footprints:scan:${dirPath}`)
+      .and()
+      .method('detectProvider')
+        .ttl(3600000) // 60分钟，厂商检测结果不变
+        .keyGenerator((filePath: string) => `footprints:provider:${filePath}`)
+      .and()
+      .method('validateTrackFile')
+        .ttl(3600000) // 60分钟，文件验证结果不变
+        .keyGenerator((filePath: string) => `footprints:validate:${filePath}`)
+      .and()
+      .method('processUserInputs')
+        .ttl(1800000) // 30分钟，用户输入处理
+        .keyGenerator((userInputs: string[]) => 
+          `footprints:user-inputs:${JSON.stringify(userInputs.sort())}`)
+      .and()
+      .method('processPhotoExif')
+        .ttl(1800000) // 30分钟，照片 EXIF 处理
+        .keyGenerator((photosPath: string) => `footprints:photo-exif:${photosPath}`)
+      .and()
+      .method('geocodeLocation')
+        .ttl(2592000000) // 30天，地理编码结果长期有效
+        .keyGenerator((locationName: string) => `footprints:geocode:${locationName}`)
+      .and()
+      .method('calculateTracksBounds')
+        .ttl(3600000) // 60分钟，边界计算结果稳定
+        .keyGenerator((tracks: Array<{ id: string }>) => 
+          `footprints:tracks-bounds:${JSON.stringify(tracks.map(t => t.id).sort())}`)
+      .and()
+      .method('calculateLocationsBounds')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((locations: Array<{ id: string }>) => 
+          `footprints:locations-bounds:${JSON.stringify(locations.map(l => l.id).sort())}`)
+      .and()
+      .method('getTrackStatistics')
+        .ttl(3600000) // 60分钟，轨迹统计稳定
+        .keyGenerator((track: Record<string, unknown>) => 
+          `footprints:track-stats:${track.id}`)
+      .and()
+      .method('getCacheStats')
+        .ttl(300000) // 5分钟，缓存统计实时性
+        .keyGenerator(() => 'footprints:cache-stats')
+      .and()
+      .method('getCurrentVault')
+        .ttl(1800000) // 30分钟，vault 信息相对稳定
+        .keyGenerator(() => 'footprints:current-vault')
       .build();
   }
 

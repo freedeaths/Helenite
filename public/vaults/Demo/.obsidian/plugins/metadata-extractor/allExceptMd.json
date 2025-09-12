@@ -70,6 +70,26 @@
       "name": "BaseExample.base",
       "basename": "BaseExample",
       "relativePath": "FolderA/BaseExample.base"
+    },
+    {
+      "name": "红叶尚湖.gpx",
+      "basename": "红叶尚湖",
+      "relativePath": "Attachments/红叶尚湖.gpx"
+    },
+    {
+      "name": "金牛道拦马墙到普安镇.gpx",
+      "basename": "金牛道拦马墙到普安镇",
+      "relativePath": "Attachments/金牛道拦马墙到普安镇.gpx"
+    },
+    {
+      "name": "金牛道拦马墙到普安镇.kml",
+      "basename": "金牛道拦马墙到普安镇",
+      "relativePath": "Attachments/金牛道拦马墙到普安镇.kml"
+    },
+    {
+      "name": "东西佘山含地铁绿道.kml",
+      "basename": "东西佘山含地铁绿道",
+      "relativePath": "Attachments/东西佘山含地铁绿道.kml"
     }
   ]
 }
