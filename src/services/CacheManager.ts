@@ -12,6 +12,7 @@ import { IGraphService } from './interfaces/IGraphService.js';
 import { ITagService } from './interfaces/ITagService.js';
 import { IExifService } from './interfaces/IExifService.js';
 import { SearchService } from './SearchService.js';
+import { FrontMatterService } from './FrontMatterService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
 
@@ -234,6 +235,27 @@ export class CacheManager {
       this._cache,
       'search',
       this.createSearchServiceCacheConfig()
+    );
+
+    this._cachedServices.set(cacheKey, cachedService);
+    return cachedService;
+  }
+
+  /**
+   * 为 FrontMatterService 创建缓存代理
+   */
+  createCachedFrontMatterService(frontMatterService: FrontMatterService): FrontMatterService {
+    const cacheKey = 'frontmatter';
+    
+    if (this._cachedServices.has(cacheKey)) {
+      return this._cachedServices.get(cacheKey);
+    }
+
+    const cachedService = createCachedService(
+      frontMatterService,
+      this._cache,
+      'frontmatter',
+      this.createFrontMatterServiceCacheConfig()
     );
 
     this._cachedServices.set(cacheKey, cachedService);
@@ -600,6 +622,113 @@ export class CacheManager {
         .ttl(300000) // 5分钟，统计信息
         .keyGenerator((query: string, options?: Record<string, unknown>) => 
           `search:stats:${query}:${JSON.stringify(options || {})}`)
+      .build();
+  }
+
+  /**
+   * FrontMatterService 缓存配置
+   */
+  private createFrontMatterServiceCacheConfig(): CacheConfig<FrontMatterService> {
+    return cacheConfig<FrontMatterService>()
+      .method('getFrontMatter')
+        .ttl(1800000) // 30分钟，Front Matter 变化较少
+        .keyGenerator((filePath: string) => `frontmatter:file:${filePath}`)
+      .and()
+      .method('getAllFrontMatter')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'frontmatter:all')
+      .and()
+      .method('getUuid')
+        .ttl(3600000) // 60分钟，UUID 很少变化
+        .keyGenerator((filePath: string) => `frontmatter:uuid:${filePath}`)
+      .and()
+      .method('getFileByUuid')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((uuid: string) => `frontmatter:file-by-uuid:${uuid}`)
+      .and()
+      .method('getAllUuids')
+        .ttl(3600000) // 60分钟
+        .keyGenerator(() => 'frontmatter:all-uuids')
+      .and()
+      .method('hasUuid')
+        .ttl(3600000) // 60分钟
+        .keyGenerator((uuid: string) => `frontmatter:has-uuid:${uuid}`)
+      .and()
+      .method('isPublished')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((filePath: string) => `frontmatter:published:${filePath}`)
+      .and()
+      .method('getPublishedFiles')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'frontmatter:published-files')
+      .and()
+      .method('getUnpublishedFiles')
+        .ttl(1800000) // 30分钟
+        .keyGenerator(() => 'frontmatter:unpublished-files')
+      .and()
+      .method('getAuthor')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((filePath: string) => `frontmatter:author:${filePath}`)
+      .and()
+      .method('getFilesByAuthor')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((author: string) => `frontmatter:files-by-author:${author}`)
+      .and()
+      .method('getAllAuthors')
+        .ttl(3600000) // 60分钟
+        .keyGenerator(() => 'frontmatter:all-authors')
+      .and()
+      .method('getDescription')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((filePath: string) => `frontmatter:description:${filePath}`)
+      .and()
+      .method('getCssClass')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((filePath: string) => `frontmatter:css-class:${filePath}`)
+      .and()
+      .method('getFilesByCssClass')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((cssClass: string) => `frontmatter:files-by-css:${cssClass}`)
+      .and()
+      .method('getCreatedDate')
+        .ttl(3600000) // 60分钟，创建时间不变
+        .keyGenerator((filePath: string) => `frontmatter:created:${filePath}`)
+      .and()
+      .method('getModifiedDate')
+        .ttl(1800000) // 30分钟，修改时间可能变化
+        .keyGenerator((filePath: string) => `frontmatter:modified:${filePath}`)
+      .and()
+      .method('queryFiles')
+        .ttl(900000) // 15分钟，查询结果
+        .keyGenerator((options: Record<string, unknown>) => 
+          `frontmatter:query:${JSON.stringify(options)}`)
+      .and()
+      .method('searchFrontMatter')
+        .ttl(600000) // 10分钟，搜索结果
+        .keyGenerator((query: string, fields?: string[]) => 
+          `frontmatter:search:${query}:${JSON.stringify(fields || [])}`)
+      .and()
+      .method('getCustomField')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((filePath: string, fieldName: string) => 
+          `frontmatter:custom:${filePath}:${fieldName}`)
+      .and()
+      .method('getFilesByCustomField')
+        .ttl(1800000) // 30分钟
+        .keyGenerator((fieldName: string, value?: unknown) => 
+          `frontmatter:files-by-custom:${fieldName}:${JSON.stringify(value)}`)
+      .and()
+      .method('getAllCustomFields')
+        .ttl(3600000) // 60分钟
+        .keyGenerator(() => 'frontmatter:all-custom-fields')
+      .and()
+      .method('getStatistics')
+        .ttl(1800000) // 30分钟，统计信息
+        .keyGenerator(() => 'frontmatter:statistics')
+      .and()
+      .method('analyzeFrontMatterPatterns')
+        .ttl(3600000) // 60分钟，分析结果变化较少
+        .keyGenerator(() => 'frontmatter:patterns')
       .build();
   }
 
