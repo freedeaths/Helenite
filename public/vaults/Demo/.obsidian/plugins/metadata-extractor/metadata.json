@@ -670,6 +670,139 @@
     ]
   },
   {
+    "fileName": "TRACK_SYNTAX",
+    "relativePath": "FolderA/TRACK_SYNTAX.md",
+    "headings": [
+      {
+        "heading": "轨迹地图语法支持",
+        "level": 1
+      },
+      {
+        "heading": "🗺️ 支持的语法类型",
+        "level": 2
+      },
+      {
+        "heading": "1. 内联轨迹数据",
+        "level": 3
+      },
+      {
+        "heading": "GPX 内联数据",
+        "level": 4
+      },
+      {
+        "heading": "KML 内联数据",
+        "level": 4
+      },
+      {
+        "heading": "2. 文件引用（推荐）",
+        "level": 3
+      },
+      {
+        "heading": "Obsidian 嵌入语法",
+        "level": 4
+      },
+      {
+        "heading": "Obsidian 链接语法",
+        "level": 4
+      },
+      {
+        "heading": "3. Leaflet 配置（特殊处理）",
+        "level": 3
+      },
+      {
+        "heading": "单个 GPX 文件",
+        "level": 4
+      },
+      {
+        "heading": "GPX 文件列表",
+        "level": 4
+      },
+      {
+        "heading": "混合引用格式",
+        "level": 4
+      },
+      {
+        "heading": "4. 足迹聚合地图",
+        "level": 3
+      },
+      {
+        "heading": "🔄 插件处理流程",
+        "level": 2
+      },
+      {
+        "heading": "AST 转换过程",
+        "level": 3
+      },
+      {
+        "heading": "数据结构",
+        "level": 3
+      },
+      {
+        "heading": "🎨 HTML 输出示例",
+        "level": 2
+      },
+      {
+        "heading": "单个轨迹",
+        "level": 3
+      },
+      {
+        "heading": "Leaflet 多轨迹",
+        "level": 3
+      },
+      {
+        "heading": "🔧 配置选项",
+        "level": 2
+      },
+      {
+        "heading": "🧪 测试用例",
+        "level": 2
+      },
+      {
+        "heading": "基础语法测试",
+        "level": 3
+      },
+      {
+        "heading": "测试文档",
+        "level": 1
+      },
+      {
+        "heading": "预期输出",
+        "level": 3
+      },
+      {
+        "heading": "🚀 性能优化",
+        "level": 2
+      },
+      {
+        "heading": "文件引用处理",
+        "level": 3
+      },
+      {
+        "heading": "错误处理",
+        "level": 3
+      },
+      {
+        "heading": "扩展性",
+        "level": 3
+      }
+    ],
+    "links": [
+      {
+        "link": "track.gpx"
+      },
+      {
+        "link": "route.kml"
+      },
+      {
+        "link": "hiking-route.gpx",
+        "displayText": "Attachments/hiking-route.gpx"
+      },
+      {
+        "link": "test.kml"
+      }
+    ]
+  },
+  {
     "fileName": "Abilities",
     "relativePath": "FolderA/SubFolder/Abilities.md",
     "tags": [
@@ -763,7 +896,7 @@
         "level": 4
       },
       {
-        "heading": "Qishan Greenway Route",
+        "heading": "Sheshan Greenway Route",
         "level": 4
       },
       {

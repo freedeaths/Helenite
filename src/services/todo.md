@@ -8,3 +8,7 @@ Old plugins
 
 - [ ] externalLinksPlugin.ts
 - [ ] obsidianLinksPlugin.ts
+
+Enhancements
+
+- [ ] GCJ-02 to WGS-84 potential conversion
