@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
-import { markdownProcessor } from '../../services/markdownProcessor';
-import { MetaTagService } from '../../services/metaTagService';
+import { markdownProcessor } from '../../utils/markdownProcessor';
+import { MetaTagService } from '../../utils/metaTagService';
 import { useFileAPI } from '../../hooks/useAPIs';
 import { useTags } from '../../apis/hooks/useTagAPI';
 import { MermaidDiagram } from './MermaidDiagram';

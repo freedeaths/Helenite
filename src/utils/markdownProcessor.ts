@@ -8,7 +8,7 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import { VAULT_PATH } from '../config/vaultConfig';
-import { fetchVault } from '../utils/fetchWithAuth';
+import { fetchVault } from './fetchWithAuth';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
@@ -18,7 +18,7 @@ import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
 import { obsidianLinksPlugin } from './plugins/obsidianLinksPlugin';
 import { externalLinksPlugin } from './plugins/externalLinksPlugin';
-import { parseFrontMatter, type FrontMatterData } from '../utils/frontMatterParser';
+import { parseFrontMatter, type FrontMatterData } from './frontMatterParser';
 import { visit } from 'unist-util-visit';
 import type { Root as MdastRoot, Node as MdastNode } from 'mdast';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
