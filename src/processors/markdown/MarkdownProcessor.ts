@@ -194,7 +194,13 @@ export class MarkdownProcessor {
         },
         img: (props: any) => {
           const { children, dangerouslySetInnerHTML, ...restProps } = props;
-          return React.createElement('img', restProps);
+          // 使用延迟加载的 ImageWithZoom 组件
+          const ImageWithZoom = React.lazy(() => import('../../newComponents/ImageWithZoom/ImageWithZoom.js').then(module => ({
+            default: module.ImageWithZoom
+          })));
+          return React.createElement(React.Suspense, {
+            fallback: React.createElement('img', restProps)
+          }, React.createElement(ImageWithZoom, restProps));
         },
         input: (props: any) => {
           const { children, dangerouslySetInnerHTML, ...restProps } = props;
