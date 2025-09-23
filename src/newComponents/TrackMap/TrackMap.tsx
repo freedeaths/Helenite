@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet'
 import { LatLngBounds, LatLngTuple } from 'leaflet';
 import gpxParser from 'gpx-parser-builder';
 // Note: xml2js doesn't work well in browser, we'll use DOMParser instead
-import { useNewVaultStore } from '../../stores/newVaultStore.js';
+import { useNewVaultStore } from '../../newStores/newVaultStore.js';
 
 // Import Leaflet CSS
 import 'leaflet/dist/leaflet.css';
@@ -117,12 +117,15 @@ export const TrackMap: React.FC<TrackMapProps> = ({
             const parsedTracks = await parseTrackData(gpxContent, 'gpx');
             allTracks.push(...parsedTracks);
           } catch (error) {
-            console.warn('Error loading GPX file:', gpxFile, error);
+            // Silently skip missing files, only log in dev mode with debug flag
+            if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
+              console.warn('Error loading GPX file:', gpxFile, error);
+            }
           }
         }
 
         if (allTracks.length === 0) {
-          throw new Error('No valid tracks found in Leaflet configuration');
+          throw new Error('未找到可用的轨迹文件');
         }
 
         parsedTracks = allTracks;
@@ -190,8 +193,11 @@ export const TrackMap: React.FC<TrackMapProps> = ({
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load track data');
-      console.error('Track loading error:', err);
+      setError(err instanceof Error ? err.message : '轨迹数据加载失败');
+      // Only log errors in debug mode
+      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
+        console.error('Track loading error:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -492,7 +498,7 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     }
     
     // If no valid points found, return an invalid bounds
-    if (!hasValidPoints) {
+    if (!hasValidPoints && import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
       console.warn('No valid coordinates found in tracks');
     }
     

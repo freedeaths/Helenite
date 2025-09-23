@@ -913,7 +913,11 @@ export class IndexedDBCache implements ICacheService {
     if (typeof value === 'string') {
       return value.length * 2; // UTF-16
     }
-    if (value instanceof Buffer) {
+    if (value instanceof Uint8Array) {
+      return value.length;
+    }
+    // 兼容 Node.js Buffer (在浏览器中不存在)
+    if (typeof Buffer !== 'undefined' && value instanceof Buffer) {
       return value.length;
     }
     if (typeof value === 'object') {

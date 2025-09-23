@@ -130,7 +130,7 @@ describe('GraphService Integration Tests', () => {
       const fileNodes = graph.nodes.filter(node => node.type === 'file');
       const tagNodes = graph.nodes.filter(node => node.type === 'tag');
       
-      expect(fileNodes.length).toBe(10); // 基于实际 vault 文件数量
+      expect(fileNodes.length).toBe(12); // 基于实际 vault 文件数量
       expect(tagNodes.length).toBeGreaterThan(0); // 应该有标签
       
       // 验证边类型

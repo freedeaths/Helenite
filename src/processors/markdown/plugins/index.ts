@@ -16,6 +16,7 @@ export { obsidianLinksPlugin } from './remark/obsidianLinksPlugin.js';
 // Rehype 插件（HAST 处理）
 export { tableWrapperPlugin } from './rehype/tableWrapperPlugin.js';
 export { trackMapRenderer } from './rehype/trackMapRenderer.js';
+export { mermaidRenderer } from './rehype/mermaidRenderer.js';
 export { externalLinksPlugin } from './rehype/externalLinksPlugin.js';
 
 // 类型导出
@@ -26,6 +27,7 @@ export type { TableWrapperOptions } from './rehype/tableWrapperPlugin.js';
 export type { TrackMapsPluginOptions, FootprintsConfig, TrackData, SingleTrack, LeafletConfig } from './remark/trackMapsPlugin.js';
 export type { FootprintsPluginOptions, FootprintsData } from './remark/footprintsPlugin.js';
 export type { TrackMapRendererOptions } from './rehype/trackMapRenderer.js';
+export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';
 export type { MermaidPluginOptions, MermaidData } from './remark/mermaidPlugin.js';
 export type { ObsidianLinksPluginOptions } from './remark/obsidianLinksPlugin.js';
 export type { ExternalLinksOptions } from './rehype/externalLinksPlugin.js';

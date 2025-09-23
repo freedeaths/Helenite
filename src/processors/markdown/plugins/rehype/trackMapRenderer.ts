@@ -1,6 +1,6 @@
 /**
  * Track Map Renderer rehype 插件
- * 
+ *
  * 将 remark-track 生成的 trackMap 节点转换为实际的 React 组件
  * 处理轨迹数据加载和地图组件渲染
  */
@@ -30,7 +30,7 @@ export function trackMapRenderer(options: TrackMapRendererOptions = {}) {
       const trackFile = node.properties?.['data-track-file'];
       const trackContentBase64 = node.properties?.['data-track-content'];
       const trackConfigJson = node.properties?.['data-track-config'];
-      
+
       if (!trackId || !trackType) {
         console.warn('🔄 trackMapRenderer: Missing track data in container');
         return;
@@ -103,11 +103,10 @@ export function trackMapRenderer(options: TrackMapRendererOptions = {}) {
         };
       }
 
-      // 更新节点属性为 track-map-component
-      node.properties.className = ['track-map-component'];
-      node.properties['data-component'] = 'TrackMap';
-      node.properties['data-props'] = JSON.stringify(componentProps);
-      
+      // 直接使用 TrackMap 作为组件名
+      node.tagName = 'TrackMap';
+      node.properties = componentProps;  // 直接传递 props，不再使用 data-props
+
       // 清理 track-map-container 的 data 属性
       delete node.properties['data-track-id'];
       delete node.properties['data-track-type'];
@@ -138,18 +137,18 @@ export class TrackDataProcessor {
   async preprocessTrackFile(filePath: string): Promise<{
     format: 'gpx' | 'kml';
     name?: string;
-    bounds?: { 
-      north: number; 
-      south: number; 
-      east: number; 
-      west: number; 
+    bounds?: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
     };
     points?: number;
   }> {
     try {
       const content = await this.vaultService.getDocumentContent(filePath);
       const format = filePath.toLowerCase().endsWith('.gpx') ? 'gpx' : 'kml';
-      
+
       // 基础信息提取
       let name: string | undefined;
       let points = 0;
@@ -158,15 +157,15 @@ export class TrackDataProcessor {
         // 提取 GPX 名称和统计
         const nameMatch = content.match(/<name>(.*?)<\/name>/);
         name = nameMatch?.[1];
-        
+
         const trackPoints = content.match(/<trkpt/g);
         points = trackPoints?.length || 0;
-        
+
       } else if (format === 'kml') {
         // 提取 KML 名称和统计
         const nameMatch = content.match(/<name>(.*?)<\/name>/);
         name = nameMatch?.[1];
-        
+
         const coordinates = content.match(/<coordinates>/g);
         points = coordinates?.length || 0;
       }

@@ -151,7 +151,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
           {trackData && (
             <div className="mb-3">
               <h5 className="font-medium text-gray-700 mb-1">内联轨迹数据:</h5>
-              <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-32">
+              <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32 max-w-full whitespace-pre-wrap break-words">
                 {trackData.slice(0, 300)}
                 {trackData.length > 300 && '\n...'}
               </pre>
@@ -162,7 +162,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
           {fileContent && (
             <div className="mb-3">
               <h5 className="font-medium text-gray-700 mb-1">文件内容预览:</h5>
-              <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-32">
+              <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32 max-w-full whitespace-pre-wrap break-words">
                 {fileContent}
               </pre>
             </div>
@@ -172,7 +172,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
           {config && (
             <div className="mb-3">
               <h5 className="font-medium text-gray-700 mb-1">配置信息:</h5>
-              <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-32">
+              <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32 max-w-full whitespace-pre-wrap break-words">
                 {JSON.stringify(config, null, 2)}
               </pre>
             </div>

@@ -120,13 +120,9 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       break;
 
     case 'embed': {
-      // 检查是否为轨迹文件
-      const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
-      if (ext === 'gpx' || ext === 'kml') {
-        result = createTrackEmbed(parsedLink, resolvedPath, baseUrl);
-      } else {
-        result = createGenericEmbed(parsedLink, resolvedPath);
-      }
+      // 如果轨迹文件已经被 trackMapsPlugin 处理过，这里就不会看到了
+      // 这里只处理其他类型的嵌入
+      result = createGenericEmbed(parsedLink, resolvedPath);
       break;
     }
 
@@ -249,16 +245,15 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
   // 处理图片路径
   let imagePath = resolvedPath;
 
-  // 如果路径中包含 Attachments，确保路径正确
-  if (!imagePath.toLowerCase().includes('attachments')) {
-    // 如果不包含 Attachments，假定图片在 Attachments 文件夹中
-    imagePath = `/Attachments/${imagePath.replace(/^\/+/, '')}`;
+  // 确保路径格式正确
+  if (!imagePath.startsWith('/')) {
+    imagePath = '/' + imagePath;
   }
 
-  // 构建完整的图片 URL
+  // 构建完整的图片 URL - 使用 /vaults/Demo 而不是 /vault
   const fullImageUrl = imagePath.startsWith('http')
     ? imagePath
-    : `${baseUrl}${imagePath}`;
+    : `/vaults/Demo${imagePath}`;
 
   return {
     type: 'image',

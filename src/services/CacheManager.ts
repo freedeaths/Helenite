@@ -14,7 +14,6 @@ import { IExifService } from './interfaces/IExifService.js';
 import { SearchService } from './SearchService.js';
 import { FrontMatterService } from './FrontMatterService.js';
 import { FootprintsService } from './FootprintsService.js';
-import { VaultService } from './VaultService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
 
@@ -285,26 +284,6 @@ export class CacheManager {
     return cachedService;
   }
 
-  /**
-   * 为 VaultService 创建缓存代理
-   */
-  createCachedVaultService(vaultService: VaultService): VaultService {
-    const cacheKey = 'vault';
-    
-    if (this._cachedServices.has(cacheKey)) {
-      return this._cachedServices.get(cacheKey);
-    }
-
-    const cachedService = createCachedService(
-      vaultService,
-      this._cache,
-      'vault',
-      this.createVaultServiceCacheConfig()
-    );
-
-    this._cachedServices.set(cacheKey, cachedService);
-    return cachedService;
-  }
 
   /**
    * 通用服务缓存代理创建方法
@@ -336,26 +315,26 @@ export class CacheManager {
     return cacheConfig<IStorageService>()
       .method('readFile')
         .ttl(600000) // 10分钟
-        .condition((path: string) => 
+        .condition((path: string) =>
           // 只缓存文本文件，排除二进制大文件
           path.endsWith('.md') || path.endsWith('.json') || path.endsWith('.txt') || path.endsWith('.css')
         )
-        .keyGenerator((path: string, options?: Record<string, unknown>) => 
+        .keyGenerator((path: string, options?: Record<string, unknown>) =>
           `file:${path}:${JSON.stringify(options || {})}`
         )
       .and()
       .method('getFileInfo')
-        .ttl(300000) // 5分钟
+        .ttl(600000) // 10分钟
         .keyGenerator((path: string) => `info:${path}`)
       .and()
       .method('exists')
-        .ttl(180000) // 3分钟
+        .ttl(300000) // 5分钟
         .keyGenerator((path: string) => `exists:${path}`)
       .and()
       .method('readFileWithInfo')
         .ttl(600000) // 10分钟
         .condition((path: string) => path.endsWith('.md') || path.endsWith('.json'))
-        .keyGenerator((path: string, options?: Record<string, unknown>) => 
+        .keyGenerator((path: string, options?: Record<string, unknown>) =>
           `file-with-info:${path}:${JSON.stringify(options || {})}`
         )
       .build();
@@ -842,134 +821,6 @@ export class CacheManager {
       .method('getCurrentVault')
         .ttl(1800000) // 30分钟，vault 信息相对稳定
         .keyGenerator(() => 'footprints:current-vault')
-      .build();
-  }
-
-  /**
-   * VaultService 缓存配置
-   */
-  private createVaultServiceCacheConfig(): CacheConfig<VaultService> {
-    return cacheConfig<VaultService>()
-      .method('getVaultInfo')
-        .ttl(1800000) // 30分钟，vault 信息相对稳定
-        .keyGenerator(() => 'vault:info')
-      .and()
-      .method('getVaultStatistics')
-        .ttl(600000) // 10分钟，统计信息更新频率中等
-        .keyGenerator(() => 'vault:statistics')
-      .and()
-      .method('healthCheck')
-        .ttl(60000) // 1分钟，健康检查需要较高实时性
-        .keyGenerator(() => 'vault:health')
-      .and()
-      .method('getDocumentContent')
-        .ttl(600000) // 10分钟，文档内容缓存
-        .condition((path: string) => 
-          // 只缓存 Markdown 文件
-          path.endsWith('.md') || path.endsWith('.txt')
-        )
-        .keyGenerator((path: string) => `vault:content:${path}`)
-      .and()
-      .method('getRawDocumentContent')
-        .ttl(600000) // 10分钟，原始文档内容缓存
-        .condition((path: string) => 
-          // 只缓存文本文件，排除二进制文件
-          path.endsWith('.md') || path.endsWith('.txt') || path.endsWith('.json')
-        )
-        .keyGenerator((path: string) => `vault:raw:${path}`)
-      .and()
-      .method('getDocumentInfo')
-        .ttl(300000) // 5分钟，文档信息缓存
-        .keyGenerator((path: string) => `vault:info:${path}`)
-      .and()
-      .method('documentExists')
-        .ttl(180000) // 3分钟，存在性检查缓存
-        .keyGenerator((path: string) => `vault:exists:${path}`)
-      .and()
-      .method('getFileTree')
-        .ttl(1800000) // 30分钟，文件树结构相对稳定
-        .keyGenerator(() => 'vault:filetree')
-      .and()
-      .method('getFolderContents')
-        .ttl(900000) // 15分钟，文件夹内容缓存
-        .keyGenerator((folderPath: string) => `vault:folder:${folderPath}`)
-      .and()
-      .method('searchFiles')
-        .ttl(300000) // 5分钟，文件搜索结果缓存
-        .keyGenerator((query: string) => `vault:search-files:${query.toLowerCase()}`)
-      .and()
-      .method('search')
-        .ttl(300000) // 5分钟，统一搜索结果缓存
-        .keyGenerator((query: string, options?: Record<string, unknown>) => 
-          `vault:search:${query.toLowerCase()}:${JSON.stringify(options || {})}`)
-      .and()
-      .method('searchByTag')
-        .ttl(600000) // 10分钟，标签搜索相对稳定
-        .keyGenerator((tag: string) => `vault:search-tag:${tag}`)
-      .and()
-      .method('getAllTags')
-        .ttl(1800000) // 30分钟，标签列表相对稳定
-        .keyGenerator(() => 'vault:tags:all')
-      .and()
-      .method('getTagStatistics')
-        .ttl(1800000) // 30分钟，标签统计相对稳定
-        .keyGenerator(() => 'vault:tags:stats')
-      .and()
-      .method('getGlobalGraph')
-        .ttl(1800000) // 30分钟，全局图谱相对稳定
-        .keyGenerator(() => 'vault:graph:global')
-      .and()
-      .method('getLocalGraph')
-        .ttl(900000) // 15分钟，局部图谱缓存
-        .keyGenerator((options: Record<string, unknown>) => 
-          `vault:graph:local:${JSON.stringify(options)}`)
-      .and()
-      .method('analyzeNodeConnectivity')
-        .ttl(600000) // 10分钟，节点连接性分析缓存
-        .keyGenerator((nodePath: string) => `vault:connectivity:${nodePath}`)
-      .and()
-      .method('processTrackFile')
-        .ttl(3600000) // 60分钟，轨迹文件处理结果缓存时间长
-        .keyGenerator((filePath: string) => `vault:track:${filePath}`)
-      .and()
-      .method('processMultipleTrackFiles')
-        .ttl(3600000) // 60分钟，批量轨迹处理结果缓存
-        .keyGenerator((filePaths: string[]) => 
-          `vault:tracks:${JSON.stringify(filePaths.sort())}`)
-      .and()
-      .method('getTrackFiles')
-        .ttl(900000) // 15分钟，轨迹文件列表缓存
-        .keyGenerator(() => 'vault:track-files')
-      .and()
-      .method('getBacklinks')
-        .ttl(600000) // 10分钟，反向链接缓存
-        .keyGenerator((filePath: string) => `vault:backlinks:${filePath}`)
-      .and()
-      .method('getOutgoingLinks')
-        .ttl(600000) // 10分钟，前向链接缓存
-        .keyGenerator((filePath: string) => `vault:outlinks:${filePath}`)
-      .and()
-      .method('extractKeywords')
-        .ttl(1800000) // 30分钟，关键词提取结果缓存时间长
-        .keyGenerator((filePath: string) => `vault:keywords:${filePath}`)
-      .and()
-      .method('getSimilarDocuments')
-        .ttl(1800000) // 30分钟，相似文档推荐缓存时间长
-        .keyGenerator((filePath: string, limit?: number) => 
-          `vault:similar:${filePath}:${limit || 5}`)
-      .and()
-      .method('generateSummary')
-        .ttl(3600000) // 60分钟，文档摘要缓存时间长
-        .keyGenerator((filePath: string, maxLength?: number) => 
-          `vault:summary:${filePath}:${maxLength || 200}`)
-      .and()
-      .method('findOrphanedDocuments')
-        .ttl(1800000) // 30分钟，孤立文档检测缓存
-        .keyGenerator(() => 'vault:orphaned')
-      .and()
-      .method('findBrokenLinks')
-        .ttl(1800000) // 30分钟，断链检测缓存
-        .keyGenerator(() => 'vault:broken-links')
       .build();
   }
 

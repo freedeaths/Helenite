@@ -249,7 +249,7 @@ Here are some important resources [^1] and technical documentation [^2].
 ## Multimedia Content
 
 ### Pictures
-![Example Picture](https://via.placeholder.com/600x300/4ade80/ffffff?text=Helenite+Preview)
+![[Attachments/Pasted image 20250902131727.png]]
 ### Horizontal Line
 ---
 

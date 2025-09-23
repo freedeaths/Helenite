@@ -97,8 +97,8 @@ describe('StorageService Real Integration Tests', () => {
     it('should read binary file (PNG) via HTTP', async () => {
       const content = await storageService.readFile('/Attachments/inversed mt fuji.png', { binary: true });
 
-      expect(content).toBeInstanceOf(Buffer);
-      expect((content as Buffer).length).toBeGreaterThan(0);
+      expect(content).toBeInstanceOf(Uint8Array);
+      expect((content as Uint8Array).length).toBeGreaterThan(0);
     });
 
     it('should read GPX file via HTTP', async () => {

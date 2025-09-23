@@ -13,10 +13,14 @@ import remarkRehype from 'remark-rehype';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
-import rehypeStringify from 'rehype-stringify';
+import rehypeReact from 'rehype-react';
+import React from 'react';
+import * as prod from 'react/jsx-runtime';
 
-import type { VaultService } from '../../services/VaultService.js';
+import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { parseFrontMatter, type FrontMatterData } from '../../utils/frontMatterParser.js';
+import { MermaidDiagram } from '../../newComponents/MermaidDiagram.js';
+import { TrackMap } from '../../newComponents/TrackMap/TrackMap.js';
 
 // 导入新的插件
 import {
@@ -24,6 +28,7 @@ import {
   footprintsPlugin,
   trackMapRenderer,
   mermaidPlugin,
+  mermaidRenderer,
   obsidianLinksPlugin,
   obsidianTagsPlugin,
   obsidianHighlightsPlugin,
@@ -33,6 +38,7 @@ import {
   type TrackMapsPluginOptions,
   type FootprintsPluginOptions,
   type MermaidPluginOptions,
+  type MermaidRendererOptions,
   type ObsidianLinksPluginOptions,
   type ObsidianTagsOptions,
   type ObsidianHighlightsOptions,
@@ -73,7 +79,7 @@ export const DEFAULT_OPTIONS: MarkdownProcessingOptions = {
  * 处理结果接口
  */
 export interface ProcessedMarkdown {
-  html: string;
+  content: React.ReactElement;
   metadata: {
     headings: Array<{ level: number; text: string; id: string }>;
     links: Array<{ href: string; text: string }>;
@@ -92,104 +98,114 @@ export class MarkdownProcessor {
   private processor: any;
 
   constructor(
-    private vaultService: VaultService,
+    private vaultService: IVaultService,
     private options: MarkdownProcessingOptions = DEFAULT_OPTIONS
   ) {
     this.processor = this.createProcessor();
   }
 
   /**
-   * 创建 unified 处理器
+   * 创建 unified 处理器 - 完整的插件管道
    */
   private createProcessor() {
     const processor = unified()
       .use(remarkParse)
-      .use(remarkGfm);
+      .use(remarkGfm) // GitHub Flavored Markdown (表格、checkbox、引用等)
+      .use(remarkMath) // 数学公式支持
 
-    // 基础插件
-    if (this.options.enableMath) {
-      processor.use(remarkMath);
-    }
-
-    // Mermaid 图表插件
-    if (this.options.enableMermaid) {
-      const mermaidOptions: MermaidPluginOptions = {};
-      processor.use(mermaidPlugin, mermaidOptions);
-    }
-
-    // Obsidian 语法插件
+    // 添加 Obsidian 插件（remark 阶段 - 处理 markdown AST）
     if (this.options.enableObsidianLinks) {
-      const linksOptions: ObsidianLinksPluginOptions = {
-        baseUrl: '/vault',
-        currentFilePath: undefined, // 在处理时动态设置
-        metadata: undefined // 从 VaultService 获取
-      };
-      processor.use(obsidianLinksPlugin, linksOptions);
+      processor.use(obsidianLinksPlugin, {
+        baseUrl: '/vaults/Demo',
+        currentFilePath: ''
+      } as ObsidianLinksPluginOptions);
     }
 
     if (this.options.enableObsidianTags) {
-      const tagsOptions: ObsidianTagsOptions = {};
-      processor.use(obsidianTagsPlugin, tagsOptions);
+      processor.use(obsidianTagsPlugin, {} as ObsidianTagsOptions);
     }
 
     if (this.options.enableHighlights) {
-      const highlightsOptions: ObsidianHighlightsOptions = {};
-      processor.use(obsidianHighlightsPlugin, highlightsOptions);
+      processor.use(obsidianHighlightsPlugin, {} as ObsidianHighlightsOptions);
     }
 
     if (this.options.enableCallouts) {
-      const calloutsOptions: ObsidianCalloutsOptions = {};
-      processor.use(obsidianCalloutsPlugin, calloutsOptions);
+      processor.use(obsidianCalloutsPlugin, {} as ObsidianCalloutsOptions);
     }
 
-    // 轨迹处理插件
     if (this.options.enableTracks) {
-      const trackOptions: TrackMapsPluginOptions = {
-        baseUrl: '/vault', // 从 VaultService 获取
-        currentFilePath: undefined // 在处理时动态设置
-      };
-
-      processor.use(trackMapsPlugin, trackOptions);
-
-      const footprintsOptions: FootprintsPluginOptions = {
-        baseUrl: '/vault',
-        footprintsService: undefined // TODO: 从构造函数注入
-      };
-
-      processor.use(footprintsPlugin, footprintsOptions);
+      processor.use(trackMapsPlugin, {
+        baseUrl: '/vaults/Demo',
+        currentFilePath: ''
+      } as TrackMapsPluginOptions);
     }
 
-    // 转换为 HTML
-    processor.use(remarkRehype, { allowDangerousHtml: true });
+    if (this.options.enableMermaid) {
+      processor.use(mermaidPlugin, {} as MermaidPluginOptions);
+    }
 
-    // HTML 处理插件
+    // 转换为 HTML AST
+    processor.use(remarkRehype, {
+      allowDangerousHtml: true
+    });
+
+    // 添加 rehype 插件（处理 HTML AST）
+    processor.use(rehypeSlug); // 为标题添加 ID（TOC 跳转需要）
+
     if (this.options.enableMath) {
-      processor.use(rehypeKatex);
-    }
-
-    processor.use(rehypeSlug);
-
-    // 表格包装插件
-    const tableOptions: TableWrapperOptions = {};
-    processor.use(tableWrapperPlugin, tableOptions);
-
-    // 外部链接插件
-    const externalLinksOptions: ExternalLinksOptions = {};
-    processor.use(externalLinksPlugin, externalLinksOptions);
-
-    // 轨迹地图渲染插件
-    if (this.options.enableTracks) {
-      processor.use(trackMapRenderer, {
-        baseUrl: '/vault',
-        vaultService: this.vaultService
-      });
+      processor.use(rehypeKatex); // 渲染数学公式
     }
 
     if (this.options.enableCodeHighlight) {
-      processor.use(rehypeHighlight);
+      processor.use(rehypeHighlight); // 代码高亮
     }
 
-    processor.use(rehypeStringify, { allowDangerousHtml: true });
+    // Track map 渲染器（rehype 阶段）
+    if (this.options.enableTracks) {
+      processor.use(trackMapRenderer);
+    }
+
+    // Mermaid 渲染器（rehype 阶段）
+    if (this.options.enableMermaid) {
+      processor.use(mermaidRenderer);
+    }
+
+    // 表格包装器（为表格添加样式和响应式支持）
+    processor.use(tableWrapperPlugin, {} as TableWrapperOptions);
+
+    // 外部链接处理（为外部链接添加样式和 target="_blank"）
+    processor.use(externalLinksPlugin, {} as ExternalLinksOptions);
+
+    // 最终渲染为 React 元素
+    processor.use(rehypeReact, {
+      Fragment: prod.Fragment,
+      jsx: prod.jsx,
+      jsxs: prod.jsxs,
+      passKeys: true,
+      components: {
+        // 修复 void 元素
+        hr: (props: any) => {
+          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+          return React.createElement('hr', restProps);
+        },
+        br: (props: any) => {
+          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+          return React.createElement('br', restProps);
+        },
+        img: (props: any) => {
+          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+          return React.createElement('img', restProps);
+        },
+        input: (props: any) => {
+          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+          return React.createElement('input', restProps);
+        },
+        // 处理 TrackMap 组件 - 直接映射
+        TrackMap: TrackMap,
+        // 处理 MermaidDiagram 组件 - 直接映射
+        MermaidDiagram: MermaidDiagram
+      }
+    });
 
     return processor;
   }
@@ -214,9 +230,6 @@ export class MarkdownProcessor {
     const mermaidDiagrams: any[] = [];
     const trackMaps: any[] = [];
 
-    // 处理 Markdown
-    const ast = this.processor.parse(markdownContent);
-
     // 提取元数据
     const metadata = {
       headings: [] as Array<{ level: number; text: string; id: string }>,
@@ -224,25 +237,38 @@ export class MarkdownProcessor {
       tags: [] as string[]
     };
 
-    // 创建 VFile 用于收集插件数据
-    const file = { data: {} };
+    // 处理 Markdown - 使用 process() 一次性完成所有处理
+    const file = await this.processor.process(markdownContent);
 
-    // 转换为 HTML
-    const transformedAst = await this.processor.run(ast, file);
+    const reactContent = file.result as React.ReactElement;
 
-    // 从文件数据中提取 Mermaid 图表
+    // 从文件数据中提取 mermaid diagrams
     if (file.data && (file.data as any).mermaidDiagrams) {
       mermaidDiagrams.push(...(file.data as any).mermaidDiagrams);
     }
 
-    // 从转换后的 AST 中提取 trackMaps 和 metadata
-    this.extractTrackMapsFromAst(transformedAst, trackMaps);
-    this.extractMetadataFromAst(transformedAst, metadata);
+    // 从文件数据中提取 trackMaps (插件应该在 file.data 中存储这些)
+    if (file.data && (file.data as any).trackMaps) {
+      trackMaps.push(...(file.data as any).trackMaps);
+    }
 
-    const html = this.processor.stringify(transformedAst);
+    // 从 file.data 中提取 metadata (如果插件正确设置了的话)
+    if (file.data) {
+      const data = file.data as any;
+      if (data.headings) metadata.headings = data.headings;
+      if (data.links) metadata.links = data.links;
+      if (data.tags) metadata.tags = data.tags;
+    }
+
+    // 如果 metadata 为空，我们需要从 AST 中提取
+    if (metadata.headings.length === 0) {
+      const ast = this.processor.parse(markdownContent);
+      const transformedAst = await this.processor.run(ast, { data: {} });
+      this.extractMetadataFromAst(transformedAst, metadata);
+    }
 
     return {
-      html,
+      content: reactContent,
       metadata,
       frontMatter,
       mermaidDiagrams,
@@ -334,10 +360,10 @@ export class MarkdownProcessor {
   }
 
   /**
-   * 快速处理（只生成 HTML）
+   * 快速处理（只生成 React 元素）
    */
-  async processToHTML(content: string): Promise<string> {
+  async processToReact(content: string): Promise<React.ReactElement> {
     const result = await this.processor.process(content);
-    return String(result);
+    return result.result as React.ReactElement;
   }
 }

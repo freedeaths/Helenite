@@ -3,17 +3,17 @@
  * 用于在不影响现有应用的情况下测试新的处理器
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MarkdownProcessor } from '../../processors/markdown/MarkdownProcessor.js';
-import type { VaultService } from '../../services/VaultService.js';
+import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { useVaultStore } from '../../stores/vaultStore.js';
 import { TestTrackMap } from './TestTrackMap.js';
 import { TrackMap } from '../TrackMap/TrackMap.js';
-import { MermaidDiagram } from '../MarkdownViewer/MermaidDiagram.js';
+import { MermaidDiagram } from '../../components/MarkdownViewer/MermaidDiagram.js';
 import { fetchVault } from '../../utils/fetchWithAuth.js';
 
 interface MarkdownProcessorTestProps {
-  vaultService?: VaultService;
+  vaultService?: IVaultService;
 }
 
 const SAMPLE_MARKDOWN = `# 🚀 新版 Markdown 处理器完整测试
@@ -173,6 +173,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showRealMaps, setShowRealMaps] = useState(false);
+  const htmlOutputRef = useRef<HTMLDivElement>(null);
 
   // 创建真实的文件加载服务
   const createRealVaultService = () => {
@@ -304,11 +305,14 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
   }, []);
 
   return (
-    <div className="markdown-processor-test" style={{ 
-      display: 'flex', 
-      height: '100vh', 
+    <div className="markdown-processor-test" style={{
+      display: 'flex',
+      height: '100vh',
       gap: '1rem',
-      padding: '1rem'
+      padding: '1rem',
+      width: '100%',
+      maxWidth: '100vw',
+      overflow: 'hidden'
     }}>
       {/* 输入区域 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -351,8 +355,15 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
       </div>
 
       {/* 输出区域 */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3>处理结果</h3>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,  // Important for flex children to shrink properly
+        overflow: 'hidden',
+        height: '100%'
+      }}>
+        <h3 style={{ flexShrink: 0, margin: '0 0 1rem 0' }}>处理结果</h3>
         
         {error && (
           <div style={{
@@ -371,20 +382,24 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem'
+            gap: '1rem',
+            overflow: 'auto',
+            minHeight: 0
           }}>
             {/* HTML 预览 */}
             <div>
               <h4>HTML 输出</h4>
-              <div 
+              <div
                 style={{
                   border: '1px solid #ddd',
                   borderRadius: '4px',
                   padding: '1rem',
                   backgroundColor: '#f9f9f9',
                   maxHeight: '300px',
-                  overflow: 'auto'
+                  overflow: 'auto',
+                  maxWidth: '100%'
                 }}
+                className="devtools-html-output"
                 dangerouslySetInnerHTML={{ __html: processedResult.html }}
               />
             </div>
@@ -395,11 +410,20 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                 <h4>Mermaid 图表渲染 ({processedResult.mermaidDiagrams.length} 个)</h4>
                 <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '2rem' }}>
                   {processedResult.mermaidDiagrams.map((diagram: any, index: number) => (
-                    <div key={`mermaid-${index}`} style={{ marginBottom: '1rem', border: '1px solid #ddd', borderRadius: '4px', padding: '1rem' }}>
+                    <div key={`mermaid-${index}`} style={{
+                      marginBottom: '1rem',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      padding: '1rem',
+                      overflow: 'auto',
+                      maxWidth: '100%'
+                    }}>
                       <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666', fontWeight: 'bold' }}>
                         📊 Mermaid 图表 {index + 1}
                       </div>
-                      <MermaidDiagram code={diagram.code} className="mermaid-diagram" />
+                      <div style={{ overflow: 'auto', maxWidth: '100%' }}>
+                        <MermaidDiagram code={diagram.code} className="mermaid-diagram" />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -484,8 +508,8 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
             {/* 轨迹地图数据（调试用） */}
             <details style={{ marginTop: '1rem' }}>
-              <summary style={{ 
-                cursor: 'pointer', 
+              <summary style={{
+                cursor: 'pointer',
                 padding: '0.5rem',
                 backgroundColor: '#f5f5f5',
                 borderRadius: '4px'
@@ -500,7 +524,11 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                 fontSize: '12px',
                 maxHeight: '200px',
                 overflow: 'auto',
-                marginTop: '0.5rem'
+                marginTop: '0.5rem',
+                maxWidth: '100%',
+                overflowX: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
               }}>
                 {JSON.stringify({
                   trackMaps: processedResult.trackMaps || [],
@@ -519,7 +547,11 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                 backgroundColor: '#f9f9f9',
                 fontSize: '12px',
                 maxHeight: '150px',
-                overflow: 'auto'
+                overflow: 'auto',
+                maxWidth: '100%',
+                overflowX: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
               }}>
                 {JSON.stringify({
                   headings: processedResult.metadata?.headings || [],

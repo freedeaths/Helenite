@@ -77,17 +77,18 @@ export function DevToolsPanel() {
           className="fixed z-[9999]"
           style={{
             top: isMinimized ? 'auto' : '10%',
-            bottom: isMinimized ? '20px' : 'auto',
+            bottom: isMinimized ? '20px' : '10%',
             right: '20px',
             width: isMinimized ? '300px' : '80%',
-            height: isMinimized ? '60px' : '80%',
+            maxHeight: isMinimized ? '60px' : '80%',
             backgroundColor: 'var(--background-primary)',
             border: '1px solid var(--background-modifier-border)',
             borderRadius: '8px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
             display: 'flex',
             flexDirection: 'column',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            overflow: 'hidden'
           }}
         >
           {/* 工具栏 */}

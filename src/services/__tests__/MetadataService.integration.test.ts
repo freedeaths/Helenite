@@ -119,7 +119,7 @@ describe('MetadataService Integration Tests', () => {
       expect(metadata!.length).toBeGreaterThan(0);
       
       // 验证实际文件数量 (基于读取到的数据)
-      expect(metadata!.length).toBe(10); // services-architecture, markdown-and-plugins, map-and-tracks-analysis, cache-README, README, Welcome, Usages, Abilities, Embedded, linkB
+      expect(metadata!.length).toBe(12); // 包含所有 Demo vault 中的文件
       
       console.log(`📄 Loaded ${metadata!.length} files from real vault`);
     });

@@ -38,16 +38,16 @@ remark-track 插件支持以下所有轨迹相关的 Markdown 语法，全部转
 
 #### Obsidian 嵌入语法
 
-![[track.gpx]]
-![[route.kml]]
-![[Attachments/hiking-route.gpx]]
+![[Attachments/yamap_2025-04-02_08_48.gpx]]
+![[Attachments/东西佘山含地铁绿道.kml]]
+![[Attachments/红叶尚湖.gpx]]
 
 
 #### Obsidian 链接语法
 
-[[track.gpx]]
-[[route.kml]]
-[[Attachments/hiking-route.gpx]]
+[[Attachments/金牛道拦马墙到普安镇.gpx]]
+[[Attachments/中西citywalk.kml]]
+[[Attachments/金牛道拦马墙到普安镇.kml]]
 
 
 > **注意**：无论是 `![[]]` 嵌入还是 `[[]]` 链接，remark-track 都会将 `.gpx` 和 `.kml` 文件转换为地图组件
@@ -59,18 +59,18 @@ Leaflet 代码块支持灵活的 YAML 配置，其中 `gpx` 字段可以是：
 #### 单个 GPX 文件
 
 ```leaflet
-gpx: "[[hokkaido-trip.gpx]]"
+gpx: "[[Attachments/yamap_2025-04-02_08_48.gpx]]"
 zoom: 12
-center: [43.0642, 141.3469]
+center: [31.4, 120.7]
 ```
 
 #### GPX 文件列表
 
 ```leaflet
 gpx:
-  - "[[day1-sapporo.gpx]]"
-  - "[[day2-hakodate.gpx]]"
-  - "[[day3-otaru.gpx]]"
+  - "[[Attachments/红叶尚湖.gpx]]"
+  - "[[Attachments/金牛道拦马墙到普安镇.gpx]]"
+  - "[[Attachments/yamap_2025-04-02_08_48.gpx]]"
 zoom: 10
 showAll: true
 ```
@@ -79,10 +79,10 @@ showAll: true
 
 ```leaflet
 gpx:
-  - "[[routes/mountain-trail.gpx]]"  # 带 [[ ]] 的引用
-  - "routes/city-walk.kml"           # 直接文件路径
-  - "Attachments/bike-route.gpx"     # 相对路径
-center: [35.6762, 139.6503]
+  - "[[Attachments/东西佘山含地铁绿道.kml]]"  # 带 [[ ]] 的引用
+  - "Attachments/中西citywalk.kml"           # 直接文件路径
+  - "Attachments/金牛道拦马墙到普安镇.kml"     # 相对路径
+center: [31.3, 120.6]
 ```
 
 ### 4. 足迹聚合地图
@@ -192,23 +192,23 @@ const trackOptions: TrackMapsPluginOptions = {
 ```
 
 文件嵌入：
-![[test.gpx]]
+![[Attachments/yamap_2025-04-02_08_48.gpx]]
 
 文件链接：
-[[test.kml]]
+[[Attachments/东西佘山含地铁绿道.kml]]
 
 Leaflet 单文件：
 
 ```leaflet
-gpx: "[[single.gpx]]"
+gpx: "[[Attachments/红叶尚湖.gpx]]"
 ```
 
 Leaflet 多文件：
 
 ```leaflet
 gpx:
-  - "[[track1.gpx]]"
-  - "[[track2.gpx]]"
+  - "[[Attachments/金牛道拦马墙到普安镇.gpx]]"
+  - "[[Attachments/中西citywalk.kml]]"
 ```
 
 足迹聚合：

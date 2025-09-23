@@ -236,8 +236,8 @@ function processLeafletConfig(config: LeafletConfig, id: number): TrackData {
 /**
  * 解析 GPX 文件引用，支持 [[file.gpx]] 和 file.gpx 格式
  */
-function parseGpxReference(gpxRef: string, id: string): SingleTrack | null {
-  if (!gpxRef) return null;
+function parseGpxReference(gpxRef: any, id: string): SingleTrack | null {
+  if (!gpxRef || typeof gpxRef !== 'string') return null;
 
   // 移除 [[ ]] 包装
   const cleanRef = gpxRef.replace(/^\[\[|\]\]$/g, '').trim();

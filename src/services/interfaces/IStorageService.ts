@@ -1,11 +1,11 @@
 /**
  * StorageService 接口定义
- * 
+ *
  * 只读存储抽象层，支持本地静态服务、CDN、远程 HTTP 存储
  * 包含文件类型识别、MIME 检测等功能
  */
 
-import { FileInfo, ReadOptions, StorageConfig, ReadResult, FileContent } from '../types/StorageTypes';
+import type { FileInfo, ReadOptions, StorageConfig, ReadResult, FileContent } from '../types/StorageTypes.js';
 
 export interface IStorageService {
   /** 服务配置 */

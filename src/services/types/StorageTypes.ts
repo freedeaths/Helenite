@@ -3,6 +3,9 @@
  * 专为 Helenite 只读文件系统设计
  */
 
+// 文件内容类型 - 浏览器环境兼容版本
+export type FileContent = string | ArrayBuffer | Uint8Array;
+
 export interface StorageConfig {
   /** 基础路径，支持本地静态服务路径或CDN路径 */
   basePath: string;
@@ -14,8 +17,12 @@ export interface StorageConfig {
   headers?: Record<string, string>;
 }
 
-/** 文件内容类型 */
-export type FileContent = string | Buffer;
+// 添加运行时导出以确保 Vite 能正确处理
+export const FileContentType = {
+  isString: (content: FileContent): content is string => typeof content === 'string',
+  isArrayBuffer: (content: FileContent): content is ArrayBuffer => content instanceof ArrayBuffer,
+  isUint8Array: (content: FileContent): content is Uint8Array => content instanceof Uint8Array
+};
 
 /** 读取结果，包含文件信息和内容 */
 export interface ReadResult {
@@ -46,7 +53,7 @@ export interface ReadOptions {
   /** 缓存控制 */
   cache?: boolean;
   /** 编码格式，仅文本模式使用，默认 'utf-8' */
-  encoding?: BufferEncoding;
+  encoding?: 'utf-8' | 'utf8' | 'ascii' | 'base64' | 'hex' | 'binary' | 'latin1';
 }
 
 /** 支持的存储类型 */

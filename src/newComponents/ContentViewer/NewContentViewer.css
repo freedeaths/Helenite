@@ -1,0 +1,65 @@
+/* 复用原有的 Markdown 样式 */
+@import '../../components/MarkdownViewer/MarkdownViewer.css';
+
+/* 新架构特定样式 */
+.new-content-viewer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.new-content-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.new-content-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 确保 markdown-viewer 类被应用 */
+.new-markdown-content {
+  /* 继承所有 markdown-viewer 的样式 */
+}
+
+/* 加载状态 */
+.new-content-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+/* 错误状态 */
+.new-content-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-error);
+  padding: 2rem;
+  text-align: center;
+}
+
+/* 调试信息 */
+.new-content-debug {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.5rem;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  z-index: 100;
+}

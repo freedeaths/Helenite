@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "leaflet",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -74,8 +74,7 @@
               "title": "Bookmarks"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -173,16 +172,19 @@
   },
   "active": "278919dfa40220f8",
   "lastOpenFiles": [
-    "FolderA/TRACK_SYNTAX.md.tmp.92757.1757830171215",
-    "FolderA/TRACK_SYNTAX.md",
-    "Attachments/中西citywalk.kml",
     "helenite-docs/services-architecture.md",
+    "Usages.md",
+    "FolderA/TRACK_SYNTAX.md",
+    "devtools.md",
+    "FolderA/SubFolder/Abilities.md",
+    "FolderA/SubFolder/Abilities.md.bak",
+    "FolderA/TRACK_SYNTAX.md.tmp.92757.1757830171215",
+    "Attachments/中西citywalk.kml",
     "Attachments/东西佘山含地铁绿道.kml",
     "Attachments/金牛道拦马墙到普安镇.kml",
     "Attachments/金牛道拦马墙到普安镇.gpx",
     "Attachments/红叶尚湖.gpx",
     "Attachments/yamap_2025-04-02_08_48 copy.gpx",
-    "FolderA/SubFolder/Abilities.md",
     "Attachments/inversed mt fuji.png",
     "helenite-docs/cache-README.md",
     "Welcome.md",
@@ -196,15 +198,12 @@
     "helenite-docs/core/services-architecture.md",
     "helenite-docs/core/markdown-and-plugins.md",
     "helenite-docs/core",
-    "helenite-docs",
-    "docs/core/services-architecture.md.tmp.83376.1757331240905",
     "docs/core/markdown-and-plugins.md",
     "docs/core/map-and-tracks-analysis.md",
     "2025-09-05.md",
     "Untitled.canvas",
     "FolderA/SubFolder/Embedded.md",
     "Attachments/Pasted image 20250902131727.png",
-    "Usages.md",
     "test.md",
     "FolderA/Canvas.canvas",
     "FolderA/linkB.md",

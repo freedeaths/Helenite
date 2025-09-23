@@ -5,17 +5,19 @@
  * 包含文件类型识别、MIME 检测等功能
  */
 
-import { IStorageService } from '../interfaces/IStorageService';
-import { 
-  FileInfo, 
+import type { IStorageService } from '../interfaces/IStorageService.js';
+import type {
+  FileContent,
+  FileInfo,
   ReadOptions,
-  StorageConfig, 
-  StorageType,
+  StorageConfig,
+  ReadResult
+} from '../types/StorageTypes.js';
+import {
   StorageError,
   StorageErrorType,
-  ReadResult,
-  FileContent
-} from '../types/StorageTypes';
+  StorageType
+} from '../types/StorageTypes.js';
 
 export class StorageService implements IStorageService {
   private _config: StorageConfig;
@@ -339,8 +341,11 @@ export class StorageService implements IStorageService {
 
   private async _readRemoteFile(path: string, options: ReadOptions): Promise<FileContent> {
     const url = this.resolvePath(path);
-    
+    console.log('🔍 StorageService._readRemoteFile: Fetching URL:', url, 'from path:', path, 'basePath:', this._config.basePath);
+
+    // Force bypass cache for debugging
     const response = await fetch(url, {
+      cache: 'no-cache',
       headers: this._config.headers,
       signal: AbortSignal.timeout(this._config.timeout!)
     });
@@ -354,7 +359,7 @@ export class StorageService implements IStorageService {
 
     if (options.binary) {
       const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
+      return new Uint8Array(arrayBuffer);
     } else {
       return await response.text();
     }
