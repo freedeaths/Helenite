@@ -4,7 +4,7 @@
  * 提供零侵入式的服务缓存增强，支持灵活的缓存配置
  */
 
-import { ICacheService } from '../interfaces/ICacheService.js';
+import type { ICacheService } from '../interfaces/ICacheService.js';
 
 export interface CacheMethodConfig {
   /** 生存时间(毫秒) */

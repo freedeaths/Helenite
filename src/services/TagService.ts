@@ -7,7 +7,8 @@
  * 架构设计：TagService 依赖 MetadataService 和 StorageService
  */
 
-import { VaultPaths, createVaultConfig } from '../config/vaultConfig.js';
+import { createVaultConfig } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
 import type { 
   ITagService,
   TagData,

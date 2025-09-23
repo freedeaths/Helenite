@@ -7,7 +7,8 @@
  * 架构设计：GraphService 通过 CacheManager 实现透明缓存
  */
 
-import { VaultPaths, createVaultConfig } from '../config/vaultConfig.js';
+import { createVaultConfig } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
 import type { 
   IGraphService,
   GraphNode,

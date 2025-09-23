@@ -6,7 +6,8 @@
  */
 
 import exifr from 'exifr';
-import { VaultPaths, createVaultConfig } from '../config/vaultConfig.js';
+import { createVaultConfig } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
 import type { 
   IExifService,
   ExifData,

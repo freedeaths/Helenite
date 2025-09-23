@@ -9,7 +9,8 @@
  * - 统计分析：提供 Front Matter 使用分析
  */
 
-import { VaultPaths, createVaultConfig } from '../config/vaultConfig.js';
+import { createVaultConfig } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
 import type { IMetadataService, FrontMatter } from './interfaces/IMetadataService.js';
 import type { 
   IFrontMatterService, 

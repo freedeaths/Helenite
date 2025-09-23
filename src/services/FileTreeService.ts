@@ -1,19 +1,20 @@
 /**
  * FileTreeService - 文件树服务
- * 
+ *
  * 基于 MetadataService 构建文件树结构，提供高效的文件树操作
  * 复刻 LocalFileTreeAPI 的逻辑，但作为独立的服务层
- * 
+ *
  * 架构设计：FileTreeService 通过 CacheManager 实现透明缓存
  */
 
-import { VaultPaths, createVaultConfig, VaultId, getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../config/vaultConfig.js';
-import type { 
-  IFileTreeService, 
-  FileTreeNode, 
-  FileNodeMetadata, 
-  FolderStats, 
-  FileTreeOptions 
+import { createVaultConfig, getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
+import type {
+  IFileTreeService,
+  FileTreeNode,
+  FileNodeMetadata,
+  FolderStats,
+  FileTreeOptions
 } from './interfaces/IFileTreeService.js';
 import type { IMetadataService, MetadataArray, Metadata } from './interfaces/IMetadataService.js';
 
@@ -98,7 +99,7 @@ export class FileTreeService implements IFileTreeService {
   async getAllFolders(): Promise<string[]> {
     const tree = await this.getFileTree();
     const folders: string[] = [];
-    
+
     this.collectFolders(tree, folders);
     return folders.sort();
   }
@@ -121,7 +122,7 @@ export class FileTreeService implements IFileTreeService {
   async getAllFiles(): Promise<string[]> {
     const tree = await this.getFileTree();
     const files: string[] = [];
-    
+
     this.collectFiles(tree, files);
     return files.sort();
   }
@@ -131,7 +132,7 @@ export class FileTreeService implements IFileTreeService {
    */
   async getFilesByFolder(folderPath?: string): Promise<FileTreeNode[]> {
     const tree = await this.getFileTree();
-    
+
     if (!folderPath) {
       // 返回根级文件
       return tree.filter(node => node.type === 'file');
@@ -158,20 +159,20 @@ export class FileTreeService implements IFileTreeService {
       const node = this.findNodeInTree(tree, filePath);
       if (node && node.type === 'file') {
         // 搜索文件名和路径
-        if (node.name.toLowerCase().includes(lowerQuery) || 
+        if (node.name.toLowerCase().includes(lowerQuery) ||
             node.path.toLowerCase().includes(lowerQuery)) {
           results.push(node);
         }
-        
+
         // 搜索标签和别名
         if (node.metadata) {
-          const matchesTags = node.metadata.tags?.some(tag => 
+          const matchesTags = node.metadata.tags?.some(tag =>
             tag.toLowerCase().includes(lowerQuery)
           );
-          const matchesAliases = node.metadata.aliases?.some(alias => 
+          const matchesAliases = node.metadata.aliases?.some(alias =>
             alias.toLowerCase().includes(lowerQuery)
           );
-          
+
           if (matchesTags || matchesAliases) {
             results.push(node);
           }
@@ -280,61 +281,61 @@ export class FileTreeService implements IFileTreeService {
    */
   private buildTreeFromMetadata(metadata: MetadataArray, options: FileTreeOptions = {}): FileTreeNode[] {
     const config = getVaultConfig();
-    
+
     // 1. 提取所有路径并构建路径映射
     const pathMap = new Map<string, FileNodeMetadata>();
     const allPaths = new Set<string>();
-    
+
     // 添加 metadata.json 中的 markdown 文件
     metadata.forEach(item => {
       if (item.relativePath) {
         const path = this.normalizePath(item.relativePath);
-        
+
         // 应用过滤规则（如果启用）
         if (options.applyFolderFilters !== false) {
           if (isPathInExcludedFolder(path, config)) {
             return; // 跳过被排除文件夹中的文件
           }
-          
+
           if (isFileExcluded(item.fileName || '', config)) {
             return; // 跳过被排除的文件
           }
         }
-        
+
         pathMap.set(path, this.convertMetadata(item));
         allPaths.add(path);
-        
+
         // 添加父目录路径（但排除被过滤的文件夹）
         this.addParentPaths(path, allPaths, config, options);
       }
     });
 
     console.log(`📁 FileTreeService: processed ${allPaths.size} paths`);
-    
+
     // 2. 构建树状结构
     const root: FileTreeNode[] = [];
     const folderMap = new Map<string, FileTreeNode>();
-    
+
     // 按路径深度排序，确保父文件夹先创建
     const sortedPaths = Array.from(allPaths).sort((a, b) => {
       const depthA = (a.match(/\//g) || []).length;
       const depthB = (b.match(/\//g) || []).length;
       if (depthA !== depthB) return depthA - depthB;
-      
+
       // 同深度时使用自定义排序或 PHP 排序
-      return options.customSort ? 
+      return options.customSort ?
         options.customSort(
-          { name: a, path: a, type: 'file' }, 
+          { name: a, path: a, type: 'file' },
           { name: b, path: b, type: 'file' }
-        ) : 
+        ) :
         this.phpCustomSort(a, b);
     });
-    
+
     sortedPaths.forEach(path => {
       const isFile = pathMap.has(path);
       const parentPath = this.getParentPath(path);
       const name = this.getNodeName(path);
-      
+
       const node: FileTreeNode = {
         name: isFile ? name.replace(/\.md$/, '') : name, // 移除 .md 扩展名
         path: `/${path}`,
@@ -342,7 +343,7 @@ export class FileTreeService implements IFileTreeService {
         metadata: pathMap.get(path),
         children: isFile ? undefined : []
       };
-      
+
       if (parentPath) {
         // 添加到父文件夹
         const parentFolder = folderMap.get(parentPath);
@@ -353,17 +354,17 @@ export class FileTreeService implements IFileTreeService {
         // 根级项目
         root.push(node);
       }
-      
+
       if (!isFile) {
         folderMap.set(path, node);
       }
     });
-    
+
     // 3. 如果不包含空文件夹，过滤掉空文件夹
     if (options.includeEmptyFolders === false) {
       this.removeEmptyFolders(root);
     }
-    
+
     return root;
   }
 
@@ -397,9 +398,9 @@ export class FileTreeService implements IFileTreeService {
    * 复刻 LocalFileTreeAPI.addParentPaths
    */
   private addParentPaths(
-    path: string, 
-    pathSet: Set<string>, 
-    config = getVaultConfig(), 
+    path: string,
+    pathSet: Set<string>,
+    config = getVaultConfig(),
     options: FileTreeOptions = {}
   ): void {
     const parts = path.split('/');
@@ -423,7 +424,7 @@ export class FileTreeService implements IFileTreeService {
    */
   private findNodeInTree(tree: FileTreeNode[], path: string): FileTreeNode | null {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    
+
     for (const node of tree) {
       if (node.path === normalizedPath) {
         return node;
@@ -442,7 +443,7 @@ export class FileTreeService implements IFileTreeService {
   private calculateFolderStats(items: FileTreeNode[]): FolderStats {
     let totalFiles = 0;
     let totalFolders = 0;
-    
+
     const countItems = (nodes: FileTreeNode[]) => {
       nodes.forEach(node => {
         if (node.type === 'file') {
@@ -455,9 +456,9 @@ export class FileTreeService implements IFileTreeService {
         }
       });
     };
-    
+
     countItems(items);
-    
+
     return {
       totalFiles,
       totalFolders,
@@ -501,7 +502,7 @@ export class FileTreeService implements IFileTreeService {
       if (node.type === 'folder' && node.children) {
         // 递归处理子文件夹
         this.removeEmptyFolders(node.children);
-        
+
         // 如果没有子项，移除此文件夹
         if (node.children.length === 0) {
           tree.splice(i, 1);

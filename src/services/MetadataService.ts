@@ -7,7 +7,8 @@
  * 架构设计：MetadataService 本身可以通过 CacheManager 创建缓存代理，实现透明缓存
  */
 
-import { VaultPaths, createVaultConfig, VaultId, AVAILABLE_VAULTS } from '../config/vaultConfig.js';
+import { createVaultConfig, AVAILABLE_VAULTS } from '../config/vaultConfig.js';
+import type { VaultPaths, VaultId } from '../config/vaultConfig.js';
 import type { 
   IMetadataService, 
   MetadataArray, 

@@ -4,18 +4,19 @@
  * 为现有服务提供零侵入式缓存增强，与 ServiceContainer 集成
  */
 
-import { ICacheService } from './interfaces/ICacheService.js';
-import { IStorageService } from './interfaces/IStorageService.js';
-import { IMetadataService } from './interfaces/IMetadataService.js';
-import { IFileTreeService } from './interfaces/IFileTreeService.js';
-import { IGraphService } from './interfaces/IGraphService.js';
-import { ITagService } from './interfaces/ITagService.js';
-import { IExifService } from './interfaces/IExifService.js';
+import type { ICacheService } from './interfaces/ICacheService.js';
+import type { IStorageService } from './interfaces/IStorageService.js';
+import type { IMetadataService } from './interfaces/IMetadataService.js';
+import type { IFileTreeService } from './interfaces/IFileTreeService.js';
+import type { IGraphService } from './interfaces/IGraphService.js';
+import type { ITagService } from './interfaces/ITagService.js';
+import type { IExifService } from './interfaces/IExifService.js';
 import { SearchService } from './SearchService.js';
 import { FrontMatterService } from './FrontMatterService.js';
 import { FootprintsService } from './FootprintsService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
-import { createCachedService, CacheConfig, cacheConfig } from './infra/CacheProxyFactory.js';
+import { createCachedService, cacheConfig } from './infra/CacheProxyFactory.js';
+import type { CacheConfig } from './infra/CacheProxyFactory.js';
 
 // 扩展接口定义，用于类型安全的方法调用
 interface ExtendedCacheService extends ICacheService {
