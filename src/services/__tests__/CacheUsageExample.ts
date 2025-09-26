@@ -1,6 +1,6 @@
 /**
  * 缓存系统使用示例
- * 
+ *
  * 演示如何在 Helenite 应用中使用零侵入式缓存系统
  */
 
@@ -13,7 +13,7 @@ import { IStorageService } from '../interfaces/IStorageService.js';
 // ===============================
 
 export async function basicCacheExample() {
-  console.log('🚀 Basic Cache Usage Example');
+  // console.log('🚀 Basic Cache Usage Example');
 
   // 1.1 初始化缓存管理器
   const cacheManager = initializeCacheManager({
@@ -45,12 +45,12 @@ export async function basicCacheExample() {
     const fileInfo = await cachedStorage.getFileInfo('/Welcome.md');
     const exists = await cachedStorage.exists('/Welcome.md');
 
-    console.log('✅ File operations completed with automatic caching');
-    console.log(`Content length: ${content.length}, File exists: ${exists}`);
+    // console.log('✅ File operations completed with automatic caching');
+    // console.log(`Content length: ${content.length}, File exists: ${exists}`);
 
     // 1.5 查看缓存统计
     const stats = await cacheManager.getStatistics();
-    console.log('📊 Cache Statistics:', {
+    // console.log('📊 Cache Statistics:', {
       totalEntries: stats.totalEntries,
       hitRate: stats.hitRate.toFixed(2),
       namespaces: stats.namespaces
@@ -104,7 +104,7 @@ export class ApplicationServiceContainer {
 }
 
 // ===============================
-// 3. 自定义服务缓存示例  
+// 3. 自定义服务缓存示例
 // ===============================
 
 export interface ISearchService {

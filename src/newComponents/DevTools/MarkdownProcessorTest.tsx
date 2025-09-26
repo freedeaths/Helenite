@@ -165,8 +165,8 @@ clustering:
 > 如果地图没有显示，可能是轨迹文件加载失败或组件渲染问题。
 `;
 
-export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({ 
-  vaultService 
+export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
+  vaultService
 }) => {
   const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
   const [processedResult, setProcessedResult] = useState<any>(null);
@@ -178,11 +178,11 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
   // 创建真实的文件加载服务
   const createRealVaultService = () => {
     const VAULT_PATH = '/vaults/Demo'; // Demo vault 路径
-    
+
     return {
       getRawDocumentContent: async (path: string) => {
         try {
-          console.log('📁 Loading file:', path);
+          // console.log('📁 Loading file:', path);
           // 确保路径正确，处理 Attachments/ 前缀
           let normalizedPath = path;
           if (!path.startsWith('/') && !path.startsWith('Attachments/')) {
@@ -193,13 +193,13 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             `${VAULT_PATH}${normalizedPath}` :
             `${VAULT_PATH}/${normalizedPath}`;
 
-          console.log('📁 Trying to load from:', fullPath);
+          // console.log('📁 Trying to load from:', fullPath);
           const response = await fetchVault(fullPath);
           if (!response.ok) {
             throw new Error(`Failed to load ${path}: ${response.status}`);
           }
           const content = await response.text();
-          console.log('✅ Loaded file:', path, 'Length:', content.length);
+          // console.log('✅ Loaded file:', path, 'Length:', content.length);
           return content;
         } catch (error) {
           console.warn('❌ Failed to load file:', path, error);
@@ -252,14 +252,14 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
   const processMarkdown = async () => {
     if (!markdown.trim()) return;
-    
+
     setProcessing(true);
     setError(null);
-    
+
     try {
       // 使用真实的文件加载服务
       const realVaultService = createRealVaultService();
-      
+
       const processor = new MarkdownProcessor(
         vaultService || realVaultService as any,
         {
@@ -275,8 +275,8 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
       );
 
       const result = await processor.processContent(markdown);
-      console.log('🗺️ Processing result:', result);
-      
+      // console.log('🗺️ Processing result:', result);
+
       // Debug trackMaps data in detail
       if (result.trackMaps && result.trackMaps.length > 0) {
         result.trackMaps.forEach((track, index) => {
@@ -316,14 +316,14 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
     }}>
       {/* 输入区域 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '0.5rem'
         }}>
           <h3>Markdown 输入</h3>
-          <button 
+          <button
             onClick={processMarkdown}
             disabled={processing}
             style={{
@@ -338,7 +338,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             {processing ? '处理中...' : '重新处理'}
           </button>
         </div>
-        
+
         <textarea
           value={markdown}
           onChange={(e) => setMarkdown(e.target.value)}
@@ -364,7 +364,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
         height: '100%'
       }}>
         <h3 style={{ flexShrink: 0, margin: '0 0 1rem 0' }}>处理结果</h3>
-        
+
         {error && (
           <div style={{
             padding: '1rem',
@@ -439,9 +439,9 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                 marginBottom: '1rem'
               }}>
                 <h4>轨迹地图渲染 ({processedResult.trackMaps?.length || 0} 个)</h4>
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '0.5rem',
                   fontSize: '0.9rem'
                 }}>
@@ -453,15 +453,15 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                   显示真实地图
                 </label>
               </div>
-              
+
               {processedResult.trackMaps && processedResult.trackMaps.length > 0 ? (
                 <div style={{ maxHeight: '800px', overflow: 'auto' }}>
-                  {processedResult.trackMaps.map((trackData: any, index: number) => 
+                  {processedResult.trackMaps.map((trackData: any, index: number) =>
                     showRealMaps ? (
                       <div key={`real-track-${index}`} style={{ marginBottom: '2rem' }}>
-                        <div style={{ 
-                          marginBottom: '0.5rem', 
-                          fontSize: '0.9rem', 
+                        <div style={{
+                          marginBottom: '0.5rem',
+                          fontSize: '0.9rem',
                           color: '#666',
                           fontWeight: 'bold'
                         }}>
@@ -475,6 +475,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                           trackData={trackData.trackData}
                           trackFile={trackData.trackFile}
                           config={trackData.config}
+                          trackFilesJson={trackData.trackFilesJson}
                         />
                       </div>
                     ) : (

@@ -1,15 +1,15 @@
 /**
  * GraphService - 知识图谱服务
- * 
+ *
  * 基于 MetadataService 构建知识图谱，提供高效的图谱操作
  * 复刻 LocalGraphAPI 的逻辑，但作为独立的服务层
- * 
+ *
  * 架构设计：GraphService 通过 CacheManager 实现透明缓存
  */
 
 import { createVaultConfig } from '../config/vaultConfig.js';
 import type { VaultPaths } from '../config/vaultConfig.js';
-import type { 
+import type {
   IGraphService,
   GraphNode,
   GraphEdge,
@@ -43,9 +43,9 @@ export class GraphService implements IGraphService {
    */
   async getGlobalGraph(options: GraphOptions = {}): Promise<GraphData> {
     try {
-      console.log('🔄 Loading global graph data from metadata...');
+      // console.log('🔄 Loading global graph data from metadata...');
       const metadata = await this.metadataService.getMetadata();
-      
+
       if (!metadata || metadata.length === 0) {
         return { nodes: [], edges: [] };
       }
@@ -64,29 +64,29 @@ export class GraphService implements IGraphService {
   async getLocalGraph(filePath: string, options: LocalGraphOptions = {}): Promise<GraphData> {
     const globalGraph = await this.getGlobalGraph(options);
     const depth = options.depth || 1;
-    
+
     // 解码 URL 编码的文件路径
     const decodedFilePath = decodeURIComponent(filePath);
     const normalizedPath = this.removeExtension(decodedFilePath);
     const fileName = normalizedPath.split('/').pop() || normalizedPath;
-    
-    console.log('🔍 Looking for center node:', { filePath, decodedFilePath, normalizedPath, fileName });
-    
+
+    // console.log('🔍 Looking for center node:', { filePath, decodedFilePath, normalizedPath, fileName });
+
     // Find the center node - try multiple matching strategies
-    const centerNode = globalGraph.nodes.find(node => 
+    const centerNode = globalGraph.nodes.find(node =>
       node.title === normalizedPath ||           // 完整路径匹配
       node.title === fileName ||                 // 文件名匹配
       node.label === fileName ||                 // 标签匹配
       node.title === decodedFilePath ||          // 解码后的原始路径匹配
       node.title === this.removeExtension(decodedFilePath) // 解码后去扩展名匹配
     );
-    
+
     if (!centerNode) {
       console.warn('❌ Center node not found for:', filePath);
       return { nodes: [], edges: [] };
     }
-    
-    console.log('✅ Found center node:', centerNode);
+
+    // console.log('✅ Found center node:', centerNode);
 
     // Collect connected nodes within specified depth using BFS
     const connectedNodeIds = new Set<string>([centerNode.id]);
@@ -95,7 +95,7 @@ export class GraphService implements IGraphService {
     let currentLevel = [centerNode.id];
     for (let d = 0; d < depth; d++) {
       const nextLevel: string[] = [];
-      
+
       for (const nodeId of currentLevel) {
         for (const edge of globalGraph.edges) {
           if (edge.from === nodeId && !connectedNodeIds.has(edge.to)) {
@@ -108,7 +108,7 @@ export class GraphService implements IGraphService {
             relevantEdges.push(edge);
           } else if (connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)) {
             // Edge between already included nodes
-            if (!relevantEdges.some(e => 
+            if (!relevantEdges.some(e =>
               (e.from === edge.from && e.to === edge.to) ||
               (e.from === edge.to && e.to === edge.from)
             )) {
@@ -117,14 +117,14 @@ export class GraphService implements IGraphService {
           }
         }
       }
-      
+
       currentLevel = nextLevel;
     }
 
     // Filter nodes and edges
     const localNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
-    
-    console.log(`📊 Local graph: ${localNodes.length} nodes, ${relevantEdges.length} edges`);
+
+    // console.log(`📊 Local graph: ${localNodes.length} nodes, ${relevantEdges.length} edges`);
     return { nodes: localNodes, edges: relevantEdges };
   }
 
@@ -135,7 +135,7 @@ export class GraphService implements IGraphService {
   async filterByTag(tag: string, options: GraphOptions = {}): Promise<GraphData> {
     const globalGraph = await this.getGlobalGraph(options);
     const tagLabel = tag.startsWith('#') ? tag : '#' + tag;
-    
+
     // Find the tag node
     const tagNode = globalGraph.nodes.find(node => node.label === tagLabel);
     if (!tagNode) {
@@ -163,10 +163,10 @@ export class GraphService implements IGraphService {
       if (connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)) {
         const sourceNode = globalGraph.nodes.find(n => n.id === edge.from);
         const targetNode = globalGraph.nodes.find(n => n.id === edge.to);
-        
+
         // Only include if both are file nodes (not tags)
         if (sourceNode?.type !== 'tag' && targetNode?.type !== 'tag') {
-          if (!relevantEdges.some(e => 
+          if (!relevantEdges.some(e =>
             (e.from === edge.from && e.to === edge.to) ||
             (e.from === edge.to && e.to === edge.from)
           )) {
@@ -177,8 +177,8 @@ export class GraphService implements IGraphService {
     }
 
     const filteredNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
-    
-    console.log(`📊 Tag filtered graph: ${filteredNodes.length} nodes, ${relevantEdges.length} edges`);
+
+    // console.log(`📊 Tag filtered graph: ${filteredNodes.length} nodes, ${relevantEdges.length} edges`);
     return { nodes: filteredNodes, edges: relevantEdges };
   }
 
@@ -188,11 +188,11 @@ export class GraphService implements IGraphService {
    */
   async getGraphStats(): Promise<GraphStats> {
     const graph = await this.getGlobalGraph();
-    
+
     const totalNodes = graph.nodes.length;
     const totalEdges = graph.edges.length;
     const totalTags = graph.nodes.filter(node => node.type === 'tag').length;
-    
+
     // Calculate orphaned nodes (nodes with no connections)
     const connectedNodeIds = new Set<string>();
     for (const edge of graph.edges) {
@@ -200,10 +200,10 @@ export class GraphService implements IGraphService {
       connectedNodeIds.add(edge.to);
     }
     const orphanedNodes = totalNodes - connectedNodeIds.size;
-    
+
     // Calculate average connections
     const averageConnections = totalNodes > 0 ? (totalEdges * 2) / totalNodes : 0;
-    
+
     return {
       totalNodes,
       totalEdges,
@@ -222,7 +222,7 @@ export class GraphService implements IGraphService {
    */
   async findNode(identifier: string): Promise<GraphNode | null> {
     const graph = await this.getGlobalGraph();
-    
+
     return graph.nodes.find(node =>
       node.id === identifier ||
       node.label === identifier ||
@@ -242,21 +242,21 @@ export class GraphService implements IGraphService {
     let currentLevel = [nodeId];
     for (let d = 0; d < depth; d++) {
       const nextLevel: string[] = [];
-      
+
       for (const currentNodeId of currentLevel) {
         for (const edge of graph.edges) {
           let neighborId: string | null = null;
-          
+
           if (edge.from === currentNodeId && !visited.has(edge.to)) {
             neighborId = edge.to;
           } else if (edge.to === currentNodeId && !visited.has(edge.from)) {
             neighborId = edge.from;
           }
-          
+
           if (neighborId) {
             visited.add(neighborId);
             nextLevel.push(neighborId);
-            
+
             const neighborNode = graph.nodes.find(n => n.id === neighborId);
             if (neighborNode) {
               neighbors.push(neighborNode);
@@ -264,7 +264,7 @@ export class GraphService implements IGraphService {
           }
         }
       }
-      
+
       currentLevel = nextLevel;
     }
 
@@ -276,7 +276,7 @@ export class GraphService implements IGraphService {
    */
   async getPathBetweenNodes(fromId: string, toId: string): Promise<GraphNode[]> {
     const graph = await this.getGlobalGraph();
-    
+
     if (fromId === toId) {
       const node = graph.nodes.find(n => n.id === fromId);
       return node ? [node] : [];
@@ -288,25 +288,25 @@ export class GraphService implements IGraphService {
 
     while (queue.length > 0) {
       const { nodeId, path } = queue.shift()!;
-      
+
       // Find neighbors
       for (const edge of graph.edges) {
         let neighborId: string | null = null;
-        
+
         if (edge.from === nodeId) {
           neighborId = edge.to;
         } else if (edge.to === nodeId) {
           neighborId = edge.from;
         }
-        
+
         if (neighborId && !visited.has(neighborId)) {
           const newPath = [...path, neighborId];
-          
+
           if (neighborId === toId) {
             // Found path, convert IDs to nodes
             return newPath.map(id => graph.nodes.find(n => n.id === id)!).filter(Boolean);
           }
-          
+
           visited.add(neighborId);
           queue.push({ nodeId: neighborId, path: newPath });
         }
@@ -321,10 +321,10 @@ export class GraphService implements IGraphService {
    */
   async getMostConnectedNodes(limit: number = 10): Promise<GraphNode[]> {
     const graph = await this.getGlobalGraph();
-    
+
     // Calculate connection count for each node
     const connectionCounts = new Map<string, number>();
-    
+
     for (const edge of graph.edges) {
       connectionCounts.set(edge.from, (connectionCounts.get(edge.from) || 0) + 1);
       connectionCounts.set(edge.to, (connectionCounts.get(edge.to) || 0) + 1);
@@ -367,7 +367,7 @@ export class GraphService implements IGraphService {
    */
   async getOrphanedNodes(): Promise<GraphNode[]> {
     const graph = await this.getGlobalGraph();
-    
+
     const connectedNodeIds = new Set<string>();
     for (const edge of graph.edges) {
       connectedNodeIds.add(edge.from);
@@ -388,7 +388,7 @@ export class GraphService implements IGraphService {
     connectedFiles: string[];
   }> {
     const graph = await this.getGlobalGraph();
-    
+
     let inDegree = 0;
     let outDegree = 0;
     const connectedTags: string[] = [];
@@ -406,7 +406,7 @@ export class GraphService implements IGraphService {
           }
         }
       }
-      
+
       if (edge.to === nodeId) {
         inDegree++;
         const sourceNode = graph.nodes.find(n => n.id === edge.from);
@@ -439,7 +439,7 @@ export class GraphService implements IGraphService {
   async refreshCache(): Promise<void> {
     // 通过 MetadataService 刷新底层缓存
     await this.metadataService.refreshCache();
-    console.log('🔄 Graph cache refreshed');
+    // console.log('🔄 Graph cache refreshed');
   }
 
   /**
@@ -466,7 +466,7 @@ export class GraphService implements IGraphService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.metadataService.switchVault(vaultId);
-    console.log(`🔄 GraphService switched to vault: ${vaultId}`);
+    // console.log(`🔄 GraphService switched to vault: ${vaultId}`);
   }
 
   /**
@@ -492,18 +492,18 @@ export class GraphService implements IGraphService {
     const graphEdges: GraphEdge[] = [];
     let nodeID = 0;
 
-    console.log(`🔄 Building graph from ${metadata.length} metadata entries...`);
+    // console.log(`🔄 Building graph from ${metadata.length} metadata entries...`);
 
     // Step 1: Create file nodes and tag nodes (复刻 PHP 逻辑第一部分)
     for (const node of metadata) {
       if (!node.relativePath) continue;
-      
+
       const nodePath = this.removeExtension(node.relativePath);
-      
+
       // 验证节点存在（在服务层中，所有 metadata 中的文件都认为是存在的）
       if (this.checkNodeExists(nodePath, metadata)) {
         const thisNodeID = nodeID.toString();
-        
+
         // Add file node to graph
         graphNodes.push({
           id: thisNodeID,
@@ -518,11 +518,11 @@ export class GraphService implements IGraphService {
         if (options.includeTags !== false && node.tags && node.tags.length > 0) {
           for (const tag of node.tags) {
             const tagLabel = '#' + tag;
-            
+
             // Check if tag node already exists
             let tagID = '';
             let tagExists = false;
-            
+
             for (const graphNode of graphNodes) {
               if (graphNode.label === tagLabel) {
                 tagID = graphNode.id;
@@ -554,9 +554,9 @@ export class GraphService implements IGraphService {
     // Step 2: Create links between nodes (复刻 PHP 逻辑第二部分)
     for (const node of metadata) {
       if (!node.relativePath) continue;
-      
+
       const nodePath = this.removeExtension(node.relativePath);
-      
+
       if (this.checkNodeExists(nodePath, metadata)) {
         // Process outbound links (当前文件引用的其他文件)
         if (node.links && node.links.length > 0) {
@@ -565,12 +565,12 @@ export class GraphService implements IGraphService {
             if (!link.relativePath) {
               continue;
             }
-            
+
             // 过滤掉 Attachments 目录下的文件链接
             if (link.relativePath.includes('Attachments/')) {
               continue;
             }
-            
+
             const source = nodePath;
             const target = this.removeExtension(link.relativePath);
 
@@ -587,12 +587,12 @@ export class GraphService implements IGraphService {
             if (!backlink.relativePath) {
               continue;
             }
-            
+
             // 过滤掉 Attachments 目录下的文件链接
             if (backlink.relativePath.includes('Attachments/')) {
               continue;
             }
-            
+
             const target = nodePath;  // 当前文件作为目标
             const source = this.removeExtension(backlink.relativePath);  // 引用方作为源
 
@@ -633,15 +633,15 @@ export class GraphService implements IGraphService {
       const sortedNodes = filteredNodes
         .sort((a, b) => (b.size || 0) - (a.size || 0))
         .slice(0, options.maxNodes);
-      
+
       const keptNodeIds = new Set(sortedNodes.map(n => n.id));
       filteredNodes = sortedNodes;
-      filteredEdges = graphEdges.filter(edge => 
+      filteredEdges = graphEdges.filter(edge =>
         keptNodeIds.has(edge.from) && keptNodeIds.has(edge.to)
       );
     }
 
-    console.log(`✅ Generated graph with ${filteredNodes.length} nodes and ${filteredEdges.length} edges`);
+    // console.log(`✅ Generated graph with ${filteredNodes.length} nodes and ${filteredEdges.length} edges`);
     return { nodes: filteredNodes, edges: filteredEdges };
   }
 
@@ -664,7 +664,7 @@ export class GraphService implements IGraphService {
 
     // Check if edge already exists (双向检查)
     if (sourceId && targetId) {
-      const edgeExists = graphEdges.some(edge => 
+      const edgeExists = graphEdges.some(edge =>
         (edge.from === sourceId && edge.to === targetId) ||
         (edge.from === targetId && edge.to === sourceId)
       );
@@ -690,7 +690,7 @@ export class GraphService implements IGraphService {
    * 在服务层中，简化为检查 metadata 中是否存在该文件
    */
   private checkNodeExists(nodePath: string, metadata: MetadataArray): boolean {
-    return metadata.some(item => 
+    return metadata.some(item =>
       item.relativePath && this.removeExtension(item.relativePath) === nodePath
     );
   }
@@ -715,7 +715,7 @@ export function getGraphService(): GraphService | null {
  */
 export function initializeGraphService(metadataService: IMetadataService, vaultId?: string): GraphService {
   _globalGraphService = new GraphService(metadataService, vaultId);
-  console.log(`✅ GraphService initialized for vault: ${vaultId || 'Demo'}`);
+  // console.log(`✅ GraphService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalGraphService;
 }
 
@@ -724,5 +724,5 @@ export function initializeGraphService(metadataService: IMetadataService, vaultI
  */
 export function disposeGraphService(): void {
   _globalGraphService = null;
-  console.log('🗑️ GraphService disposed');
+  // console.log('🗑️ GraphService disposed');
 }

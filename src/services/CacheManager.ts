@@ -1,6 +1,6 @@
 /**
  * CacheManager - 缓存管理器
- * 
+ *
  * 为现有服务提供零侵入式缓存增强，与 ServiceContainer 集成
  */
 
@@ -101,7 +101,7 @@ export class CacheManager {
    */
   createCachedStorageService(storageService: IStorageService): IStorageService {
     const cacheKey = 'storage';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -122,7 +122,7 @@ export class CacheManager {
    */
   createCachedMetadataService(metadataService: IMetadataService): IMetadataService {
     const cacheKey = 'metadata';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -143,7 +143,7 @@ export class CacheManager {
    */
   createCachedFileTreeService(fileTreeService: IFileTreeService): IFileTreeService {
     const cacheKey = 'filetree';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -164,7 +164,7 @@ export class CacheManager {
    */
   createCachedGraphService(graphService: IGraphService): IGraphService {
     const cacheKey = 'graph';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -185,7 +185,7 @@ export class CacheManager {
    */
   createCachedTagService(tagService: ITagService): ITagService {
     const cacheKey = 'tag';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -206,7 +206,7 @@ export class CacheManager {
    */
   createCachedExifService(exifService: IExifService): IExifService {
     const cacheKey = 'exif';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -227,7 +227,7 @@ export class CacheManager {
    */
   createCachedSearchService(searchService: SearchService): SearchService {
     const cacheKey = 'search';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -248,7 +248,7 @@ export class CacheManager {
    */
   createCachedFrontMatterService(frontMatterService: FrontMatterService): FrontMatterService {
     const cacheKey = 'frontmatter';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -269,7 +269,7 @@ export class CacheManager {
    */
   createCachedFootprintsService(footprintsService: FootprintsService): FootprintsService {
     const cacheKey = 'footprints';
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -295,7 +295,7 @@ export class CacheManager {
     config: CacheConfig<T>
   ): T {
     const cacheKey = namespace;
-    
+
     if (this._cachedServices.has(cacheKey)) {
       return this._cachedServices.get(cacheKey);
     }
@@ -375,7 +375,7 @@ export class CacheManager {
     return cacheConfig<IFileTreeService>()
       .method('getFileTree')
         .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
-        .keyGenerator((options?: Record<string, unknown>) => 
+        .keyGenerator((options?: Record<string, unknown>) =>
           `filetree:tree:${JSON.stringify(options || {})}`)
       .and()
       .method('getChildren')
@@ -415,17 +415,17 @@ export class CacheManager {
     return cacheConfig<IGraphService>()
       .method('getGlobalGraph')
         .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
-        .keyGenerator((options?: Record<string, unknown>) => 
+        .keyGenerator((options?: Record<string, unknown>) =>
           `graph:global:${JSON.stringify(options || {})}`)
       .and()
       .method('getLocalGraph')
         .ttl(900000) // 15分钟
-        .keyGenerator((filePath: string, options?: Record<string, unknown>) => 
+        .keyGenerator((filePath: string, options?: Record<string, unknown>) =>
           `graph:local:${filePath}:${JSON.stringify(options || {})}`)
       .and()
       .method('filterByTag')
         .ttl(600000) // 10分钟
-        .keyGenerator((tag: string, options?: Record<string, unknown>) => 
+        .keyGenerator((tag: string, options?: Record<string, unknown>) =>
           `graph:tag:${tag}:${JSON.stringify(options || {})}`)
       .and()
       .method('getGraphStats')
@@ -438,12 +438,12 @@ export class CacheManager {
       .and()
       .method('getNodeNeighbors')
         .ttl(600000) // 10分钟
-        .keyGenerator((nodeId: string, depth?: number) => 
+        .keyGenerator((nodeId: string, depth?: number) =>
           `graph:neighbors:${nodeId}:${depth || 1}`)
       .and()
       .method('getPathBetweenNodes')
         .ttl(300000) // 5分钟
-        .keyGenerator((fromId: string, toId: string) => 
+        .keyGenerator((fromId: string, toId: string) =>
           `graph:path:${fromId}:${toId}`)
       .and()
       .method('getMostConnectedNodes')
@@ -475,7 +475,7 @@ export class CacheManager {
     return cacheConfig<ITagService>()
       .method('getAllTags')
         .ttl(1800000) // 30分钟，从 tags.json 读取，更新频率低
-        .keyGenerator((options?: Record<string, unknown>) => 
+        .keyGenerator((options?: Record<string, unknown>) =>
           `tag:all:${JSON.stringify(options || {})}`)
       .and()
       .method('getFileTags')
@@ -492,12 +492,12 @@ export class CacheManager {
       .and()
       .method('searchTags')
         .ttl(300000) // 5分钟
-        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+        .keyGenerator((query: string, options?: Record<string, unknown>) =>
           `tag:search:${query}:${JSON.stringify(options || {})}`)
       .and()
       .method('filterTags')
         .ttl(600000) // 10分钟
-        .keyGenerator((options: Record<string, unknown>) => 
+        .keyGenerator((options: Record<string, unknown>) =>
           `tag:filter:${JSON.stringify(options)}`)
       .and()
       .method('getTagDetails')
@@ -522,7 +522,7 @@ export class CacheManager {
       .and()
       .method('getRelatedTags')
         .ttl(600000) // 10分钟
-        .keyGenerator((tag: string, limit?: number) => 
+        .keyGenerator((tag: string, limit?: number) =>
           `tag:related:${tag}:${limit || 5}`)
       .and()
       .method('analyzeFileTagPattern')
@@ -539,7 +539,7 @@ export class CacheManager {
       .and()
       .method('suggestTags')
         .ttl(300000) // 5分钟
-        .keyGenerator((filePath: string, limit?: number) => 
+        .keyGenerator((filePath: string, limit?: number) =>
           `tag:suggest:${filePath}:${limit || 5}`)
       .build();
   }
@@ -583,17 +583,17 @@ export class CacheManager {
       .and()
       .method('searchImagesByCamera')
         .ttl(900000) // 15分钟
-        .keyGenerator((make?: string, model?: string, options?: Record<string, unknown>) => 
+        .keyGenerator((make?: string, model?: string, options?: Record<string, unknown>) =>
           `exif:search:camera:${make || ''}:${model || ''}:${JSON.stringify(options || {})}`)
       .and()
       .method('searchImagesByDateRange')
         .ttl(900000) // 15分钟
-        .keyGenerator((startDate: Date, endDate: Date, options?: Record<string, unknown>) => 
+        .keyGenerator((startDate: Date, endDate: Date, options?: Record<string, unknown>) =>
           `exif:search:date:${startDate.getTime()}:${endDate.getTime()}:${JSON.stringify(options || {})}`)
       .and()
       .method('searchImagesByGeoBounds')
         .ttl(900000) // 15分钟
-        .keyGenerator((bounds?: Record<string, unknown>, options?: Record<string, unknown>) => 
+        .keyGenerator((bounds?: Record<string, unknown>, options?: Record<string, unknown>) =>
           `exif:search:geo:${JSON.stringify(bounds)}:${JSON.stringify(options || {})}`)
       .and()
       .method('searchExif')
@@ -629,22 +629,22 @@ export class CacheManager {
     return cacheConfig<SearchService>()
       .method('search')
         .ttl(300000) // 5分钟，搜索结果变化较快
-        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+        .keyGenerator((query: string, options?: Record<string, unknown>) =>
           `search:unified:${query}:${JSON.stringify(options || {})}`)
       .and()
       .method('searchContent')
         .ttl(600000) // 10分钟，内容搜索相对稳定
-        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+        .keyGenerator((query: string, options?: Record<string, unknown>) =>
           `search:content:${query}:${JSON.stringify(options || {})}`)
       .and()
       .method('searchByTag')
         .ttl(900000) // 15分钟，标签搜索更稳定
-        .keyGenerator((tag: string, options?: Record<string, unknown>) => 
+        .keyGenerator((tag: string, options?: Record<string, unknown>) =>
           `search:tag:${tag}:${JSON.stringify(options || {})}`)
       .and()
       .method('getSearchStatistics')
         .ttl(300000) // 5分钟，统计信息
-        .keyGenerator((query: string, options?: Record<string, unknown>) => 
+        .keyGenerator((query: string, options?: Record<string, unknown>) =>
           `search:stats:${query}:${JSON.stringify(options || {})}`)
       .build();
   }
@@ -724,22 +724,22 @@ export class CacheManager {
       .and()
       .method('queryFiles')
         .ttl(900000) // 15分钟，查询结果
-        .keyGenerator((options: Record<string, unknown>) => 
+        .keyGenerator((options: Record<string, unknown>) =>
           `frontmatter:query:${JSON.stringify(options)}`)
       .and()
       .method('searchFrontMatter')
         .ttl(600000) // 10分钟，搜索结果
-        .keyGenerator((query: string, fields?: string[]) => 
+        .keyGenerator((query: string, fields?: string[]) =>
           `frontmatter:search:${query}:${JSON.stringify(fields || [])}`)
       .and()
       .method('getCustomField')
         .ttl(1800000) // 30分钟
-        .keyGenerator((filePath: string, fieldName: string) => 
+        .keyGenerator((filePath: string, fieldName: string) =>
           `frontmatter:custom:${filePath}:${fieldName}`)
       .and()
       .method('getFilesByCustomField')
         .ttl(1800000) // 30分钟
-        .keyGenerator((fieldName: string, value?: unknown) => 
+        .keyGenerator((fieldName: string, value?: unknown) =>
           `frontmatter:files-by-custom:${fieldName}:${JSON.stringify(value)}`)
       .and()
       .method('getAllCustomFields')
@@ -767,12 +767,12 @@ export class CacheManager {
       .and()
       .method('parseMultipleTracks')
         .ttl(3600000) // 60分钟
-        .keyGenerator((filePaths: string[]) => 
+        .keyGenerator((filePaths: string[]) =>
           `footprints:multiple:${JSON.stringify(filePaths.sort())}`)
       .and()
       .method('aggregateFootprints')
         .ttl(1800000) // 30分钟，聚合结果可能因配置变化
-        .keyGenerator((config: Record<string, unknown>) => 
+        .keyGenerator((config: Record<string, unknown>) =>
           `footprints:aggregate:${JSON.stringify(config)}`)
       .and()
       .method('scanTrackFiles')
@@ -789,7 +789,7 @@ export class CacheManager {
       .and()
       .method('processUserInputs')
         .ttl(1800000) // 30分钟，用户输入处理
-        .keyGenerator((userInputs: string[]) => 
+        .keyGenerator((userInputs: string[]) =>
           `footprints:user-inputs:${JSON.stringify(userInputs.sort())}`)
       .and()
       .method('processPhotoExif')
@@ -802,17 +802,17 @@ export class CacheManager {
       .and()
       .method('calculateTracksBounds')
         .ttl(3600000) // 60分钟，边界计算结果稳定
-        .keyGenerator((tracks: Array<{ id: string }>) => 
+        .keyGenerator((tracks: Array<{ id: string }>) =>
           `footprints:tracks-bounds:${JSON.stringify(tracks.map(t => t.id).sort())}`)
       .and()
       .method('calculateLocationsBounds')
         .ttl(3600000) // 60分钟
-        .keyGenerator((locations: Array<{ id: string }>) => 
+        .keyGenerator((locations: Array<{ id: string }>) =>
           `footprints:locations-bounds:${JSON.stringify(locations.map(l => l.id).sort())}`)
       .and()
       .method('getTrackStatistics')
         .ttl(3600000) // 60分钟，轨迹统计稳定
-        .keyGenerator((track: Record<string, unknown>) => 
+        .keyGenerator((track: Record<string, unknown>) =>
           `footprints:track-stats:${track.id}`)
       .and()
       .method('getCacheStats')
@@ -835,7 +835,7 @@ export class CacheManager {
   async getStatistics() {
     const stats = await this._cache.getStatistics();
     const namespaces = await this._cache.getNamespaces();
-    
+
     // 获取各命名空间的条目数
     const namespaceStats: Record<string, number> = {};
     for (const ns of namespaces) {
@@ -867,13 +867,13 @@ export class CacheManager {
    * 预热缓存
    */
   async warmupCache(
-    storageService: IStorageService, 
+    storageService: IStorageService,
     commonFiles: string[]
   ): Promise<void> {
     const cachedStorage = this.createCachedStorageService(storageService);
-    
-    console.log(`🔥 Warming up cache with ${commonFiles.length} files...`);
-    
+
+    // console.log(`🔥 Warming up cache with ${commonFiles.length} files...`);
+
     // 为每个文件创建独立的预热任务
     const warmupTasks = commonFiles.map((filePath) => {
       return this.warmupSingleFile(cachedStorage, filePath);
@@ -881,9 +881,9 @@ export class CacheManager {
 
     // 使用 Promise.allSettled 确保所有错误都被捕获
     await Promise.allSettled(warmupTasks);
-    
+
     const stats = await this.getStatistics();
-    console.log(`✅ Cache warmup completed. Total entries: ${stats.totalEntries}`);
+    // console.log(`✅ Cache warmup completed. Total entries: ${stats.totalEntries}`);
   }
 
   /**
@@ -915,13 +915,13 @@ export class CacheManager {
     try {
       const testKey = 'health-check';
       const testValue = { timestamp: Date.now() };
-      
+
       await this._cache.set(testKey, testValue, 1000);
       const retrieved = await this._cache.get(testKey);
       await this._cache.delete(testKey);
-      
-      return retrieved !== null && 
-             typeof retrieved === 'object' && 
+
+      return retrieved !== null &&
+             typeof retrieved === 'object' &&
              'timestamp' in retrieved;
     } catch {
       return false;
@@ -1068,9 +1068,9 @@ export function initializeCacheManager(config?: CacheManagerConfig): CacheManage
   if (_globalCacheManager) {
     _globalCacheManager.dispose();
   }
-  
+
   _globalCacheManager = new CacheManager(config);
-  console.log('✅ CacheManager initialized');
+  // console.log('✅ CacheManager initialized');
   return _globalCacheManager;
 }
 
@@ -1081,6 +1081,6 @@ export function disposeCacheManager(): void {
   if (_globalCacheManager) {
     _globalCacheManager.dispose();
     _globalCacheManager = null;
-    console.log('🗑️ CacheManager disposed');
+    // console.log('🗑️ CacheManager disposed');
   }
 }

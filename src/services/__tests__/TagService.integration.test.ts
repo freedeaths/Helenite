@@ -1,6 +1,6 @@
 /**
  * TagService 集成测试
- * 
+ *
  * 测试 TagService 与真实依赖服务的集成：
  * - 与 MetadataService 的集成
  * - 与 StorageService 的集成
@@ -21,7 +21,7 @@ import type { TagData } from '../interfaces/ITagService.js';
 // Mock console methods to avoid test output noise
 const originalConsole = { ...console };
 beforeEach(() => {
-  console.log = vi.fn();
+  // console.log = vi.fn();
   console.warn = vi.fn();
   console.error = vi.fn();
 });
@@ -41,7 +41,7 @@ describe('TagService Integration Tests', () => {
     storageService = new StorageService({ basePath: '/vaults/Demo' });
     metadataService = new MetadataService(storageService, 'Demo');
     cacheManager = new CacheManager();
-    
+
     // 创建 TagService 实例
     tagService = new TagService(metadataService, storageService, 'Demo');
   });
@@ -212,7 +212,7 @@ describe('TagService Integration Tests', () => {
     it('缓存的服务应该保持相同的接口', async () => {
       // Arrange
       const cachedTagService = cacheManager.createCachedTagService(tagService);
-      
+
       // Mock 底层服务
       vi.spyOn(storageService, 'readFile').mockResolvedValue('[]');
       vi.spyOn(metadataService, 'getMetadata').mockResolvedValue([]);
@@ -321,7 +321,7 @@ describe('TagService Integration Tests', () => {
       // Assert
       expect(cooccurrence.tag).toBe('#javascript');
       expect(cooccurrence.cooccurredTags).toHaveLength(4);
-      
+
       // 验证共现标签包含预期的标签
       const tagNames = cooccurrence.cooccurredTags.map(t => t.tag);
       expect(tagNames).toContain('#beginner');
@@ -448,7 +448,7 @@ describe('TagService Integration Tests', () => {
       const inconsistentTagsJson = [
         { tag: 'outdated', tagCount: 1, relativePaths: ['deleted-file.md'] }
       ];
-      
+
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(inconsistentTagsJson));
 
       // Act - 应该能够正常返回数据，不会崩溃
@@ -469,7 +469,7 @@ describe('TagService Integration Tests', () => {
       }));
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(largeTagsJson));
-      
+
       // Mock metadata to match large data scenario
       const mockLargeMetadata = Array.from({ length: 1000 }, (_, i) => ({
         relativePath: `file-${i}.md`,

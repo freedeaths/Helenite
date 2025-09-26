@@ -1,22 +1,22 @@
 /**
  * MetadataService - 元数据管理服务
- * 
+ *
  * 负责从 Obsidian metadata-extractor 插件生成的 metadata.json 加载原始元数据
  * 基于 metadata-extractor 的接口规范，与缓存系统集成，支持多 vault 环境
- * 
+ *
  * 架构设计：MetadataService 本身可以通过 CacheManager 创建缓存代理，实现透明缓存
  */
 
 import { createVaultConfig, AVAILABLE_VAULTS } from '../config/vaultConfig.js';
 import type { VaultPaths, VaultId } from '../config/vaultConfig.js';
-import type { 
-  IMetadataService, 
-  MetadataArray, 
-  Metadata, 
-  HeadingData, 
-  Link, 
-  Backlink, 
-  FrontMatter, 
+import type {
+  IMetadataService,
+  MetadataArray,
+  Metadata,
+  HeadingData,
+  Link,
+  Backlink,
+  FrontMatter,
 } from './interfaces/IMetadataService.js';
 
 // ===============================
@@ -64,20 +64,20 @@ export class MetadataService implements IMetadataService {
 
       // 直接从网络加载 metadata.json
       const metadataUrl = this.resolveUrl(this.vaultConfig.getMetadataUrl());
-      console.log('🌐 Loading metadata from network...');
-      console.log('🔍 MetadataService URL:', metadataUrl);
+      // console.log('🌐 Loading metadata from network...');
+      // console.log('🔍 MetadataService URL:', metadataUrl);
       const response = await fetch(metadataUrl);
-      
+
       if (!response.ok) {
         console.warn(`⚠️ Metadata not found for vault ${this.vaultConfig.id}`);
         return null;
       }
 
       const metadata = await response.json() as MetadataArray;
-      
+
       this.cachedMetadata = metadata;
-      console.log(`✅ Metadata loaded: ${metadata.length} files`);
-      
+      // console.log(`✅ Metadata loaded: ${metadata.length} files`);
+
       return metadata;
     } catch (error) {
       console.error('❌ Failed to load metadata:', error);
@@ -100,7 +100,7 @@ export class MetadataService implements IMetadataService {
 
     // 标准化路径（移除开头的斜杠）
     const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-    
+
     return metadata.find(file => file.relativePath === normalizedPath) || null;
   }
 
@@ -133,7 +133,7 @@ export class MetadataService implements IMetadataService {
       return [];
     }
 
-    return metadata.filter(file => 
+    return metadata.filter(file =>
       file.tags?.includes(tag)
     );
   }
@@ -218,10 +218,10 @@ export class MetadataService implements IMetadataService {
     }
 
     const normalizedTarget = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
-    
-    return metadata.filter(file => 
-      file.links?.some(link => 
-        link.relativePath === normalizedTarget || 
+
+    return metadata.filter(file =>
+      file.links?.some(link =>
+        link.relativePath === normalizedTarget ||
         link.cleanLink === normalizedTarget ||
         link.link.includes(normalizedTarget)
       )
@@ -288,11 +288,11 @@ export class MetadataService implements IMetadataService {
   async refreshCache(): Promise<void> {
     // 清理本地缓存
     this.cachedMetadata = null;
-    
+
     // 重新加载
     await this.getMetadata();
-    
-    console.log('🔄 Metadata cache refreshed');
+
+    // console.log('🔄 Metadata cache refreshed');
   }
 
   /**
@@ -316,7 +316,7 @@ export class MetadataService implements IMetadataService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.cachedMetadata = null;
-    console.log(`🔄 Switched to vault: ${vaultId}`);
+    // console.log(`🔄 Switched to vault: ${vaultId}`);
   }
 
   /**
@@ -358,7 +358,7 @@ export function getMetadataService(): MetadataService {
  */
 export function initializeMetadataService(vaultId?: string): MetadataService {
   _globalMetadataService = new MetadataService(vaultId);
-  console.log(`✅ MetadataService initialized for vault: ${vaultId || 'Demo'}`);
+  // console.log(`✅ MetadataService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalMetadataService;
 }
 
@@ -367,5 +367,5 @@ export function initializeMetadataService(vaultId?: string): MetadataService {
  */
 export function disposeMetadataService(): void {
   _globalMetadataService = null;
-  console.log('🗑️ MetadataService disposed');
+  // console.log('🗑️ MetadataService disposed');
 }

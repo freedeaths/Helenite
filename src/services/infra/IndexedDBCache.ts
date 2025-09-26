@@ -213,7 +213,7 @@ export class IndexedDBCache implements ICacheService {
 
       // MD5不匹配，需要更新
       if (currentHash !== entry.contentHash) {
-        console.log(`🔄 检测到文件变更，更新缓存: ${entry.key}`);
+        // console.log(`🔄 检测到文件变更，更新缓存: ${entry.key}`);
 
         // 更新缓存条目
         await this.set(entry.key, content, entry.ttl, {
@@ -591,7 +591,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       if (evicted > 0) {
-        console.log(`♻️ 自动清理 ${tier} 层: ${evicted} 个条目 (LRU策略)`);
+        // console.log(`♻️ 自动清理 ${tier} 层: ${evicted} 个条目 (LRU策略)`);
       }
 
       this.stats.evictions += evicted;
@@ -630,7 +630,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       if (expiredKeys.length > 0) {
-        console.log(`🧹 自动清理过期缓存: ${expiredKeys.length} 个条目`);
+        // console.log(`🧹 自动清理过期缓存: ${expiredKeys.length} 个条目`);
       }
 
       return expiredKeys.length;
@@ -664,7 +664,7 @@ export class IndexedDBCache implements ICacheService {
         }
       }
 
-      console.log(`🗑️ 手动清理 ${tier} 层: ${cleared} 个条目`);
+      // console.log(`🗑️ 手动清理 ${tier} 层: ${cleared} 个条目`);
       return cleared;
     } catch (error) {
       console.error('IndexedDB tier clear error:', error);
@@ -761,13 +761,13 @@ export class IndexedDBCache implements ICacheService {
     if (typeof window !== 'undefined') {
       const confirmed = window.confirm(confirmMessage);
       if (!confirmed) {
-        console.log('❌ 用户取消了持久层数据清理');
+        // console.log('❌ 用户取消了持久层数据清理');
         return 0;
       }
     }
 
     const cleared = await this.clearTier('persistent');
-    console.log(`🗑️ 用户确认清理持久层: ${cleared} 个条目`);
+    // console.log(`🗑️ 用户确认清理持久层: ${cleared} 个条目`);
     return cleared;
   }
 
@@ -818,7 +818,7 @@ export class IndexedDBCache implements ICacheService {
         cleared++;
       }
 
-      console.log(`🗑️ 强制清理过期持久层数据: ${cleared} 个条目`);
+      // console.log(`🗑️ 强制清理过期持久层数据: ${cleared} 个条目`);
     } catch (error) {
       console.error('强制清理过期持久层数据失败:', error);
     }

@@ -52,6 +52,24 @@ export interface NewUIState {
   toggleRightSidebar: () => void;
 }
 
+// Helper function to get initial theme
+const getInitialTheme = (): 'light' | 'dark' => {
+  if (typeof window === 'undefined') return 'light';
+
+  // Check localStorage first
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    return savedTheme;
+  }
+
+  // Check system preference
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return 'light';
+};
+
 export const useNewUIStore = create<NewUIState>((set, get) => ({
   // Initial state - 复制老版本默认值
   leftSidebarOpen: true,
@@ -73,7 +91,7 @@ export const useNewUIStore = create<NewUIState>((set, get) => ({
 
   mainContentView: 'file',
 
-  theme: 'light',
+  theme: getInitialTheme(),
 
   // Actions
   setLeftSidebarOpen: (open) => set({ leftSidebarOpen: open }),
@@ -89,7 +107,13 @@ export const useNewUIStore = create<NewUIState>((set, get) => ({
   setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
   setMainContentView: (view) => set({ mainContentView: view }),
-  setTheme: (theme) => set({ theme }),
+  setTheme: (theme) => {
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
+    set({ theme });
+  },
   toggleLeftSidebar: () => set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen })),
   toggleRightSidebar: () => set((state) => ({ rightSidebarOpen: !state.rightSidebarOpen })),
 }));

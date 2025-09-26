@@ -1,6 +1,6 @@
 /**
  * ExifService 集成测试
- * 
+ *
  * 测试 ExifService 与真实依赖服务的集成：
  * - 与 StorageService 的真实 HTTP 集成
  * - 真实图片文件的 EXIF 解析（使用真实的 inversed mt fuji.png）
@@ -33,7 +33,7 @@ describe('ExifService Real Integration Tests', () => {
   const originalConsole = { ...console };
   beforeEach(() => {
     // Temporarily disable console mocking to see debug output
-    // console.log = vi.fn();
+    // // console.log = vi.fn();
     // console.warn = vi.fn();
     // console.error = vi.fn();
   });
@@ -58,10 +58,10 @@ describe('ExifService Real Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
     } else {
-      console.log('🚀 启动临时开发服务器...');
-      
+      // console.log('🚀 启动临时开发服务器...');
+
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -72,11 +72,11 @@ describe('ExifService Real Integration Tests', () => {
       // 等待服务器启动
       let attempts = 0;
       const maxAttempts = 30; // 30秒超时
-      
+
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          console.log('✅ 开发服务器启动成功');
+          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -113,7 +113,7 @@ describe('ExifService Real Integration Tests', () => {
 
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      console.log('🔄 关闭临时开发服务器...');
+      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -166,15 +166,15 @@ describe('ExifService Real Integration Tests', () => {
     it('应该能够处理包含 GPS 信息的真实图片', async () => {
       // Debug - 先检查文件是否能正确读取
       const imageData = await storageService.readFile('Attachments/inversed mt fuji.png', { binary: true });
-      console.log('📸 File read via HTTP - Size:', (imageData as Uint8Array).length, 'bytes');
-      console.log('📸 File signature:', Array.from((imageData as Uint8Array).slice(0, 16)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
+      // console.log('📸 File read via HTTP - Size:', (imageData as Uint8Array).length, 'bytes');
+      // console.log('📸 File signature:', Array.from((imageData as Uint8Array).slice(0, 16)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '));
 
       // Act - 通过真实的 HTTP 请求解析真实的 inversed mt fuji.png 文件
       const result = await exifService.parseExif('Attachments/inversed mt fuji.png');
 
       // Assert - 验证真实的 EXIF 数据
-      console.log('🔍 Real integration test EXIF data:', JSON.stringify(result, null, 2));
-      
+      // console.log('🔍 Real integration test EXIF data:', JSON.stringify(result, null, 2));
+
       expect(result).not.toBeNull();
       // 如果图片有 EXIF 数据，验证内容；如果没有，也是正常的
       if (result!.hasExif && result!.gps) {
@@ -194,7 +194,7 @@ describe('ExifService Real Integration Tests', () => {
       // 至少应该能够成功解析文件（无论是否有 EXIF）
       expect(result).toBeDefined();
       expect(result!.filePath).toBe('Attachments/inversed mt fuji.png');
-      
+
       // 验证真实的拍摄参数
       if (result!.hasExif && result!.shooting) {
         expect(result!.shooting!.iso).toBe(50);
@@ -221,29 +221,29 @@ describe('ExifService Real Integration Tests', () => {
       const results = await exifService.parseMultipleExif(knownImageFiles);
 
       // Assert
-      console.log(`📁 Parsed ${results.length} known image files`);
-      
+      // console.log(`📁 Parsed ${results.length} known image files`);
+
       results.forEach((result, index) => {
-        console.log(`\n📸 Image ${index + 1}: ${result.filePath}`);
-        console.log(`   Has EXIF: ${result.hasExif}`);
+        // console.log(`\n📸 Image ${index + 1}: ${result.filePath}`);
+        // console.log(`   Has EXIF: ${result.hasExif}`);
         if (result.gps) {
-          console.log(`   GPS: ${result.gps.latitude}, ${result.gps.longitude}`);
+          // console.log(`   GPS: ${result.gps.latitude}, ${result.gps.longitude}`);
         }
         if (result.camera) {
-          console.log(`   Camera: ${result.camera.make} ${result.camera.model}`);
+          // console.log(`   Camera: ${result.camera.make} ${result.camera.model}`);
         }
       });
 
       expect(results.length).toBe(knownImageFiles.length);
-      
+
       // 应该包含我们的测试文件
       const mtFujiResult = results.find(r => r.filePath.includes('inversed mt fuji.png'));
       expect(mtFujiResult).toBeDefined();
       // 图片可能没有 EXIF 数据，这也是正常的
       if (mtFujiResult!.hasExif) {
-        console.log('✅ inversed mt fuji.png has EXIF data');
+        // console.log('✅ inversed mt fuji.png has EXIF data');
       } else {
-        console.log('ℹ️ inversed mt fuji.png does not have EXIF data (this is normal)');
+        // console.log('ℹ️ inversed mt fuji.png does not have EXIF data (this is normal)');
       }
     });
   });
@@ -271,20 +271,20 @@ describe('ExifService Real Integration Tests', () => {
     it('应该能够获取基于已知文件的统计信息', async () => {
       // Note: getExifStatistics() 依赖于目录扫描，而 HTTP 存储不支持目录列举
       // 所以我们测试单个文件的解析是否正常，这已经验证了核心功能
-      
+
       // Act - 解析已知的包含 EXIF 的文件
       const result = await exifService.parseExif('Attachments/inversed mt fuji.png');
-      
+
       // Assert - 验证 EXIF 解析功能正常
       expect(result).not.toBeNull();
       // 图片可能没有 EXIF 数据
       if (result!.hasExif) {
-        console.log('✅ File has EXIF data');
+        // console.log('✅ File has EXIF data');
       } else {
-        console.log('ℹ️ File does not have EXIF data (this is normal)');
+        // console.log('ℹ️ File does not have EXIF data (this is normal)');
       }
-      
-      console.log('📊 Individual file EXIF parsing working correctly');
+
+      // console.log('📊 Individual file EXIF parsing working correctly');
     });
   });
 
@@ -303,7 +303,7 @@ describe('ExifService Real Integration Tests', () => {
     it('缓存的服务应该保持相同的接口', async () => {
       // Arrange
       const cachedExifService = cacheManager.createCachedExifService(exifService);
-      
+
       // Act & Assert - 确保缓存服务具有相同的方法
       expect(typeof cachedExifService.parseExif).toBe('function');
       expect(typeof cachedExifService.parseMultipleExif).toBe('function');
@@ -351,9 +351,9 @@ describe('ExifService Real Integration Tests', () => {
       // Act - 直接验证已知包含 GPS 的文件
       const result = await exifService.parseExif('Attachments/inversed mt fuji.png');
       const gpsData = await exifService.getGpsCoordinates('Attachments/inversed mt fuji.png');
-      
+
       // Assert
-      console.log('🗺️ GPS data extraction verification');
+      // console.log('🗺️ GPS data extraction verification');
       // 图片可能没有 GPS 数据
       if (result!.hasExif && result!.gps) {
         expect(gpsData).toBeDefined();
@@ -368,9 +368,9 @@ describe('ExifService Real Integration Tests', () => {
     it('应该能够验证相机信息提取', async () => {
       // Act - 验证相机信息提取
       const cameraInfo = await exifService.getCameraInfo('Attachments/inversed mt fuji.png');
-      
+
       // Assert
-      console.log('📷 Camera info extraction verification');
+      // console.log('📷 Camera info extraction verification');
       // 图片可能没有相机信息
       if (cameraInfo) {
         expect(cameraInfo.make).toBe('HUAWEI');

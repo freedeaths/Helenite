@@ -49,7 +49,7 @@ export function NewLocalGraph() {
           setLoading(true);
           setError(null);
 
-          console.log('📊 NewLocalGraph: 开始通过 VaultService 获取局部图谱数据:', activeFile);
+          // console.log('📊 NewLocalGraph: 开始通过 VaultService 获取局部图谱数据:', activeFile);
 
           // 使用 VaultService 的 getLocalGraph 方法
           const localGraphData = await vaultService.getLocalGraph(activeFile, {
@@ -57,7 +57,7 @@ export function NewLocalGraph() {
             includeOrphans: false
           });
 
-          console.log('📊 NewLocalGraph: VaultService 返回的图谱数据:', localGraphData);
+          // console.log('📊 NewLocalGraph: VaultService 返回的图谱数据:', localGraphData);
 
           // 转换为组件需要的格式
           const transformedData = {
@@ -65,7 +65,7 @@ export function NewLocalGraph() {
             edges: localGraphData.edges || []
           };
 
-          console.log('📊 NewLocalGraph: 转换后的图谱数据:', transformedData);
+          // console.log('📊 NewLocalGraph: 转换后的图谱数据:', transformedData);
           setGraphData(transformedData);
 
         } catch (err) {
@@ -125,14 +125,14 @@ export function NewLocalGraph() {
       const normalizedDecodedFileName = decodedFileName.startsWith('/') ? decodedFileName.slice(1) : decodedFileName;
       const normalizedActiveFile = activeFile.startsWith('/') ? activeFile.slice(1) : activeFile;
 
-      console.log('🔍 Looking for current file node:', {
-        activeFile,
-        decodedActiveFile,
-        decodedFileName,
-        normalizedDecodedFileName,
-        nodeTitle: node.title,
-        match: node.title === normalizedDecodedFileName || node.title === decodedFileName || node.title === decodedActiveFile
-      });
+      // console.log('🔍 Looking for current file node:', {
+      //   activeFile,
+      //   decodedActiveFile,
+      //   decodedFileName,
+      //   normalizedDecodedFileName,
+      //   nodeTitle: node.title,
+      //   match: node.title === normalizedDecodedFileName || node.title === decodedFileName || node.title === decodedActiveFile
+      // });
 
       return node.title === normalizedDecodedFileName ||  // 主要匹配逻辑
              node.title === decodedFileName ||
@@ -236,7 +236,7 @@ export function NewLocalGraph() {
 
         // 只有文件节点（非标签节点）才能跳转，且不是当前文件
         if (d.type !== 'tag' && d.path && (!currentFileNode || d.id !== currentFileNode.id)) {
-          console.log(`📊 Navigating to file from new local graph: ${d.path}`);
+          // console.log(`📊 Navigating to file from new local graph: ${d.path}`);
           navigateToFile(d.path);
         }
       });

@@ -18,7 +18,7 @@ export function NewSearchPanel() {
     setIsSearching(true);
     try {
       // TODO: 实现真实的搜索功能
-      console.log('NewSearchPanel: 执行搜索', { query: searchQuery, type: searchType });
+      // console.log('NewSearchPanel: 执行搜索', { query: searchQuery, type: searchType });
 
       // 模拟搜索结果
       setSearchResults([

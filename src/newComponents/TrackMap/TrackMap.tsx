@@ -1,14 +1,14 @@
 /**
- * 真实的轨迹地图组件
+ * 轨迹地图组件
  * 使用 Leaflet 渲染 GPX/KML 轨迹数据
+ * 所有轨迹数据通过 FootprintsService 统一处理
  */
 
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import React, { useEffect, useState, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLngBounds, LatLngTuple } from 'leaflet';
-import gpxParser from 'gpx-parser-builder';
-// Note: xml2js doesn't work well in browser, we'll use DOMParser instead
-import { useNewVaultStore } from '../../newStores/newVaultStore.js';
+import type { IFootprintsService, FootprintsData, TrackData } from '../../services/interfaces/IFootprintsService.js';
+import { useVaultService } from '../../newHooks/useVaultService.js';
 
 // Import Leaflet CSS
 import 'leaflet/dist/leaflet.css';
@@ -24,61 +24,255 @@ L.Icon.Default.mergeOptions({
 
 interface TrackMapProps {
   trackId: string;
-  trackType: 'single-track' | 'multi-track' | 'leaflet' | 'footprints';
-  format?: 'gpx' | 'kml';
-  source?: 'inline' | 'file';
-  trackData?: string;  // 内联数据
-  trackFile?: string;  // 文件路径
-  config?: any;
+  trackType: 'single-track' | 'multi-track' | 'leaflet';
+  filePathsJson?: string;  // JSON 字符串格式的文件路径数组
+  filePaths?: string[];  // 直接传递的数组（用于测试）
+  config?: any;  // Leaflet 特定配置
 }
 
-interface TrackPoint {
-  lat: number;
-  lng: number;
-  elevation?: number;
-  time?: Date;
-}
+// 组件用于在地图加载后重新适应边界（主要用于全屏切换）
+const RefitBounds: React.FC<{ bounds: LatLngBounds; trigger: boolean }> = ({ bounds, trigger }) => {
+  const map = useMap();
 
-interface ParsedTrack {
-  name?: string;
-  points: TrackPoint[];
-  waypoints?: Array<{
-    lat: number;
-    lng: number;
-    name?: string;
-  }>;
-}
+  useEffect(() => {
+    if (map && bounds && bounds.isValid()) {
+      // 给一点延迟让地图容器大小改变生效
+      setTimeout(() => {
+        map.invalidateSize();  // 重新计算地图大小
+        map.fitBounds(bounds, {
+          padding: [50, 50],
+          maxZoom: 16,
+        });
+      }, 100);
+    }
+  }, [map, trigger]);  // 当 trigger (全屏状态) 改变时触发
+
+  return null;
+};
+
+// 地图控件组件 - 内嵌在主组件中
+const MapControls: React.FC<{
+  bounds: LatLngBounds;
+  onFullscreen: () => void;
+  isMobile: boolean;
+}> = ({ bounds, onFullscreen, isMobile }) => {
+  const map = useMap();
+
+  const handleZoomIn = () => {
+    map.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    map.zoomOut();
+  };
+
+  const handleReset = () => {
+    map.fitBounds(bounds, {
+      padding: [50, 50],
+      maxZoom: 16,
+    });
+  };
+
+  // 按钮样式 - 响应式
+  const buttonSize = isMobile ? 24 : 28;
+  const fontSize = isMobile ? '14px' : '16px';
+  const containerPadding = isMobile ? '4px' : '6px';
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: isMobile ? '6px' : '8px',
+        padding: containerPadding,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(224, 224, 224, 0.5)',
+      }}
+    >
+      <button
+        onClick={handleZoomIn}
+        style={{
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+          border: 'none',
+          borderRadius: isMobile ? '4px' : '6px',
+          background: '#ffffff',
+          color: '#333',
+          cursor: 'pointer',
+          fontSize,
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+        title="放大"
+      >
+        +
+      </button>
+
+      <div style={{
+        width: '1px',
+        height: isMobile ? '16px' : '20px',
+        backgroundColor: 'rgba(224, 224, 224, 0.5)',
+        margin: isMobile ? '0 3px' : '0 4px'
+      }} />
+
+      <button
+        onClick={handleZoomOut}
+        style={{
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+          border: 'none',
+          borderRadius: isMobile ? '4px' : '6px',
+          background: '#ffffff',
+          color: '#333',
+          cursor: 'pointer',
+          fontSize,
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+        title="缩小"
+      >
+        −
+      </button>
+
+      <div style={{
+        width: '1px',
+        height: isMobile ? '16px' : '20px',
+        backgroundColor: 'rgba(224, 224, 224, 0.5)',
+        margin: isMobile ? '0 3px' : '0 4px'
+      }} />
+
+      <button
+        onClick={handleReset}
+        style={{
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+          border: 'none',
+          borderRadius: isMobile ? '4px' : '6px',
+          background: '#ffffff',
+          color: '#333',
+          cursor: 'pointer',
+          fontSize: isMobile ? '12px' : '14px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+        title="重置视图"
+      >
+        ⟲
+      </button>
+
+      <div style={{
+        width: '1px',
+        height: isMobile ? '16px' : '20px',
+        backgroundColor: 'rgba(224, 224, 224, 0.5)',
+        margin: isMobile ? '0 3px' : '0 4px'
+      }} />
+
+      <button
+        onClick={onFullscreen}
+        style={{
+          width: `${buttonSize}px`,
+          height: `${buttonSize}px`,
+          border: 'none',
+          borderRadius: isMobile ? '4px' : '6px',
+          background: '#ffffff',
+          color: '#333',
+          cursor: 'pointer',
+          fontSize: isMobile ? '12px' : '14px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+        title="全屏"
+      >
+        ⛶
+      </button>
+    </div>
+  );
+};
 
 export const TrackMap: React.FC<TrackMapProps> = ({
   trackId,
   trackType,
-  format,
-  source,
-  trackData,
-  trackFile,
+  filePathsJson,
+  filePaths: filePathsProp,
   config
 }) => {
-  const [tracks, setTracks] = useState<ParsedTrack[]>([]);
+  const [footprintsData, setFootprintsData] = useState<FootprintsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapBounds, setMapBounds] = useState<LatLngBounds | null>(null);
-  const vaultService = useNewVaultStore(state => state.vaultService);
-  const getRawDocumentContent = useNewVaultStore(state => state.getRawDocumentContent);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
-  // Debug props only in development
-  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
-    console.log('🗺️ TrackMap props:', { trackId, trackType, format, source });
-  }
+  // 解析文件路径
+  const filePaths = React.useMemo(() => {
+    if (filePathsJson) {
+      try {
+        const parsed = JSON.parse(filePathsJson);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.error('Failed to parse filePathsJson:', error);
+        return [];
+      }
+    }
+    return filePathsProp || [];
+  }, [filePathsJson, filePathsProp]);
+
+  // 调试日志
+  // console.log('[TrackMap Debug] Component rendered with:', { trackId, trackType, filePaths });
+
+  // 获取 Vault API
+  const { getAPI } = useVaultService();
+
+  // 创建 FootprintsService 实例
+  const [footprintsService, setFootprintsService] = useState<IFootprintsService | null>(null);
 
   useEffect(() => {
-    loadTrackData();
-  }, [trackId, trackData, trackFile, trackType, format, source]);
+    const initService = async () => {
+      try {
+        const api = await getAPI();
+        // 使用 vault API 中的 footprints service
+        setFootprintsService(api.services.footprints);
+      } catch (error) {
+        console.error('Failed to initialize FootprintsService:', error);
+      }
+    };
+    initService();
+  }, [getAPI]);
+
+
+  useEffect(() => {
+    if (footprintsService) {
+      loadTrackData();
+    }
+  }, [trackId, filePaths, footprintsService]);
 
   const loadTrackData = async () => {
+    if (!footprintsService) {
+      console.log('FootprintsService not initialized yet');
+      return;
+    }
 
-    // 检查文件访问是否可用（对于需要文件加载的场景）
-    if ((trackType === 'leaflet' || source === 'file') && !vaultService && !getRawDocumentContent) {
-      setError('File access not available. Cannot load track files.');
+    if (!filePaths || filePaths.length === 0) {
+      setError('没有提供轨迹文件');
       setLoading(false);
       return;
     }
@@ -87,114 +281,49 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     setError(null);
 
     try {
-      let parsedTracks: ParsedTrack[] = [];
+      // 使用 FootprintsService 加载多个轨迹文件
+      const result = await footprintsService.parseMultipleTracks(filePaths);
 
-      // Handle different track types
-      if (trackType === 'leaflet') {
-
-        if (!config || !config.gpx) {
-          throw new Error('Leaflet configuration missing GPX files');
-        }
-
-        const allTracks: ParsedTrack[] = [];
-        const gpxFiles = Array.isArray(config.gpx) ? config.gpx : [config.gpx];
-
-        for (const gpxFile of gpxFiles) {
-          try {
-            // Remove [[ ]] wrapper if present
-            const cleanPath = gpxFile.replace(/^\[\[|\]\]$/g, '').trim();
-            const filePath = cleanPath.startsWith('Attachments/') ? cleanPath : `Attachments/${cleanPath}`;
-
-            // 使用 VaultService 或临时文件访问
-            let gpxContent: string;
-            if (vaultService) {
-              gpxContent = await vaultService.getRawDocumentContent(filePath);
-            } else if (getRawDocumentContent) {
-              gpxContent = await getRawDocumentContent(filePath);
-            } else {
-              continue;
-            }
-            const parsedTracks = await parseTrackData(gpxContent, 'gpx');
-            allTracks.push(...parsedTracks);
-          } catch (error) {
-            // Silently skip missing files, only log in dev mode with debug flag
-            if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
-              console.warn('Error loading GPX file:', gpxFile, error);
-            }
-          }
-        }
-
-        if (allTracks.length === 0) {
-          throw new Error('未找到可用的轨迹文件');
-        }
-
-        parsedTracks = allTracks;
-
-      } else if (trackType === 'footprints') {
-
-        if (!config || !config.userInputs) {
-          throw new Error('Footprints configuration missing userInputs');
-        }
-
-        // Create mock waypoints for each user input location
-        const mockTrack: ParsedTrack = {
-          name: 'Footprints Aggregation',
-          points: [],
-          waypoints: config.userInputs.map((location: string, index: number) => ({
-            lat: 31.23 + index * 0.1, // Mock coordinates for demonstration
-            lng: 121.47 + index * 0.1,
-            name: location
-          }))
-        };
-
-        parsedTracks = [mockTrack];
-
-      } else {
-        // Handle single-track and multi-track types
-        let data: string;
-      
-      if (source === 'inline' && trackData) {
-        // 使用内联数据
-        data = trackData;
-      } else if (source === 'file' && trackFile) {
-        // 加载文件数据
-        if (vaultService) {
-          data = await vaultService.getRawDocumentContent(trackFile);
-        } else if (getRawDocumentContent) {
-          data = await getRawDocumentContent(trackFile);
-        } else {
-          throw new Error('No file access method available');
-        }
-      } else {
-        throw new Error('No track data or file provided');
+      // 检查是否有错误
+      if (result.metadata.errors.length > 0) {
+        // 如果有部分文件加载失败，记录错误但继续处理成功的文件
+        result.metadata.errors.forEach(error => {
+          console.warn(`Failed to load ${error.filePath}: ${error.error}`);
+        });
       }
 
-        // 解析轨迹数据
-        parsedTracks = await parseTrackData(data, format);
+      // 如果没有成功加载任何轨迹
+      if (result.tracks.length === 0) {
+        throw new Error('未找到可用的轨迹文件');
       }
 
-      // 设置解析后的轨迹数据
-      setTracks(parsedTracks);
+      setFootprintsData(result);
 
       // 计算地图边界
-      if (parsedTracks.length > 0) {
-        const bounds = calculateBounds(parsedTracks);
-        // Only set bounds if they are valid (not empty)
-        if (bounds.isValid()) {
-          setMapBounds(bounds);
-        } else {
-          // Set a default bounds around Shanghai area
-          const defaultBounds = new LatLngBounds([
-            [31.0, 120.0], // Southwest
-            [32.0, 121.0]  // Northeast
-          ]);
-          setMapBounds(defaultBounds);
-        }
+      const bounds = footprintsService.calculateTracksBounds(result.tracks);
+      console.log('Calculated bounds:', bounds);
+
+      const leafletBounds = new LatLngBounds([
+        [bounds.south, bounds.west],
+        [bounds.north, bounds.east]
+      ]);
+
+      console.log('Leaflet bounds valid?', leafletBounds.isValid());
+      console.log('Leaflet bounds:', leafletBounds.toBBoxString());
+
+      if (leafletBounds.isValid()) {
+        setMapBounds(leafletBounds);
+      } else {
+        // 设置默认边界
+        const defaultBounds = new LatLngBounds([
+          [31.0, 120.0], // Southwest
+          [32.0, 121.0]  // Northeast
+        ]);
+        setMapBounds(defaultBounds);
       }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : '轨迹数据加载失败');
-      // Only log errors in debug mode
       if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
         console.error('Track loading error:', err);
       }
@@ -203,328 +332,82 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     }
   };
 
-  const parseTrackData = async (data: string, format?: 'gpx' | 'kml'): Promise<ParsedTrack[]> => {
-    if (format === 'gpx' || data.includes('<gpx')) {
-      return parseGPX(data);
-    } else if (format === 'kml' || data.includes('<kml')) {
-      return parseKML(data);
+
+  const getMapTitle = (): string => {
+    if (!footprintsData || footprintsData.tracks.length === 0) return '轨迹地图';
+
+    if (footprintsData.tracks.length === 1) {
+      const track = footprintsData.tracks[0];
+      const provider = track.provider ? ` [${track.provider.toUpperCase()}]` : '';
+      return `${track.name || '轨迹地图'}${provider}`;
+    }
+
+    // 多个轨迹时，显示所有供应商
+    const providers = [...new Set(footprintsData.tracks.map(t => t.provider).filter(Boolean))];
+    const providerText = providers.length > 0 ? ` [${providers.map(p => p!.toUpperCase()).join(', ')}]` : '';
+
+    return `${footprintsData.tracks.length} 条轨迹${providerText}`;
+  };
+
+  const handleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // 添加 ESC 键退出全屏
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleEscKey);
+      // 阻止页面滚动
+      document.body.style.overflow = 'hidden';
     } else {
-      throw new Error('Unsupported track format');
+      // 恢复页面滚动
+      document.body.style.overflow = '';
     }
-  };
 
-  const parseGPX = async (gpxData: string): Promise<ParsedTrack[]> => {
-    try {
-      const gpx = gpxParser.parse(gpxData);
-      
-      const tracks: ParsedTrack[] = [];
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
 
-      // Check multiple possible track structures from gpx-parser-builder
-      let tracksData = null;
+  // 响应式监听
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
 
-      if (gpx.tracks && Array.isArray(gpx.tracks)) {
-        tracksData = gpx.tracks;
-      } else if (gpx.trk && Array.isArray(gpx.trk)) {
-        tracksData = gpx.trk;
-      } else if (gpx.trk && !Array.isArray(gpx.trk)) {
-        tracksData = [gpx.trk];
-      } else if (typeof gpx === 'object') {
-        // Check for common GPX element names
-        const possibleTrackKeys = ['track', 'tracks', 'trk', 'trks', 'route', 'routes', 'rte'];
-        for (const key of possibleTrackKeys) {
-          if (gpx[key]) {
-            tracksData = Array.isArray(gpx[key]) ? gpx[key] : [gpx[key]];
-            break;
-          }
-        }
-      }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-      if (tracksData && tracksData.length > 0) {
-        for (const track of tracksData) {
-          const points: TrackPoint[] = [];
-
-          // Handle different segment structures
-          let segments = null;
-          if (track.segments && Array.isArray(track.segments)) {
-            segments = track.segments;
-          } else if (track.trkseg && Array.isArray(track.trkseg)) {
-            segments = track.trkseg;
-          } else if (track.trkseg && !Array.isArray(track.trkseg)) {
-            segments = [track.trkseg];
-          } else if (track.segment && Array.isArray(track.segment)) {
-            segments = track.segment;
-          } else if (track.segment && !Array.isArray(track.segment)) {
-            segments = [track.segment];
-          }
-
-          if (segments) {
-            for (const segment of segments) {
-              // Handle different point structures
-              let segmentPoints = null;
-              if (segment.points && Array.isArray(segment.points)) {
-                segmentPoints = segment.points;
-              } else if (segment.trkpt && Array.isArray(segment.trkpt)) {
-                segmentPoints = segment.trkpt;
-              } else if (segment.point && Array.isArray(segment.point)) {
-                segmentPoints = segment.point;
-              }
-
-              if (segmentPoints) {
-                for (const point of segmentPoints) {
-                  // Handle different point coordinate structures
-                  let lat = point.lat || point.latitude || point._lat || point['@_lat'] || point['@lat'] || point.$?.lat;
-                  let lng = point.lon || point.lng || point.longitude || point._lon || point['@_lon'] || point['@lon'] || point.$?.lon;
-
-                  // Special handling for Waypoint objects that might have coordinates in different structure
-                  if (!lat && !lng && point.constructor?.name === 'Waypoint') {
-                    // Check if coordinates are in a nested structure
-                    if (point.coordinates) {
-                      lat = point.coordinates.lat || point.coordinates.latitude;
-                      lng = point.coordinates.lng || point.coordinates.lon || point.coordinates.longitude;
-                    }
-                    // Check if it's an array-like structure [lng, lat] or [lat, lng]
-                    if (!lat && !lng && point.length >= 2) {
-                      lat = point[1] || point[0]; // Try both orders
-                      lng = point[0] || point[1];
-                    }
-                  }
-
-                  const ele = point.ele || point.elevation || point._ele;
-                  const time = point.time || point._time;
-                  
-                  if (lat !== undefined && lng !== undefined) {
-                    points.push({
-                      lat: parseFloat(lat),
-                      lng: parseFloat(lng),
-                      elevation: ele ? parseFloat(ele) : undefined,
-                      time: time ? (typeof time === 'string' ? new Date(time) : time) : undefined
-                    });
-                  }
-                }
-              }
-            }
-          }
-
-          if (points.length > 0) {
-            const trackName = track.name || track._name || track['@_name'] || `Track ${tracks.length + 1}`;
-            tracks.push({
-              name: trackName,
-              points
-            });
-          }
-        }
-      }
-
-      return tracks;
-    } catch (error) {
-      return parseGPXManual(gpxData);
-    }
-  };
-
-  const parseGPXManual = (gpxData: string): Promise<ParsedTrack[]> => {
-    return new Promise((resolve, reject) => {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(gpxData, 'text/xml');
-
-        // Check for XML parsing errors
-        const parserError = doc.querySelector('parsererror');
-        if (parserError) {
-          reject(new Error('XML parsing error: ' + parserError.textContent));
-          return;
-        }
-
-        const tracks: ParsedTrack[] = [];
-        const trackElements = doc.querySelectorAll('trk');
-
-        for (const trackElement of trackElements) {
-          const points: TrackPoint[] = [];
-          const segments = trackElement.querySelectorAll('trkseg');
-
-          for (const segment of segments) {
-            const trackPoints = segment.querySelectorAll('trkpt');
-
-            for (const point of trackPoints) {
-              const lat = parseFloat(point.getAttribute('lat') || '0');
-              const lng = parseFloat(point.getAttribute('lon') || '0');
-              const eleElement = point.querySelector('ele');
-              const timeElement = point.querySelector('time');
-
-              if (lat !== 0 && lng !== 0) { // Only add valid coordinates
-                points.push({
-                  lat,
-                  lng,
-                  elevation: eleElement ? parseFloat(eleElement.textContent || '0') : undefined,
-                  time: timeElement ? new Date(timeElement.textContent || '') : undefined
-                });
-              }
-            }
-          }
-
-          if (points.length > 0) {
-            const nameElement = trackElement.querySelector('name');
-            const trackName = nameElement?.textContent || 'Unnamed Track';
-            tracks.push({
-              name: trackName,
-              points
-            });
-          }
-        }
-
-        resolve(tracks);
-      } catch (parseError) {
-        reject(parseError);
-      }
-    });
-  };
-
-  const parseKML = (kmlData: string): Promise<ParsedTrack[]> => {
-    return new Promise((resolve, reject) => {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(kmlData, 'text/xml');
-        
-        // Check for XML parsing errors
-        const parserError = doc.querySelector('parsererror');
-        if (parserError) {
-          reject(new Error('XML parsing error: ' + parserError.textContent));
-          return;
-        }
-
-        const tracks: ParsedTrack[] = [];
-        const documents = doc.querySelectorAll('Document');
-        
-        for (const document of documents) {
-          const points: TrackPoint[] = [];
-          const waypoints: Array<{ lat: number; lng: number; name?: string }> = [];
-          const placemarks = document.querySelectorAll('Placemark');
-
-          for (const placemark of placemarks) {
-            const pointElement = placemark.querySelector('Point coordinates');
-            const lineStringElement = placemark.querySelector('LineString coordinates');
-            const gxTrackElement = placemark.querySelector('gx\\:Track, Track'); // Handle Google KML Extensions
-            const nameElement = placemark.querySelector('name');
-            const placemarkName = nameElement?.textContent;
-
-            if (pointElement) {
-              // 点标记
-              const coordsText = pointElement.textContent?.trim();
-              if (coordsText) {
-                const coords = coordsText.split(',');
-                if (coords.length >= 2) {
-                  waypoints.push({
-                    lng: parseFloat(coords[0]),
-                    lat: parseFloat(coords[1]),
-                    name: placemarkName
-                  });
-                }
-              }
-            } else if (lineStringElement) {
-              // 线条轨迹
-              const coordsText = lineStringElement.textContent?.trim();
-              if (coordsText) {
-                const coordPairs = coordsText.split(/\s+/);
-
-                for (const pair of coordPairs) {
-                  const coords = pair.split(',');
-                  if (coords.length >= 2) {
-                    points.push({
-                      lng: parseFloat(coords[0]),
-                      lat: parseFloat(coords[1]),
-                      elevation: coords[2] ? parseFloat(coords[2]) : undefined
-                    });
-                  }
-                }
-              }
-            } else if (gxTrackElement) {
-              // Google KML Extensions - gx:Track format
-              const gxCoordElements = gxTrackElement.querySelectorAll('gx\\:coord, coord');
-
-              for (const coordElement of gxCoordElements) {
-                const coordText = coordElement.textContent?.trim();
-                if (coordText) {
-                  const coords = coordText.split(/\s+/);
-                  if (coords.length >= 2) {
-                    points.push({
-                      lng: parseFloat(coords[0]),
-                      lat: parseFloat(coords[1]),
-                      elevation: coords[2] ? parseFloat(coords[2]) : undefined
-                    });
-                  }
-                }
-              }
-            }
-          }
-
-          const documentNameElement = document.querySelector('name');
-          const documentName = documentNameElement?.textContent || 'KML Track';
-
-          tracks.push({
-            name: documentName,
-            points: points.length > 0 ? points : waypoints.map(w => ({ lat: w.lat, lng: w.lng })),
-            waypoints: waypoints.length > 0 ? waypoints : undefined
-          });
-        }
-
-        resolve(tracks);
-      } catch (parseError) {
-        reject(parseError);
-      }
-    });
-  };
-
-  const calculateBounds = (tracks: ParsedTrack[]): LatLngBounds => {
-    const bounds = new LatLngBounds([]);
-    let hasValidPoints = false;
-    
-    for (const track of tracks) {
-      for (const point of track.points) {
-        if (typeof point.lat === 'number' && typeof point.lng === 'number' && 
-            !isNaN(point.lat) && !isNaN(point.lng)) {
-          bounds.extend([point.lat, point.lng]);
-          hasValidPoints = true;
-        }
-      }
-      
-      if (track.waypoints) {
-        for (const waypoint of track.waypoints) {
-          if (typeof waypoint.lat === 'number' && typeof waypoint.lng === 'number' && 
-              !isNaN(waypoint.lat) && !isNaN(waypoint.lng)) {
-            bounds.extend([waypoint.lat, waypoint.lng]);
-            hasValidPoints = true;
-          }
-        }
-      }
-    }
-    
-    // If no valid points found, return an invalid bounds
-    if (!hasValidPoints && import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
-      console.warn('No valid coordinates found in tracks');
-    }
-    
-    return bounds;
-  };
-
-  const generateTrackColors = (index: number): string => {
-    const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
-    return colors[index % colors.length];
-  };
 
   if (loading) {
     return (
-      <div style={{ 
-        height: '400px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #dee2e6',
-        borderRadius: '8px'
+      <div style={{
+        margin: '1.5rem auto',
+        maxWidth: '90%',
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div>🗺️ 加载轨迹数据中...</div>
-          <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
-            {trackFile ? `文件: ${trackFile}` : '内联数据'}
+        <div style={{
+          height: '440px',  // 400px + 40px 标题栏
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div>🗺️ 加载轨迹数据中...</div>
+            <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
+              {filePaths.length === 1 ? `文件: ${filePaths[0]}` : `${filePaths.length} 个文件`}
+            </div>
           </div>
         </div>
       </div>
@@ -533,117 +416,215 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
   if (error) {
     return (
-      <div style={{ 
-        height: '400px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        backgroundColor: '#fff5f5',
-        border: '1px solid #fed7d7',
-        borderRadius: '8px',
-        color: '#c53030'
+      <div style={{
+        margin: '1.5rem auto',
+        maxWidth: '90%',
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div>❌ 轨迹加载失败</div>
-          <div style={{ fontSize: '0.8em', marginTop: '0.5rem' }}>{error}</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (tracks.length === 0 || !mapBounds) {
-    return (
-      <div style={{ 
-        height: '400px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #dee2e6',
-        borderRadius: '8px'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div>📍 未找到轨迹数据</div>
-          <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
-            ID: {trackId}
+        <div style={{
+          height: '440px',  // 400px + 40px 标题栏
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#fff5f5',
+          border: '1px solid #fed7d7',
+          borderRadius: '8px',
+          color: '#c53030',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div>❌ 轨迹加载失败</div>
+            <div style={{ fontSize: '0.8em', marginTop: '0.5rem' }}>{error}</div>
           </div>
         </div>
       </div>
     );
   }
 
+  if (!footprintsData || footprintsData.tracks.length === 0 || !mapBounds) {
+    return (
+      <div style={{
+        margin: '1.5rem auto',
+        maxWidth: '90%',
+      }}>
+        <div style={{
+          height: '440px',  // 400px + 40px 标题栏
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div>📍 未找到轨迹数据</div>
+            <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
+              ID: {trackId}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 根据视口宽度决定最大宽度
+  const getMaxWidth = () => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      return '80%';  // 桌面端使用 80%
+    }
+    return '90%';  // 移动端使用 90%
+  };
+
   return (
-    <div style={{ height: '400px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #dee2e6' }}>
-      <MapContainer
-        bounds={mapBounds}
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
+    <div style={{
+      ...(isFullscreen ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundColor: 'white',
+        margin: 0,
+        maxWidth: '100%',
+        width: '100%',
+        height: '100vh',
+        padding: 0,
+      } : {
+        margin: '1.5rem auto',
+        maxWidth: getMaxWidth(),  // 不占满整个宽度，留出滚动区域
+      }),
+    }}>
+      <div
+        ref={mapContainerRef}
+        style={{
+          borderRadius: isFullscreen ? 0 : '8px',
+          overflow: 'hidden',
+          border: '1px solid #dee2e6',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          height: isFullscreen ? '100%' : 'auto',
+          display: isFullscreen ? 'flex' : 'block',
+          flexDirection: isFullscreen ? 'column' : undefined,
+        }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        {tracks.map((track, trackIndex) => (
-          <React.Fragment key={trackIndex}>
-            {/* 轨迹线 */}
-            {track.points.length > 1 && (
-              <Polyline
-                positions={track.points.map(p => [p.lat, p.lng] as LatLngTuple)}
-                color={generateTrackColors(trackIndex)}
-                weight={3}
-                opacity={0.8}
-              >
-                <Popup>
-                  <div>
-                    <strong>{track.name || `轨迹 ${trackIndex + 1}`}</strong><br/>
-                    点数: {track.points.length}<br/>
-                    格式: {format?.toUpperCase()}<br/>
-                    来源: {source === 'file' ? trackFile : '内联数据'}
-                  </div>
-                </Popup>
-              </Polyline>
-            )}
-            
-            {/* 航点标记 */}
-            {track.waypoints?.map((waypoint, wpIndex) => (
-              <Marker key={`wp-${trackIndex}-${wpIndex}`} position={[waypoint.lat, waypoint.lng]}>
-                <Popup>
-                  <div>
-                    <strong>{waypoint.name || `航点 ${wpIndex + 1}`}</strong><br/>
-                    经纬度: {waypoint.lat.toFixed(6)}, {waypoint.lng.toFixed(6)}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-            
-            {/* 起点和终点标记 */}
-            {track.points.length > 0 && (
-              <>
-                <Marker position={[track.points[0].lat, track.points[0].lng]}>
-                  <Popup>
-                    <div>
-                      <strong>🚩 起点</strong><br/>
-                      {track.name && `轨迹: ${track.name}`}
-                    </div>
-                  </Popup>
-                </Marker>
-                
-                {track.points.length > 1 && (
-                  <Marker position={[track.points[track.points.length - 1].lat, track.points[track.points.length - 1].lng]}>
+        {/* 标题栏 */}
+        <div style={{
+          height: isMobile ? '36px' : '40px',
+          backgroundColor: '#f8f9fa',
+          borderBottom: '1px solid #dee2e6',
+          display: 'flex',
+          alignItems: 'center',
+          padding: `0 ${isMobile ? '8px' : '12px'}`,
+          fontSize: isMobile ? '13px' : '14px',
+          fontWeight: 500,
+          color: '#333',
+        }}>
+          <span>{getMapTitle()}</span>
+          <span style={{
+            marginLeft: '8px',
+            fontSize: isMobile ? '11px' : '12px',
+            color: '#666',
+            fontWeight: 'normal',
+          }}>
+            ({footprintsData.tracks.reduce((sum, track) => sum + track.waypoints.length, 0)} 个轨迹点)
+          </span>
+        </div>
+
+        {/* 地图容器 */}
+        <div style={{
+          height: isFullscreen ? `calc(100% - ${isMobile ? '36px' : '40px'})` : '400px',
+          position: 'relative',
+          flex: isFullscreen ? 1 : undefined,
+        }}>
+          <MapContainer
+            style={{ height: '100%', width: '100%' }}
+            scrollWheelZoom={true}
+            zoomControl={false}  // 禁用默认的缩放控件
+            bounds={mapBounds}
+            boundsOptions={{
+              padding: [50, 50],
+              maxZoom: 16,
+            }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {/* 全屏切换时重新适应边界 */}
+            <RefitBounds bounds={mapBounds} trigger={isFullscreen} />
+
+            {/* 添加自定义控制按钮 */}
+            <MapControls
+              bounds={mapBounds}
+              onFullscreen={handleFullscreen}
+              isMobile={isMobile}
+            />
+
+            {footprintsData.tracks.map((track, trackIndex) => (
+              <React.Fragment key={track.id}>
+                {/* 轨迹线 */}
+                {track.waypoints.length > 1 && (
+                  <Polyline
+                    positions={track.waypoints.map(p => [p.latitude, p.longitude] as LatLngTuple)}
+                    color={track.style.color}
+                    weight={track.style.weight}
+                    opacity={track.style.opacity}
+                  >
                     <Popup>
                       <div>
-                        <strong>🏁 终点</strong><br/>
-                        {track.name && `轨迹: ${track.name}`}
+                        <strong>{track.name || `轨迹 ${trackIndex + 1}`}</strong><br/>
+                        点数: {track.waypoints.length}<br/>
+                        {track.metadata?.totalDistance && `距离: ${(track.metadata.totalDistance / 1000).toFixed(2)} km`}<br/>
+                        {track.provider && `提供商: ${track.provider}`}
+                      </div>
+                    </Popup>
+                  </Polyline>
+                )}
+
+                {/* 照片标记 */}
+                {track.placemarks?.map((placemark, pmIndex) => (
+                  <Marker key={`pm-${track.id}-${pmIndex}`} position={[placemark.latitude!, placemark.longitude!]}>
+                    <Popup>
+                      <div>
+                        <strong>{placemark.name || `照片 ${pmIndex + 1}`}</strong><br/>
+                        {placemark.thumbnailUrl && <img src={placemark.thumbnailUrl} alt={placemark.name} style={{ maxWidth: '200px' }} />}
+                        {placemark.description && <p>{placemark.description}</p>}
                       </div>
                     </Popup>
                   </Marker>
+                ))}
+
+                {/* 起点和终点标记 */}
+                {track.waypoints.length > 0 && (
+                  <>
+                    <Marker position={[track.waypoints[0].latitude, track.waypoints[0].longitude]}>
+                      <Popup>
+                        <div>
+                          <strong>🚩 起点</strong><br/>
+                          {track.name && `轨迹: ${track.name}`}
+                        </div>
+                      </Popup>
+                    </Marker>
+
+                    {track.waypoints.length > 1 && (
+                      <Marker position={[track.waypoints[track.waypoints.length - 1].latitude, track.waypoints[track.waypoints.length - 1].longitude]}>
+                        <Popup>
+                          <div>
+                            <strong>🏁 终点</strong><br/>
+                            {track.name && `轨迹: ${track.name}`}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </React.Fragment>
-        ))}
-      </MapContainer>
+              </React.Fragment>
+            ))}
+          </MapContainer>
+        </div>
+      </div>
     </div>
   );
 };

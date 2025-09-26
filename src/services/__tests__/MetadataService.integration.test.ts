@@ -1,6 +1,6 @@
 /**
  * MetadataService 集成测试
- * 
+ *
  * 使用真实的 metadata.json 数据进行测试
  */
 
@@ -40,10 +40,10 @@ describe('MetadataService Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
     } else {
-      console.log('🚀 启动临时开发服务器...');
-      
+      // console.log('🚀 启动临时开发服务器...');
+
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -54,11 +54,11 @@ describe('MetadataService Integration Tests', () => {
       // 等待服务器启动
       let attempts = 0;
       const maxAttempts = 30; // 30秒超时
-      
+
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          console.log('✅ 开发服务器启动成功');
+          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -72,16 +72,16 @@ describe('MetadataService Integration Tests', () => {
 
   afterAll(async () => {
     if (viteProcess) {
-      console.log('🛑 关闭临时开发服务器...');
+      // console.log('🛑 关闭临时开发服务器...');
       viteProcess.kill('SIGTERM');
-      
+
       // 等待进程关闭
       await new Promise<void>((resolve) => {
         viteProcess!.on('exit', () => {
-          console.log('✅ 开发服务器已关闭');
+          // console.log('✅ 开发服务器已关闭');
           resolve();
         });
-        
+
         // 强制关闭超时
         setTimeout(() => {
           if (viteProcess && !viteProcess.killed) {
@@ -110,37 +110,37 @@ describe('MetadataService Integration Tests', () => {
     it('should load real metadata from Demo vault', async () => {
       // 调试：检查 MetadataService 使用的 URL
       const metadataUrl = metadataService['vaultConfig'].getMetadataUrl();
-      console.log('🔍 MetadataService URL:', metadataUrl);
-      
+      // console.log('🔍 MetadataService URL:', metadataUrl);
+
       const metadata = await metadataService.getMetadata();
-      
+
       expect(metadata).toBeTruthy();
       expect(Array.isArray(metadata)).toBe(true);
       expect(metadata!.length).toBeGreaterThan(0);
-      
+
       // 验证实际文件数量 (基于读取到的数据)
       expect(metadata!.length).toBe(12); // 包含所有 Demo vault 中的文件
-      
-      console.log(`📄 Loaded ${metadata!.length} files from real vault`);
+
+      // console.log(`📄 Loaded ${metadata!.length} files from real vault`);
     });
 
     it('should find specific files from real data', async () => {
       const metadata = await metadataService.getMetadata();
       expect(metadata).toBeTruthy();
-      
+
       // 验证特定文件存在
       const files = metadata!.map(file => file.fileName);
       expect(files).toContain('services-architecture');
       expect(files).toContain('Welcome');
       expect(files).toContain('Abilities');
       expect(files).toContain('README');
-      
-      console.log('✅ Found expected files in real metadata');
+
+      // console.log('✅ Found expected files in real metadata');
     });
 
     it('should have correct file structure for services-architecture', async () => {
       const fileMetadata = await metadataService.getFileMetadata('helenite-docs/services-architecture.md');
-      
+
       expect(fileMetadata).toBeTruthy();
       expect(fileMetadata!.fileName).toBe('services-architecture');
       expect(fileMetadata!.relativePath).toBe('helenite-docs/services-architecture.md');
@@ -148,47 +148,47 @@ describe('MetadataService Integration Tests', () => {
       expect(fileMetadata!.aliases).toContain('helenite');
       expect(fileMetadata!.aliases).toContain('design');
       expect(fileMetadata!.frontmatter?.uuid).toBe('215e245b-8b86-43b8-9728-472b60e47711');
-      
+
       // 验证标题结构
       expect(fileMetadata!.headings).toBeTruthy();
       expect(fileMetadata!.headings!.length).toBeGreaterThan(10);
-      
+
       const firstHeading = fileMetadata!.headings![0];
       expect(firstHeading.heading).toBe('Helenite 服务架构概览');
       expect(firstHeading.level).toBe(1);
-      
-      console.log(`✅ services-architecture has ${fileMetadata!.headings!.length} headings`);
+
+      // console.log(`✅ services-architecture has ${fileMetadata!.headings!.length} headings`);
     });
 
     it('should have correct file structure for Abilities', async () => {
       const fileMetadata = await metadataService.getFileMetadata('FolderA/SubFolder/Abilities.md');
-      
+
       expect(fileMetadata).toBeTruthy();
       expect(fileMetadata!.fileName).toBe('Abilities');
       expect(fileMetadata!.relativePath).toBe('FolderA/SubFolder/Abilities.md');
-      
+
       // 验证标签
       expect(fileMetadata!.tags).toContain('test');
       expect(fileMetadata!.tags).toContain('react');
       expect(fileMetadata!.tags).toContain('markdown');
       expect(fileMetadata!.tags).toContain('obsidian');
       expect(fileMetadata!.tags).toContain('abc');
-      
+
       // 验证链接
       expect(fileMetadata!.links).toBeTruthy();
       expect(fileMetadata!.links!.some(link => link.link === 'Usages')).toBe(true);
       expect(fileMetadata!.links!.some(link => link.link === 'Welcome')).toBe(true);
-      
-      console.log(`✅ Abilities has ${fileMetadata!.tags!.length} tags and ${fileMetadata!.links!.length} links`);
+
+      // console.log(`✅ Abilities has ${fileMetadata!.tags!.length} tags and ${fileMetadata!.links!.length} links`);
     });
   });
 
   describe('Real Data Queries', () => {
     it('should extract all unique tags from real data', async () => {
       const tags = await metadataService.getAllTags();
-      
+
       expect(tags.length).toBeGreaterThan(0);
-      
+
       // 验证特定标签存在
       expect(tags).toContain('helenite');
       expect(tags).toContain('test');
@@ -196,76 +196,76 @@ describe('MetadataService Integration Tests', () => {
       expect(tags).toContain('markdown');
       expect(tags).toContain('obsidian');
       expect(tags).toContain('abc');
-      
-      console.log(`🏷️ Found ${tags.length} unique tags: ${tags.join(', ')}`);
+
+      // console.log(`🏷️ Found ${tags.length} unique tags: ${tags.join(', ')}`);
     });
 
     it('should search files by tag in real data', async () => {
       const reactFiles = await metadataService.getFilesByTag('react');
-      
+
       expect(reactFiles.length).toBeGreaterThan(0);
       expect(reactFiles.some(file => file.fileName === 'Abilities')).toBe(true);
-      
+
       const heleniteFiles = await metadataService.getFilesByTag('helenite');
       expect(heleniteFiles.length).toBeGreaterThan(0);
       expect(heleniteFiles.some(file => file.fileName === 'services-architecture')).toBe(true);
-      
-      console.log(`🔍 Found ${reactFiles.length} files with 'react' tag, ${heleniteFiles.length} files with 'helenite' tag`);
+
+      // console.log(`🔍 Found ${reactFiles.length} files with 'react' tag, ${heleniteFiles.length} files with 'helenite' tag`);
     });
 
     it('should search files by name in real data', async () => {
       const searchResults = await metadataService.searchInMetadata('Welcome');
-      
+
       expect(searchResults.length).toBeGreaterThan(0);
       expect(searchResults.some(file => file.fileName === 'Welcome')).toBe(true);
       expect(searchResults.some(file => file.fileName === 'Abilities')).toBe(true); // Abilities has "Welcome to Helenite" heading
-      
-      console.log(`🔍 Search 'Welcome' found ${searchResults.length} files`);
+
+      // console.log(`🔍 Search 'Welcome' found ${searchResults.length} files`);
     });
 
     it('should find backlinks in real data', async () => {
       const backlinks = await metadataService.getFileBacklinks('Welcome.md');
-      
+
       expect(backlinks.length).toBeGreaterThan(0);
       expect(backlinks.some(link => link.fileName === 'Abilities')).toBe(true);
-      
-      console.log(`🔗 Welcome.md has ${backlinks.length} backlinks`);
+
+      // console.log(`🔗 Welcome.md has ${backlinks.length} backlinks`);
     });
 
     it('should find outgoing links in real data', async () => {
       const outgoingLinks = await metadataService.getFileLinks('FolderA/SubFolder/Abilities.md');
-      
+
       expect(outgoingLinks.length).toBeGreaterThan(0);
       expect(outgoingLinks.some(link => link.link === 'Usages')).toBe(true);
       expect(outgoingLinks.some(link => link.link === 'Welcome')).toBe(true);
-      
-      console.log(`🔗 Abilities.md has ${outgoingLinks.length} outgoing links`);
+
+      // console.log(`🔗 Abilities.md has ${outgoingLinks.length} outgoing links`);
     });
   });
 
   describe('Caching Integration', () => {
     it('should demonstrate caching performance with real data', async () => {
-      console.log('🔄 Testing caching performance with real data...');
-      
+      // console.log('🔄 Testing caching performance with real data...');
+
       // 第一次调用 - 从网络加载
       console.time('First call (network)');
       const metadata1 = await cachedMetadataService.getMetadata();
       console.timeEnd('First call (network)');
-      
+
       // 第二次调用 - 从缓存加载
       console.time('Second call (cached)');
       const metadata2 = await cachedMetadataService.getMetadata();
       console.timeEnd('Second call (cached)');
-      
+
       // 验证数据一致性
       expect(metadata1).toEqual(metadata2);
       expect(metadata1!.length).toBe(metadata2!.length);
-      
+
       // 获取缓存统计
       const stats = await cacheManager.getStatistics();
       expect(stats.totalEntries).toBeGreaterThan(0);
-      
-      console.log(`📊 Cache stats: ${stats.totalEntries} entries, hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+
+      // console.log(`📊 Cache stats: ${stats.totalEntries} entries, hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
     });
 
     it('should cache individual file metadata', async () => {
@@ -273,15 +273,15 @@ describe('MetadataService Integration Tests', () => {
       console.time('First file metadata call');
       const fileMetadata1 = await cachedMetadataService.getFileMetadata('helenite-docs/services-architecture.md');
       console.timeEnd('First file metadata call');
-      
+
       console.time('Second file metadata call (cached)');
       const fileMetadata2 = await cachedMetadataService.getFileMetadata('helenite-docs/services-architecture.md');
       console.timeEnd('Second file metadata call (cached)');
-      
+
       expect(fileMetadata1).toEqual(fileMetadata2);
       expect(fileMetadata1!.fileName).toBe('services-architecture');
-      
-      console.log('✅ File metadata caching works correctly');
+
+      // console.log('✅ File metadata caching works correctly');
     });
 
     it('should cache search results', async () => {
@@ -289,46 +289,46 @@ describe('MetadataService Integration Tests', () => {
       console.time('First search');
       const searchResults1 = await cachedMetadataService.searchInMetadata('react');
       console.timeEnd('First search');
-      
+
       console.time('Second search (cached)');
       const searchResults2 = await cachedMetadataService.searchInMetadata('react');
       console.timeEnd('Second search (cached)');
-      
+
       expect(searchResults1).toEqual(searchResults2);
       expect(searchResults1.length).toBeGreaterThan(0);
-      
-      console.log(`✅ Search results caching works correctly (${searchResults1.length} results)`);
+
+      // console.log(`✅ Search results caching works correctly (${searchResults1.length} results)`);
     });
   });
 
   describe('Link Analysis Integration', () => {
     it('should analyze link relationships in real data', async () => {
       const allFiles = await metadataService.getAllFiles();
-      
+
       // 统计链接关系
       let totalLinks = 0;
       let totalBacklinks = 0;
-      
+
       for (const file of allFiles) {
         const links = file.links || [];
         const backlinks = file.backlinks || [];
         totalLinks += links.length;
         totalBacklinks += backlinks.length;
       }
-      
+
       expect(totalLinks).toBeGreaterThan(0);
       expect(totalBacklinks).toBeGreaterThan(0);
-      
-      console.log(`🔗 Total links: ${totalLinks}, total backlinks: ${totalBacklinks}`);
+
+      // console.log(`🔗 Total links: ${totalLinks}, total backlinks: ${totalBacklinks}`);
     });
 
     it('should find files linking to specific target', async () => {
       const filesLinkingToWelcome = await metadataService.getFilesLinkingTo('Welcome');
-      
+
       expect(filesLinkingToWelcome.length).toBeGreaterThan(0);
       expect(filesLinkingToWelcome.some(file => file.fileName === 'Abilities')).toBe(true);
-      
-      console.log(`📄 ${filesLinkingToWelcome.length} files link to 'Welcome'`);
+
+      // console.log(`📄 ${filesLinkingToWelcome.length} files link to 'Welcome'`);
     });
   });
 

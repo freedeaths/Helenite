@@ -1,15 +1,15 @@
 /**
  * TagService - 标签服务
- * 
+ *
  * 基于 LocalTagAPI 重构，作为独立的服务层
  * 关键优化：全局标签从 tags.json 直接读取，局部标签从 metadata 计算
- * 
+ *
  * 架构设计：TagService 依赖 MetadataService 和 StorageService
  */
 
 import { createVaultConfig } from '../config/vaultConfig.js';
 import type { VaultPaths } from '../config/vaultConfig.js';
-import type { 
+import type {
   ITagService,
   TagData,
   TagStats,
@@ -58,9 +58,9 @@ export class TagService implements ITagService {
    */
   async getAllTags(options: TagSearchOptions = {}): Promise<TagData[]> {
     try {
-      console.log('🔄 Loading global tags from tags.json...');
+      // console.log('🔄 Loading global tags from tags.json...');
       const tagsJson = await this.getTagsFromJson();
-      
+
       if (!tagsJson || tagsJson.length === 0) {
         console.warn('⚠️ tags.json is empty, falling back to metadata calculation');
         return this.calculateTagsFromMetadata(options);
@@ -76,11 +76,11 @@ export class TagService implements ITagService {
       // 应用排序和限制
       tags = this.applySortingAndLimit(tags, options);
 
-      console.log(`✅ Loaded ${tags.length} global tags from tags.json`);
+      // console.log(`✅ Loaded ${tags.length} global tags from tags.json`);
       return tags;
     } catch (error) {
       console.error('❌ Failed to load tags from tags.json:', error);
-      console.log('🔄 Falling back to metadata calculation...');
+      // console.log('🔄 Falling back to metadata calculation...');
       return this.calculateTagsFromMetadata(options);
     }
   }
@@ -93,7 +93,7 @@ export class TagService implements ITagService {
     try {
       // 标准化文件路径
       const normalizedPath = this.normalizePath(filePath);
-      
+
       const fileMetadata = await this.metadataService.getFileMetadata(normalizedPath);
       if (!fileMetadata) {
         console.warn(`❌ File not found in metadata: ${filePath}`);
@@ -101,11 +101,11 @@ export class TagService implements ITagService {
       }
 
       const tags = fileMetadata.tags || [];
-      
+
       // 添加 # 前缀并排序
       const formattedTags = tags.map(tag => `#${tag}`).sort();
-      
-      console.log(`📄 File ${normalizedPath} has ${formattedTags.length} tags`);
+
+      // console.log(`📄 File ${normalizedPath} has ${formattedTags.length} tags`);
       return formattedTags;
     } catch (error) {
       console.error(`❌ Failed to get tags for file ${filePath}:`, error);
@@ -120,23 +120,23 @@ export class TagService implements ITagService {
   async getFilesByTag(tag: string): Promise<string[]> {
     try {
       const normalizedTag = tag.startsWith('#') ? tag.slice(1) : tag;
-      
+
       // 首先尝试从 tags.json 获取
       const tagsJson = await this.getTagsFromJson();
       if (tagsJson && tagsJson.length > 0) {
         const tagEntry = tagsJson.find(entry => entry.tag === normalizedTag);
         if (tagEntry) {
-          console.log(`📄 Found ${tagEntry.relativePaths.length} files for tag '${tag}' from tags.json`);
+          // console.log(`📄 Found ${tagEntry.relativePaths.length} files for tag '${tag}' from tags.json`);
           return tagEntry.relativePaths;
         }
       }
 
       // 降级到从 metadata 计算
-      console.log(`🔄 Tag '${tag}' not found in tags.json, calculating from metadata...`);
+      // console.log(`🔄 Tag '${tag}' not found in tags.json, calculating from metadata...`);
       const files = await this.metadataService.getFilesByTag(normalizedTag);
       const filePaths = files.map(file => file.relativePath);
-      
-      console.log(`📄 Found ${filePaths.length} files for tag '${tag}' from metadata`);
+
+      // console.log(`📄 Found ${filePaths.length} files for tag '${tag}' from metadata`);
       return filePaths;
     } catch (error) {
       console.error(`❌ Failed to get files for tag ${tag}:`, error);
@@ -151,7 +151,7 @@ export class TagService implements ITagService {
     try {
       const allTags = await this.getAllTags();
       const metadata = await this.metadataService.getMetadata();
-      
+
       if (!metadata || metadata.length === 0) {
         return this.getEmptyTagStats();
       }
@@ -159,15 +159,15 @@ export class TagService implements ITagService {
       const totalTags = allTags.length;
       const filesWithTags = metadata.filter(file => file.tags && file.tags.length > 0);
       const totalFiles = filesWithTags.length;
-      
+
       // 计算平均值
       const totalTagUsages = allTags.reduce((sum, tag) => sum + tag.count, 0);
       const averageTagsPerFile = totalFiles > 0 ? totalTagUsages / totalFiles : 0;
       const averageFilesPerTag = totalTags > 0 ? totalTagUsages / totalTags : 0;
-      
+
       // 找到最常用标签
       const mostUsedTag = allTags.length > 0 ? allTags[0] : undefined;
-      
+
       // 计算频率分布
       const frequencyDistribution = this.calculateFrequencyDistribution(allTags);
 
@@ -180,7 +180,7 @@ export class TagService implements ITagService {
         frequencyDistribution
       };
 
-      console.log(`📊 Tag statistics: ${totalTags} tags, ${totalFiles} files`);
+      // console.log(`📊 Tag statistics: ${totalTags} tags, ${totalFiles} files`);
       return stats;
     } catch (error) {
       console.error('❌ Failed to calculate tag stats:', error);
@@ -199,11 +199,11 @@ export class TagService implements ITagService {
     try {
       const allTags = await this.getAllTags();
       const { caseSensitive = false } = options;
-      
+
       // 标准化查询字符串
       const normalizedQuery = caseSensitive ? query : query.toLowerCase();
       const searchQuery = normalizedQuery.startsWith('#') ? normalizedQuery : `#${normalizedQuery}`;
-      
+
       // 过滤匹配的标签
       let matchedTags = allTags.filter(tag => {
         const tagName = caseSensitive ? tag.name : tag.name.toLowerCase();
@@ -212,8 +212,8 @@ export class TagService implements ITagService {
 
       // 应用排序和限制
       matchedTags = this.applySortingAndLimit(matchedTags, options);
-      
-      console.log(`🔍 Search '${query}' found ${matchedTags.length} tags`);
+
+      // console.log(`🔍 Search '${query}' found ${matchedTags.length} tags`);
       return matchedTags;
     } catch (error) {
       console.error(`❌ Failed to search tags with query '${query}':`, error);
@@ -228,25 +228,25 @@ export class TagService implements ITagService {
     try {
       const allTags = await this.getAllTags();
       const { minCount, maxCount, pathPrefix, excludeTags = [] } = options;
-      
+
       let filteredTags = allTags.filter(tag => {
         // 使用次数过滤
         if (minCount !== undefined && tag.count < minCount) return false;
         if (maxCount !== undefined && tag.count > maxCount) return false;
-        
+
         // 排除标签过滤
         if (excludeTags.includes(tag.name)) return false;
-        
+
         // 路径前缀过滤
         if (pathPrefix) {
           const hasMatchingFiles = tag.files.some(file => file.startsWith(pathPrefix));
           if (!hasMatchingFiles) return false;
         }
-        
+
         return true;
       });
 
-      console.log(`🔍 Filter applied: ${filteredTags.length} tags match criteria`);
+      // console.log(`🔍 Filter applied: ${filteredTags.length} tags match criteria`);
       return filteredTags;
     } catch (error) {
       console.error('❌ Failed to filter tags:', error);
@@ -261,15 +261,15 @@ export class TagService implements ITagService {
     try {
       const normalizedTag = tag.startsWith('#') ? tag : `#${tag}`;
       const allTags = await this.getAllTags();
-      
+
       const tagData = allTags.find(t => t.name === normalizedTag);
-      
+
       if (tagData) {
-        console.log(`📋 Tag '${tag}' details: ${tagData.count} files`);
+        // console.log(`📋 Tag '${tag}' details: ${tagData.count} files`);
       } else {
         console.warn(`❌ Tag '${tag}' not found`);
       }
-      
+
       return tagData || null;
     } catch (error) {
       console.error(`❌ Failed to get tag details for '${tag}':`, error);
@@ -300,7 +300,7 @@ export class TagService implements ITagService {
   async getMostUsedTags(limit: number = 10): Promise<TagData[]> {
     try {
       const allTags = await this.getAllTags({ sortBy: 'count', sortOrder: 'desc', limit });
-      console.log(`🔝 Top ${allTags.length} most used tags`);
+      // console.log(`🔝 Top ${allTags.length} most used tags`);
       return allTags;
     } catch (error) {
       console.error('❌ Failed to get most used tags:', error);
@@ -314,7 +314,7 @@ export class TagService implements ITagService {
   async getLeastUsedTags(limit: number = 10): Promise<TagData[]> {
     try {
       const allTags = await this.getAllTags({ sortBy: 'count', sortOrder: 'asc', limit });
-      console.log(`🔻 Bottom ${allTags.length} least used tags`);
+      // console.log(`🔻 Bottom ${allTags.length} least used tags`);
       return allTags;
     } catch (error) {
       console.error('❌ Failed to get least used tags:', error);
@@ -328,7 +328,7 @@ export class TagService implements ITagService {
   async getOrphanTags(): Promise<TagData[]> {
     try {
       const orphanTags = await this.filterTags({ minCount: 1, maxCount: 1 });
-      console.log(`🏝️ Found ${orphanTags.length} orphan tags`);
+      // console.log(`🏝️ Found ${orphanTags.length} orphan tags`);
       return orphanTags;
     } catch (error) {
       console.error('❌ Failed to get orphan tags:', error);
@@ -348,11 +348,11 @@ export class TagService implements ITagService {
 
       // 统计与目标标签共现的其他标签
       const tagCooccurrence = new Map<string, number>();
-      
+
       for (const filePath of files) {
         const fileTags = await this.getFileTags(filePath);
         const normalizedTag = tag.startsWith('#') ? tag : `#${tag}`;
-        
+
         for (const fileTag of fileTags) {
           if (fileTag !== normalizedTag) {
             tagCooccurrence.set(fileTag, (tagCooccurrence.get(fileTag) || 0) + 1);
@@ -375,7 +375,7 @@ export class TagService implements ITagService {
           return rest;
         });
 
-      console.log(`🔗 Found ${relatedTags.length} related tags for '${tag}'`);
+      // console.log(`🔗 Found ${relatedTags.length} related tags for '${tag}'`);
       return relatedTags;
     } catch (error) {
       console.error(`❌ Failed to get related tags for '${tag}':`, error);
@@ -395,7 +395,7 @@ export class TagService implements ITagService {
     try {
       const fileTags = await this.getFileTags(filePath);
       const allTags = await this.getAllTags();
-      
+
       // 创建标签使用频率映射
       const tagFrequencyMap = new Map<string, number>();
       for (const tagData of allTags) {
@@ -405,7 +405,7 @@ export class TagService implements ITagService {
       // 分类标签
       const commonTags: string[] = [];
       const rareTags: string[] = [];
-      
+
       for (const tag of fileTags) {
         const frequency = tagFrequencyMap.get(tag) || 0;
         if (frequency >= 5) { // 被5个或更多文件使用
@@ -422,7 +422,7 @@ export class TagService implements ITagService {
         rareTags
       };
 
-      console.log(`📊 File '${filePath}' tag pattern: ${result.totalTags} total, ${commonTags.length} common, ${rareTags.length} rare`);
+      // console.log(`📊 File '${filePath}' tag pattern: ${result.totalTags} total, ${commonTags.length} common, ${rareTags.length} rare`);
       return result;
     } catch (error) {
       console.error(`❌ Failed to analyze tag pattern for '${filePath}':`, error);
@@ -457,7 +457,7 @@ export class TagService implements ITagService {
 
       for (const filePath of files) {
         const fileTags = await this.getFileTags(filePath);
-        
+
         for (const fileTag of fileTags) {
           if (fileTag !== normalizedTag) {
             if (!cooccurrenceMap.has(fileTag)) {
@@ -485,7 +485,7 @@ export class TagService implements ITagService {
         cooccurredTags
       };
 
-      console.log(`🔗 Tag '${tag}' co-occurs with ${cooccurredTags.length} other tags`);
+      // console.log(`🔗 Tag '${tag}' co-occurs with ${cooccurredTags.length} other tags`);
       return result;
     } catch (error) {
       console.error(`❌ Failed to get tag co-occurrence for '${tag}':`, error);
@@ -515,7 +515,7 @@ export class TagService implements ITagService {
 
       // 统计文件夹内的标签分布
       const tagMap = new Map<string, TagData>();
-      
+
       for (const file of folderFiles) {
         const tags = file.tags || [];
         for (const tag of tags) {
@@ -544,7 +544,7 @@ export class TagService implements ITagService {
         tagDistribution
       };
 
-      console.log(`📁 Folder '${folderPath || 'root'}' has ${tagDistribution.length} unique tags across ${folderFiles.length} files`);
+      // console.log(`📁 Folder '${folderPath || 'root'}' has ${tagDistribution.length} unique tags across ${folderFiles.length} files`);
       return result;
     } catch (error) {
       console.error(`❌ Failed to get folder tag distribution for '${folderPath}':`, error);
@@ -560,18 +560,18 @@ export class TagService implements ITagService {
       // 获取文件所在文件夹的标签分布
       const folderPath = this.getParentPath(filePath);
       const folderDistribution = await this.getFolderTagDistribution(folderPath || '');
-      
+
       // 获取文件现有标签
       const existingTags = await this.getFileTags(filePath);
       const existingTagSet = new Set(existingTags);
-      
+
       // 从文件夹常用标签中建议
       const suggestions = folderDistribution.tagDistribution
         .filter(tagData => !existingTagSet.has(tagData.name))
         .slice(0, limit)
         .map(tagData => tagData.name);
 
-      console.log(`💡 Suggested ${suggestions.length} tags for '${filePath}'`);
+      // console.log(`💡 Suggested ${suggestions.length} tags for '${filePath}'`);
       return suggestions;
     } catch (error) {
       console.error(`❌ Failed to suggest tags for '${filePath}':`, error);
@@ -589,7 +589,7 @@ export class TagService implements ITagService {
   async refreshCache(): Promise<void> {
     // 通过底层服务刷新缓存
     await this.metadataService.refreshCache();
-    console.log('🔄 Tag cache refreshed');
+    // console.log('🔄 Tag cache refreshed');
   }
 
   /**
@@ -616,7 +616,7 @@ export class TagService implements ITagService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.metadataService.switchVault(vaultId);
-    console.log(`🔄 TagService switched to vault: ${vaultId}`);
+    // console.log(`🔄 TagService switched to vault: ${vaultId}`);
   }
 
   /**
@@ -640,7 +640,7 @@ export class TagService implements ITagService {
     try {
       const tagsJsonPath = '.obsidian/plugins/metadata-extractor/tags.json';
       const content = await this.storageService.readFile(tagsJsonPath);
-      
+
       if (typeof content !== 'string') {
         console.warn('⚠️ tags.json content is not string');
         return null;
@@ -673,7 +673,7 @@ export class TagService implements ITagService {
 
         for (const tag of tags) {
           const tagWithHash = `#${tag}`;
-          
+
           if (!tagMap.has(tagWithHash)) {
             tagMap.set(tagWithHash, {
               name: tagWithHash,
@@ -693,7 +693,7 @@ export class TagService implements ITagService {
       let tags = Array.from(tagMap.values());
       tags = this.applySortingAndLimit(tags, options);
 
-      console.log(`✅ Calculated ${tags.length} tags from metadata`);
+      // console.log(`✅ Calculated ${tags.length} tags from metadata`);
       return tags;
     } catch (error) {
       console.error('❌ Failed to calculate tags from metadata:', error);
@@ -710,7 +710,7 @@ export class TagService implements ITagService {
     // 排序
     tags.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
@@ -804,7 +804,7 @@ export function initializeTagService(
   vaultId?: string
 ): TagService {
   _globalTagService = new TagService(metadataService, storageService, vaultId);
-  console.log(`✅ TagService initialized for vault: ${vaultId || 'Demo'}`);
+  // console.log(`✅ TagService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalTagService;
 }
 
@@ -813,5 +813,5 @@ export function initializeTagService(
  */
 export function disposeTagService(): void {
   _globalTagService = null;
-  console.log('🗑️ TagService disposed');
+  // console.log('🗑️ TagService disposed');
 }

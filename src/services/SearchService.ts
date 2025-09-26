@@ -1,9 +1,9 @@
 /**
  * SearchService - 搜索服务
- * 
+ *
  * 基于现有的 ISearchAPI 接口，提供搜索功能，支持：
  * - 全文搜索
- * - 标签搜索  
+ * - 标签搜索
  * - 统一搜索入口
  * - 缓存支持
  */
@@ -116,7 +116,7 @@ export class SearchService {
   async searchContent(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
       const startTime = Date.now();
-      
+
       // 检查缓存
       const cacheKey = this.getCacheKey('content', query, options);
       if (this.searchCache.has(cacheKey)) {
@@ -131,7 +131,7 @@ export class SearchService {
         try {
           const fileName = this.getFileNameWithoutExtension(fileInfo.relativePath);
           const relativePath = fileInfo.relativePath;
-          
+
           // 应用路径前缀过滤
           if (options.pathPrefix && !relativePath.startsWith(options.pathPrefix)) {
             continue;
@@ -139,7 +139,7 @@ export class SearchService {
 
           // 获取文件内容
           let content = await this.getFileContent(relativePath);
-          
+
           // 如果包含文件路径在搜索范围内
           if (options.includeFilePath !== false) {
             content = content + '\n' + relativePath;
@@ -170,10 +170,10 @@ export class SearchService {
 
       // 缓存结果
       this.searchCache.set(cacheKey, sortedResults);
-      
+
       const searchTime = Date.now() - startTime;
-      console.log(`🔍 Content search completed: "${query}" found ${sortedResults.length} results in ${searchTime}ms`);
-      
+      // console.log(`🔍 Content search completed: "${query}" found ${sortedResults.length} results in ${searchTime}ms`);
+
       return sortedResults;
     } catch (error) {
       console.error(`❌ Content search failed for query "${query}":`, error);
@@ -188,7 +188,7 @@ export class SearchService {
   async searchByTag(tag: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
       const startTime = Date.now();
-      
+
       // 检查缓存
       const cacheKey = this.getCacheKey('tag', tag, options);
       if (this.searchCache.has(cacheKey)) {
@@ -204,7 +204,7 @@ export class SearchService {
         try {
           const fileName = this.getFileNameWithoutExtension(fileInfo.relativePath);
           const relativePath = fileInfo.relativePath;
-          
+
           // 应用路径前缀过滤
           if (options.pathPrefix && !relativePath.startsWith(options.pathPrefix)) {
             continue;
@@ -231,7 +231,7 @@ export class SearchService {
           // 如果元数据中没有，尝试从文件内容搜索标签
           let content = await this.getFileContent(relativePath);
           content = this.processFrontmatterForTagSearch(content);
-          
+
           if (options.includeFilePath !== false) {
             content = content + '\n' + relativePath;
           }
@@ -257,9 +257,9 @@ export class SearchService {
 
       // 缓存结果
       this.searchCache.set(cacheKey, limitedResults);
-      
+
       const searchTime = Date.now() - startTime;
-      console.log(`🏷️ Tag search completed: "${tagName}" found ${limitedResults.length} results in ${searchTime}ms`);
+      // console.log(`🏷️ Tag search completed: "${tagName}" found ${limitedResults.length} results in ${searchTime}ms`);
 
       return limitedResults;
     } catch (error) {
@@ -422,15 +422,15 @@ export class SearchService {
       const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const flags = options.caseSensitive ? 'gm' : 'gmi';
       const pattern = new RegExp(`^.*${escapedQuery}.*$`, flags);
-      
+
       const lines = content.split('\n');
       const matches: SearchMatch[] = [];
-      
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (pattern.test(line)) {
           const highlighted = this.highlightSearchResults(line, query);
-          
+
           matches.push({
             content: line,
             highlighted,
@@ -438,7 +438,7 @@ export class SearchService {
           });
         }
       }
-      
+
       return matches;
     } catch (error) {
       console.error('Search execution failed:', error);
@@ -457,7 +457,7 @@ export class SearchService {
 
     const frontmatter = frontmatterMatch[1];
     const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]/s) || frontmatter.match(/tags:(.*)/);
-    
+
     if (tagsMatch) {
       const tagText = tagsMatch[1];
       content = content + '\n' + tagText;

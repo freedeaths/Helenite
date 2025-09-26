@@ -22,7 +22,7 @@ export function NewTOC() {
       for (const container of mainContentContainers) {
         const htmlContainer = container as HTMLElement;
         if (htmlContainer.contains(targetElement)) {
-          console.log('🎯 找到新架构滚动容器:', htmlContainer.className);
+          // console.log('🎯 找到新架构滚动容器:', htmlContainer.className);
           return htmlContainer;
         }
       }
@@ -37,7 +37,7 @@ export function NewTOC() {
                          computedStyle.overflow === 'scroll';
 
         if (hasScroll && currentElement.scrollHeight > currentElement.clientHeight) {
-          console.log('🎯 找到滚动父容器:', currentElement.className, { scrollHeight: currentElement.scrollHeight, clientHeight: currentElement.clientHeight });
+          // console.log('🎯 找到滚动父容器:', currentElement.className, { scrollHeight: currentElement.scrollHeight, clientHeight: currentElement.clientHeight });
           return currentElement;
         }
         currentElement = currentElement.parentElement;
@@ -49,7 +49,7 @@ export function NewTOC() {
       for (const container of allScrollableContainers) {
         const htmlContainer = container as HTMLElement;
         if (htmlContainer.contains(targetElement) && htmlContainer.scrollHeight > htmlContainer.clientHeight) {
-          console.log('🎯 找到备用滚动容器:', htmlContainer.className);
+          // console.log('🎯 找到备用滚动容器:', htmlContainer.className);
           return htmlContainer;
         }
       }
@@ -61,7 +61,7 @@ export function NewTOC() {
       const element = document.getElementById(id);
       if (!element) {
         if (retryCount < 3) {
-          console.log(`🎯 NewTOC: Element "${id}" not found, retrying... (attempt ${retryCount + 1})`);
+          // console.log(`🎯 NewTOC: Element "${id}" not found, retrying... (attempt ${retryCount + 1})`);
           setTimeout(() => executeScroll(retryCount + 1, true), 100);
           return;
         }
@@ -83,10 +83,10 @@ export function NewTOC() {
         const scrollOffset = 10;
         const targetScrollTop = Math.max(0, elementRelativeTop - scrollOffset);
 
-        console.log(`🎯 [${isMobile ? 'MOBILE' : 'DESKTOP'}] NewTOC Navigation ${isRetry ? '(RETRY)' : '(INITIAL)'}:
-          Target: ${id}
-          Container: ${scrollContainer.className}
-          Container scroll: ${scrollContainer.scrollTop}px → ${targetScrollTop}px`);
+        // console.log(`🎯 [${isMobile ? 'MOBILE' : 'DESKTOP'}] NewTOC Navigation ${isRetry ? '(RETRY)' : '(INITIAL)'}:
+        //   Target: ${id}
+        //   Container: ${scrollContainer.className}
+        //   Container scroll: ${scrollContainer.scrollTop}px → ${targetScrollTop}px`);
 
         scrollContainer.scrollTo({
           top: targetScrollTop,
@@ -101,7 +101,7 @@ export function NewTOC() {
             console.warn(`🎯 NewTOC: Scroll position mismatch! Expected: ${targetScrollTop}px, Got: ${afterInstantScroll}px`);
 
             if (!isRetry && retryCount === 0) {
-              console.log('🎯 NewTOC: Retrying scroll due to position mismatch...');
+              // console.log('🎯 NewTOC: Retrying scroll due to position mismatch...');
               setTimeout(() => executeScroll(1, true), 150);
               return;
             }
@@ -142,7 +142,7 @@ export function NewTOC() {
       for (const container of mainContentContainers) {
         const htmlContainer = container as HTMLElement;
         if (htmlContainer.scrollHeight > htmlContainer.clientHeight) {
-          console.log('🎯 滚动跟踪找到新架构容器:', htmlContainer.className);
+          // console.log('🎯 滚动跟踪找到新架构容器:', htmlContainer.className);
           return htmlContainer;
         }
       }
@@ -159,7 +159,7 @@ export function NewTOC() {
                            computedStyle.overflow === 'scroll';
 
           if (hasScroll && element.scrollHeight > element.clientHeight) {
-            console.log('🎯 滚动跟踪找到备用容器:', element.className);
+            // console.log('🎯 滚动跟踪找到备用容器:', element.className);
             return element as HTMLElement;
           }
           element = element.parentElement;

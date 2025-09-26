@@ -57,10 +57,10 @@ export function mermaidRenderer(options: MermaidRendererOptions = {}) {
           children: []
         };
 
-        console.log('🎨 mermaidRenderer: Creating MermaidDiagram element:', {
-          id: diagram.id,
-          codeLength: diagram.code.length
-        });
+        // console.log('🎨 mermaidRenderer: Creating MermaidDiagram element:', {
+        //   id: diagram.id,
+        //   codeLength: diagram.code.length
+        // });
 
         // 替换文本节点为 MermaidDiagram 组件
         parent.children[index] = mermaidNode;

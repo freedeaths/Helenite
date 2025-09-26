@@ -79,12 +79,12 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
           if (part.type === 'text') {
             return { type: 'text', value: part.value };
           } else {
+            // Keep as text node but mark it with data for rehype processing
             return {
-              type: 'link',
-              url: `${opts.tagUrlPrefix}${encodeURIComponent(part.value.slice(1))}`,
-              title: null,
-              children: [{ type: 'text', value: part.value }],
+              type: 'text',
+              value: part.value,
               data: {
+                hName: 'span',
                 hProperties: {
                   className: [opts.tagClassName],
                   'data-tag': part.value.slice(1)

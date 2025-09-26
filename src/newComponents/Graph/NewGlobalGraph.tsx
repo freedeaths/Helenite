@@ -31,7 +31,7 @@ export function NewGlobalGraph() {
         setLoading(true);
         setError(null);
         const data = await vaultService?.getGlobalGraph();
-        console.log('📊 Loaded global graph data:', data);
+        // console.log('📊 Loaded global graph data:', data);
         setGraphData(data || null);
       } catch (err) {
         console.error('❌ Failed to load global graph data:', err);
@@ -149,7 +149,7 @@ export function NewGlobalGraph() {
 
         // 只有文件节点（非标签节点）才能跳转 - 完全复制老版本逻辑
         if (d.type !== 'tag' && d.path) {
-          console.log(`📊 Navigating to file from global graph: ${d.path}`);
+          // console.log(`📊 Navigating to file from global graph: ${d.path}`);
           navigateToFile(d.path);
         }
       });

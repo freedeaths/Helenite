@@ -1,6 +1,6 @@
 /**
  * CacheManager 使用示例
- * 
+ *
  * 展示如何使用 CacheManager 为 MetadataService 和 StorageService 创建透明缓存
  */
 
@@ -40,8 +40,8 @@ export class ApplicationServices {
 
     // 2. 通过 CacheManager 创建缓存代理（零侵入）
     this.cachedStorageService = this.cacheManager.createCachedStorageService(rawStorageService);
-    
-    console.log('✅ StorageService with transparent caching created');
+
+    // console.log('✅ StorageService with transparent caching created');
     return this.cachedStorageService;
   }
 
@@ -58,8 +58,8 @@ export class ApplicationServices {
 
     // 2. 通过 CacheManager 创建缓存代理（零侵入）
     this.cachedMetadataService = this.cacheManager.createCachedMetadataService(rawMetadataService);
-    
-    console.log('✅ MetadataService with transparent caching created');
+
+    // console.log('✅ MetadataService with transparent caching created');
     return this.cachedMetadataService;
   }
 
@@ -75,7 +75,7 @@ export class ApplicationServices {
    */
   async clearAllCaches() {
     await this.cacheManager.clearCache();
-    console.log('🧹 All caches cleared');
+    // console.log('🧹 All caches cleared');
   }
 
   /**
@@ -83,7 +83,7 @@ export class ApplicationServices {
    */
   async dispose() {
     this.cacheManager.dispose();
-    console.log('🗑️ ApplicationServices disposed');
+    // console.log('🗑️ ApplicationServices disposed');
   }
 }
 
@@ -91,32 +91,32 @@ export class ApplicationServices {
  * 使用示例 1：基础使用
  */
 export async function basicUsage() {
-  console.log('🚀 Basic CacheManager Usage Example');
-  
+  // console.log('🚀 Basic CacheManager Usage Example');
+
   const appServices = new ApplicationServices();
-  
+
   // 创建带缓存的服务
   const storageService = await appServices.createStorageService({
     basePath: '/vaults/Demo'
   });
-  
+
   const metadataService = await appServices.createMetadataService('Demo');
-  
+
   // 使用服务 - 完全透明的缓存
   console.time('First metadata call');
   const metadata1 = await metadataService.getMetadata();
   console.timeEnd('First metadata call');
-  
+
   console.time('Second metadata call (cached)');
   const metadata2 = await metadataService.getMetadata();
   console.timeEnd('Second metadata call (cached)');
-  
-  console.log(`✅ Both calls returned ${metadata1?.length === metadata2?.length ? 'identical' : 'different'} results`);
-  
+
+  // console.log(`✅ Both calls returned ${metadata1?.length === metadata2?.length ? 'identical' : 'different'} results`);
+
   // 查看缓存统计
   const stats = await appServices.getCacheStats();
-  console.log('📊 Cache stats:', stats);
-  
+  // console.log('📊 Cache stats:', stats);
+
   await appServices.dispose();
 }
 
@@ -124,27 +124,27 @@ export async function basicUsage() {
  * 使用示例 2：多服务透明缓存
  */
 export async function multiServiceCaching() {
-  console.log('🔄 Multi-Service Transparent Caching Example');
-  
+  // console.log('🔄 Multi-Service Transparent Caching Example');
+
   const appServices = new ApplicationServices();
-  
+
   const storageService = await appServices.createStorageService({
     basePath: '/vaults/Demo'
   });
-  
+
   const metadataService = await appServices.createMetadataService('Demo');
-  
+
   // 并发调用 - 都会自动享受缓存
   const [metadata, fileContent, tags] = await Promise.all([
     metadataService.getMetadata(),
     storageService.readFile('Welcome.md').catch(() => 'File not found'),
     metadataService.getAllTags()
   ]);
-  
-  console.log(`📄 Loaded ${metadata?.length || 0} files`);
-  console.log(`📝 File content: ${typeof fileContent === 'string' ? fileContent.slice(0, 50) + '...' : 'Binary'}`);
-  console.log(`🏷️ Found ${tags.length} tags`);
-  
+
+  // console.log(`📄 Loaded ${metadata?.length || 0} files`);
+  // console.log(`📝 File content: ${typeof fileContent === 'string' ? fileContent.slice(0, 50) + '...' : 'Binary'}`);
+  // console.log(`🏷️ Found ${tags.length} tags`);
+
   // 再次调用 - 全部来自缓存
   console.time('Cached calls');
   const [cachedMetadata, cachedContent, cachedTags] = await Promise.all([
@@ -153,10 +153,10 @@ export async function multiServiceCaching() {
     metadataService.getAllTags()
   ]);
   console.timeEnd('Cached calls');
-  
+
   const stats = await appServices.getCacheStats();
-  console.log(`📊 Cache hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
-  
+  // console.log(`📊 Cache hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+
   await appServices.dispose();
 }
 
@@ -164,22 +164,22 @@ export async function multiServiceCaching() {
  * 使用示例 3：服务间依赖的透明缓存
  */
 export async function serviceComposition() {
-  console.log('🔗 Service Composition with Transparent Caching');
-  
+  // console.log('🔗 Service Composition with Transparent Caching');
+
   const appServices = new ApplicationServices();
-  
+
   // 上层服务使用缓存版本的 MetadataService
   const metadataService = await appServices.createMetadataService('Demo');
-  
+
   // 模拟一个 GraphService 依赖 MetadataService
   class GraphService {
     constructor(private metadataService: IMetadataService) {}
-    
+
     async buildGraph() {
       // 这里调用的 metadataService 自动享受缓存，完全透明
       const metadata = await this.metadataService.getMetadata();
       const tags = await this.metadataService.getAllTags();
-      
+
       return {
         nodes: metadata?.length || 0,
         tags: tags.length,
@@ -190,19 +190,19 @@ export async function serviceComposition() {
       };
     }
   }
-  
+
   const graphService = new GraphService(metadataService);
-  
+
   console.time('Graph building (with caching)');
   const graph = await graphService.buildGraph();
   console.timeEnd('Graph building (with caching)');
-  
-  console.log('📊 Graph:', graph);
-  
+
+  // console.log('📊 Graph:', graph);
+
   // GraphService 完全不知道 MetadataService 使用了缓存
   const stats = await appServices.getCacheStats();
-  console.log(`🎯 Transparent caching: ${stats.cachedServicesCount} services, ${stats.totalEntries} cached entries`);
-  
+  // console.log(`🎯 Transparent caching: ${stats.cachedServicesCount} services, ${stats.totalEntries} cached entries`);
+
   await appServices.dispose();
 }
 
@@ -210,18 +210,18 @@ export async function serviceComposition() {
  * 完整演示
  */
 export async function fullDemo() {
-  console.log('🎯 Full CacheManager Demo');
-  
+  // console.log('🎯 Full CacheManager Demo');
+
   try {
     await basicUsage();
-    console.log('---');
-    
+    // console.log('---');
+
     await multiServiceCaching();
-    console.log('---');
-    
+    // console.log('---');
+
     await serviceComposition();
-    
-    console.log('✅ All demos completed successfully');
+
+    // console.log('✅ All demos completed successfully');
   } catch (error) {
     console.error('❌ Demo failed:', error);
   }

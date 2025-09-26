@@ -88,7 +88,7 @@ describe('FileTreeService', () => {
     it('should create FileTreeService with default vault', () => {
       const service = new FileTreeService(mockMetadataService);
       expect(service).toBeInstanceOf(FileTreeService);
-      
+
       const vault = service.getCurrentVault();
       expect(vault.id).toBe('Demo'); // default vault
     });
@@ -96,7 +96,7 @@ describe('FileTreeService', () => {
     it('should create FileTreeService with specified vault', () => {
       const service = new FileTreeService(mockMetadataService, 'Publish');
       expect(service).toBeInstanceOf(FileTreeService);
-      
+
       const vault = service.getCurrentVault();
       expect(vault.id).toBe('Publish');
     });
@@ -105,30 +105,30 @@ describe('FileTreeService', () => {
   describe('File Tree Construction', () => {
     it('should build file tree from metadata', async () => {
       const tree = await fileTreeService.getFileTree();
-      
+
       expect(tree).toBeDefined();
       expect(Array.isArray(tree)).toBe(true);
-      
+
       // 验证根级结构
       const rootFolders = tree.filter(node => node.type === 'folder');
       const rootFiles = tree.filter(node => node.type === 'file');
-      
+
       expect(rootFiles.length).toBeGreaterThan(0); // Welcome.md 在根级
       expect(rootFolders.length).toBeGreaterThan(0); // FolderA, docs 文件夹
-      
-      console.log(`📁 Built file tree with ${tree.length} root items`);
+
+      // console.log(`📁 Built file tree with ${tree.length} root items`);
     });
 
     it('should handle empty metadata gracefully', async () => {
       vi.mocked(mockMetadataService.getMetadata).mockResolvedValue([]);
-      
+
       const tree = await fileTreeService.getFileTree();
       expect(tree).toEqual([]);
     });
 
     it('should handle metadata loading failure', async () => {
       vi.mocked(mockMetadataService.getMetadata).mockResolvedValue(null);
-      
+
       const tree = await fileTreeService.getFileTree();
       expect(tree).toEqual([]);
     });
@@ -139,18 +139,18 @@ describe('FileTreeService', () => {
       const options: FileTreeOptions = {
         customSort: (a, b) => b.name.localeCompare(a.name) // 倒序
       };
-      
+
       const tree = await fileTreeService.getFileTree(options);
       expect(tree).toBeDefined();
-      
-      console.log(`📁 Applied custom sort to ${tree.length} items`);
+
+      // console.log(`📁 Applied custom sort to ${tree.length} items`);
     });
 
     it('should exclude empty folders when specified', async () => {
       const options: FileTreeOptions = {
         includeEmptyFolders: false
       };
-      
+
       const tree = await fileTreeService.getFileTree(options);
       expect(tree).toBeDefined();
     });
@@ -159,7 +159,7 @@ describe('FileTreeService', () => {
       const options: FileTreeOptions = {
         applyFolderFilters: false
       };
-      
+
       const tree = await fileTreeService.getFileTree(options);
       expect(tree).toBeDefined();
     });
@@ -168,7 +168,7 @@ describe('FileTreeService', () => {
   describe('Node Operations', () => {
     it('should find node by path', async () => {
       const node = await fileTreeService.findNode('/Welcome.md');
-      
+
       expect(node).not.toBeNull();
       expect(node?.name).toBe('Welcome');
       expect(node?.type).toBe('file');
@@ -183,7 +183,7 @@ describe('FileTreeService', () => {
     it('should check path existence', async () => {
       const exists = await fileTreeService.pathExists('/Welcome.md');
       expect(exists).toBe(true);
-      
+
       const notExists = await fileTreeService.pathExists('/NonExistent.md');
       expect(notExists).toBe(false);
     });
@@ -191,57 +191,57 @@ describe('FileTreeService', () => {
     it('should get children of folder', async () => {
       const children = await fileTreeService.getChildren('/FolderA');
       expect(Array.isArray(children)).toBe(true);
-      
-      console.log(`📁 Folder /FolderA has ${children.length} children`);
+
+      // console.log(`📁 Folder /FolderA has ${children.length} children`);
     });
   });
 
   describe('File Operations', () => {
     it('should get all files', async () => {
       const files = await fileTreeService.getAllFiles();
-      
+
       expect(Array.isArray(files)).toBe(true);
       expect(files.length).toBeGreaterThan(0);
       expect(files.every(path => path.startsWith('/'))).toBe(true);
-      
-      console.log(`📄 Found ${files.length} files: ${files.join(', ')}`);
+
+      // console.log(`📄 Found ${files.length} files: ${files.join(', ')}`);
     });
 
     it('should get files by folder', async () => {
       // 获取根级文件
       const rootFiles = await fileTreeService.getFilesByFolder();
       expect(Array.isArray(rootFiles)).toBe(true);
-      
+
       // 获取特定文件夹的文件
       const folderFiles = await fileTreeService.getFilesByFolder('/docs');
       expect(Array.isArray(folderFiles)).toBe(true);
-      
-      console.log(`📄 Root files: ${rootFiles.length}, Docs files: ${folderFiles.length}`);
+
+      // console.log(`📄 Root files: ${rootFiles.length}, Docs files: ${folderFiles.length}`);
     });
 
     it('should search files by name', async () => {
       const results = await fileTreeService.searchFiles('Welcome');
-      
+
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBeGreaterThan(0);
       expect(results.some(file => file.name.includes('Welcome'))).toBe(true);
-      
-      console.log(`🔍 Search 'Welcome' found ${results.length} results`);
+
+      // console.log(`🔍 Search 'Welcome' found ${results.length} results`);
     });
 
     it('should search files by tag', async () => {
       const results = await fileTreeService.searchFiles('welcome');
-      
+
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBeGreaterThan(0);
-      
-      console.log(`🔍 Search 'welcome' found ${results.length} results`);
+
+      // console.log(`🔍 Search 'welcome' found ${results.length} results`);
     });
 
     it('should search case-insensitively', async () => {
       const upperResults = await fileTreeService.searchFiles('WELCOME');
       const lowerResults = await fileTreeService.searchFiles('welcome');
-      
+
       expect(upperResults.length).toBe(lowerResults.length);
     });
   });
@@ -249,41 +249,41 @@ describe('FileTreeService', () => {
   describe('Folder Operations', () => {
     it('should get all folders', async () => {
       const folders = await fileTreeService.getAllFolders();
-      
+
       expect(Array.isArray(folders)).toBe(true);
       expect(folders.every(path => path.startsWith('/'))).toBe(true);
-      
-      console.log(`📁 Found ${folders.length} folders: ${folders.join(', ')}`);
+
+      // console.log(`📁 Found ${folders.length} folders: ${folders.join(', ')}`);
     });
 
     it('should get root folders', async () => {
       const rootFolders = await fileTreeService.getRootFolders();
-      
+
       expect(Array.isArray(rootFolders)).toBe(true);
       expect(rootFolders.every(folder => folder.type === 'folder')).toBe(true);
-      
-      console.log(`📁 Found ${rootFolders.length} root folders`);
+
+      // console.log(`📁 Found ${rootFolders.length} root folders`);
     });
 
     it('should get folder stats', async () => {
       const stats = await fileTreeService.getFolderStats();
-      
+
       expect(stats).toBeDefined();
       expect(typeof stats.totalFiles).toBe('number');
       expect(typeof stats.totalFolders).toBe('number');
       expect(stats.totalFiles).toBeGreaterThan(0);
-      
-      console.log(`📊 Folder stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
+
+      // console.log(`📊 Folder stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
     });
 
     it('should get specific folder stats', async () => {
       const stats = await fileTreeService.getFolderStats('/FolderA');
-      
+
       expect(stats).toBeDefined();
       expect(typeof stats.totalFiles).toBe('number');
       expect(typeof stats.totalFolders).toBe('number');
-      
-      console.log(`📊 FolderA stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
+
+      // console.log(`📊 FolderA stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
     });
   });
 
@@ -318,7 +318,7 @@ describe('FileTreeService', () => {
   describe('Cache Management', () => {
     it('should refresh cache', async () => {
       await fileTreeService.refreshCache();
-      
+
       expect(mockMetadataService.refreshCache).toHaveBeenCalled();
     });
 
@@ -327,23 +327,23 @@ describe('FileTreeService', () => {
         vaultId: 'Demo',
         fileCount: 3
       });
-      
+
       const stats = await fileTreeService.getCacheStats();
-      
+
       expect(stats).toBeDefined();
       expect(stats.vaultId).toBe('Demo');
       expect(stats.totalFiles).toBeDefined();
       expect(stats.totalFolders).toBeDefined();
       expect(stats.metadataStats).toBeDefined();
-      
-      console.log('📊 Cache stats:', stats);
+
+      // console.log('📊 Cache stats:', stats);
     });
   });
 
   describe('Vault Switching', () => {
     it('should switch vault', () => {
       fileTreeService.switchVault('Publish');
-      
+
       const vault = fileTreeService.getCurrentVault();
       expect(vault.id).toBe('Publish');
       expect(mockMetadataService.switchVault).toHaveBeenCalledWith('Publish');
@@ -351,7 +351,7 @@ describe('FileTreeService', () => {
 
     it('should get current vault info', () => {
       const vault = fileTreeService.getCurrentVault();
-      
+
       expect(vault).toBeDefined();
       expect(vault.id).toBe('Demo');
       expect(vault.path).toBeDefined();
@@ -361,7 +361,7 @@ describe('FileTreeService', () => {
   describe('Error Handling', () => {
     it('should handle metadata service errors gracefully', async () => {
       vi.mocked(mockMetadataService.getMetadata).mockRejectedValue(new Error('Network error'));
-      
+
       // FileTreeService 应该捕获错误并返回空数组
       const tree = await fileTreeService.getFileTree();
       expect(tree).toEqual([]);
@@ -369,7 +369,7 @@ describe('FileTreeService', () => {
 
     it('should handle search with empty results', async () => {
       const results = await fileTreeService.searchFiles('NonExistentQuery');
-      
+
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBe(0);
     });
@@ -377,7 +377,7 @@ describe('FileTreeService', () => {
     it('should handle folder operations on non-existent paths', async () => {
       const children = await fileTreeService.getChildren('/NonExistentFolder');
       expect(children).toEqual([]);
-      
+
       const files = await fileTreeService.getFilesByFolder('/NonExistentFolder');
       expect(files).toEqual([]);
     });

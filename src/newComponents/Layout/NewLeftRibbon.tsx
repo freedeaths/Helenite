@@ -28,16 +28,16 @@ export function NewLeftRibbon() {
 
   // Initialize theme attribute on component mount and when theme changes
   useEffect(() => {
-    document.body.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   // 监听路由变化，同步按钮状态（用于直接访问 URL 的情况）
   useEffect(() => {
     const handleRouteChange = () => {
-      console.log('🔄 New Route changed:', currentRoute);
+      // console.log('🔄 New Route changed:', currentRoute);
       // 处理图谱路由的特殊情况
       if (currentRoute?.type === 'graph') {
-        console.log('🔄 Setting graph button active');
+        // console.log('🔄 Setting graph button active');
         setLastClickedButton('graph');
       }
       // 其他路由保持用户的点击状态不变
@@ -103,7 +103,7 @@ export function NewLeftRibbon() {
     const randomIndex = Math.floor(Math.random() * filesToChooseFrom.length);
     const randomFile = filesToChooseFrom[randomIndex];
 
-    console.log(`🎲 Opening random note: ${randomFile}`);
+    // console.log(`🎲 Opening random note: ${randomFile}`);
     navigateToFile(randomFile);
   };
 
@@ -138,7 +138,7 @@ export function NewLeftRibbon() {
       icon: PiGraphFill,
       label: 'Graph View',
       onClick: () => {
-        console.log('🔄 Graph button clicked, switching to globalGraph view');
+        // console.log('🔄 Graph button clicked, switching to globalGraph view');
         // Always go to graph view when clicked（复制老版本逻辑）
         setMainContentView('globalGraph');
         navigateToGraph();

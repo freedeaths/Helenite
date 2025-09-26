@@ -1,6 +1,6 @@
 /**
  * 测试环境设置文件
- * 
+ *
  * 为测试环境提供必要的模拟和polyfill
  */
 
@@ -18,4 +18,4 @@ if (!globalThis.indexedDB) {
 // 可选：添加其他测试环境需要的polyfill
 // 比如 fetch、localStorage 等
 
-console.log('✅ Test environment setup completed');
+// console.log('✅ Test environment setup completed');

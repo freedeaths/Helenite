@@ -1,6 +1,6 @@
 /**
  * StorageService 实现
- * 
+ *
  * 只读存储抽象层，支持本地静态服务、CDN、远程 HTTP 存储
  * 包含文件类型识别、MIME 检测等功能
  */
@@ -31,7 +31,7 @@ export class StorageService implements IStorageService {
       cache: true,
       ...config
     };
-    
+
     // 检测存储类型
     if (config.basePath.startsWith('http://') || config.basePath.startsWith('https://')) {
       this._storageType = config.basePath.includes('cdn') ? StorageType.CDN : StorageType.REMOTE_HTTP;
@@ -50,7 +50,7 @@ export class StorageService implements IStorageService {
 
   async readFile(path: string, options: ReadOptions = {}): Promise<FileContent> {
     this._ensureInitialized();
-    
+
     const normalizedPath = this.normalizePath(path);
     if (!this.isValidPath(normalizedPath)) {
       throw new StorageError(`Invalid path: ${path}`, StorageErrorType.INVALID_PATH, path);
@@ -66,7 +66,7 @@ export class StorageService implements IStorageService {
 
     try {
       let content: FileContent;
-      
+
       if (this._storageType === StorageType.LOCAL_STATIC) {
         content = await this._readRemoteFile(normalizedPath, options); // 本地静态也通过HTTP访问
       } else {
@@ -96,7 +96,7 @@ export class StorageService implements IStorageService {
 
   async readFileWithInfo(path: string, options: ReadOptions = {}): Promise<ReadResult> {
     this._ensureInitialized();
-    
+
     const [content, info] = await Promise.all([
       this.readFile(path, options),
       this.getFileInfo(path)
@@ -122,12 +122,12 @@ export class StorageService implements IStorageService {
 
   async getFileInfo(path: string): Promise<FileInfo> {
     this._ensureInitialized();
-    
+
     const normalizedPath = this.normalizePath(path);
     const url = this.resolvePath(normalizedPath);
 
     try {
-      const response = await fetch(url, { 
+      const response = await fetch(url, {
         method: 'HEAD',
         headers: this._config.headers,
         signal: AbortSignal.timeout(this._config.timeout!)
@@ -164,7 +164,7 @@ export class StorageService implements IStorageService {
     if (this._storageType !== StorageType.LOCAL_STATIC) {
       throw new StorageError('Directory listing only supported for local static storage', StorageErrorType.PERMISSION_DENIED);
     }
-    
+
     // 浏览器环境不支持目录列举，返回空数组
     // 实际应用中，可能需要通过预生成的文件索引来实现
     return [];
@@ -177,11 +177,11 @@ export class StorageService implements IStorageService {
   normalizePath(path: string): string {
     // 移除开头的 /，统一使用相对路径
     const normalized = path.replace(/^\/+/, '');
-    
-    // 处理 . 和 .. 
+
+    // 处理 . 和 ..
     const parts = normalized.split('/').filter(part => part && part !== '.');
     const result: string[] = [];
-    
+
     for (const part of parts) {
       if (part === '..') {
         result.pop();
@@ -189,30 +189,30 @@ export class StorageService implements IStorageService {
         result.push(part);
       }
     }
-    
+
     return result.join('/');
   }
 
   resolvePath(path: string): string {
     const normalizedPath = this.normalizePath(path);
     const basePath = this._config.basePath.replace(/\/+$/, ''); // 移除尾部斜杠
-    
+
     // URL编码路径中的空格等特殊字符
     const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
-    
+
     return `${basePath}/${encodedPath}`;
   }
 
   isValidPath(path: string): boolean {
     if (!path || path.length === 0) return false;
-    
+
     // 检查危险字符
     const dangerousChars = /[<>:"|?*\x00-\x1f]/;
     if (dangerousChars.test(path)) return false;
-    
+
     // 检查路径遍历攻击
     if (path.includes('../') || path.includes('..\\')) return false;
-    
+
     return true;
   }
 
@@ -222,7 +222,7 @@ export class StorageService implements IStorageService {
 
   getMimeType(path: string): string {
     const ext = path.toLowerCase().split('.').pop();
-    
+
     const mimeTypes: Record<string, string> = {
       // 文档
       'md': 'text/markdown',
@@ -231,7 +231,7 @@ export class StorageService implements IStorageService {
       'html': 'text/html',
       'css': 'text/css',
       'js': 'application/javascript',
-      
+
       // 图片
       'jpg': 'image/jpeg',
       'jpeg': 'image/jpeg',
@@ -239,11 +239,11 @@ export class StorageService implements IStorageService {
       'gif': 'image/gif',
       'webp': 'image/webp',
       'svg': 'image/svg+xml',
-      
+
       // 轨迹文件
       'gpx': 'application/gpx+xml',
       'kml': 'application/vnd.google-earth.kml+xml',
-      
+
       // 其他
       'pdf': 'application/pdf',
       'zip': 'application/zip'
@@ -281,12 +281,12 @@ export class StorageService implements IStorageService {
   }
 
   async preloadFiles(paths: string[]): Promise<void> {
-    const promises = paths.map(path => 
+    const promises = paths.map(path =>
       this.readFile(path).catch(error => {
         console.warn(`Failed to preload file ${path}:`, error);
       })
     );
-    
+
     await Promise.allSettled(promises);
   }
 
@@ -296,13 +296,13 @@ export class StorageService implements IStorageService {
 
   async initialize(): Promise<void> {
     if (this._initialized) return;
-    
+
     // 测试连接
     const isHealthy = await this.healthCheck();
     if (!isHealthy) {
       throw new StorageError('Failed to initialize storage service', StorageErrorType.NETWORK_ERROR);
     }
-    
+
     this._initialized = true;
   }
 
@@ -314,7 +314,7 @@ export class StorageService implements IStorageService {
   async healthCheck(): Promise<boolean> {
     try {
       const testUrl = this.resolvePath('');
-      const response = await fetch(testUrl, { 
+      const response = await fetch(testUrl, {
         method: 'HEAD',
         signal: AbortSignal.timeout(5000) // 5秒超时
       });
@@ -341,7 +341,7 @@ export class StorageService implements IStorageService {
 
   private async _readRemoteFile(path: string, options: ReadOptions): Promise<FileContent> {
     const url = this.resolvePath(path);
-    console.log('🔍 StorageService._readRemoteFile: Fetching URL:', url, 'from path:', path, 'basePath:', this._config.basePath);
+    // console.log('🔍 StorageService._readRemoteFile: Fetching URL:', url, 'from path:', path, 'basePath:', this._config.basePath);
 
     // Force bypass cache for debugging
     const response = await fetch(url, {

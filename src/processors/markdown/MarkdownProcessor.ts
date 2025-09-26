@@ -59,6 +59,9 @@ export interface MarkdownProcessingOptions {
   enableCodeHighlight?: boolean;
   enableMermaid?: boolean;
   enableTracks?: boolean;
+  enableFootprints?: boolean;
+  baseUrl?: string;
+  currentFilePath?: string;
 }
 
 /**
@@ -114,6 +117,15 @@ export class MarkdownProcessor {
       .use(remarkMath) // 数学公式支持
 
     // 添加 Obsidian 插件（remark 阶段 - 处理 markdown AST）
+    // IMPORTANT: trackMapsPlugin must run BEFORE obsidianLinksPlugin
+    // so that [[*.gpx]] and [[*.kml]] files are converted to track maps
+    if (this.options.enableTracks) {
+      processor.use(trackMapsPlugin, {
+        baseUrl: this.options.baseUrl || '/vaults/Demo',
+        currentFilePath: this.options.currentFilePath || ''
+      } as TrackMapsPluginOptions);
+    }
+
     if (this.options.enableObsidianLinks) {
       processor.use(obsidianLinksPlugin, {
         baseUrl: '/vaults/Demo',
@@ -131,13 +143,6 @@ export class MarkdownProcessor {
 
     if (this.options.enableCallouts) {
       processor.use(obsidianCalloutsPlugin, {} as ObsidianCalloutsOptions);
-    }
-
-    if (this.options.enableTracks) {
-      processor.use(trackMapsPlugin, {
-        baseUrl: '/vaults/Demo',
-        currentFilePath: ''
-      } as TrackMapsPluginOptions);
     }
 
     if (this.options.enableMermaid) {
@@ -206,6 +211,48 @@ export class MarkdownProcessor {
           const { children, dangerouslySetInnerHTML, ...restProps } = props;
           return React.createElement('input', restProps);
         },
+        // 处理标签渲染
+        span: (props: any) => {
+          const { children, className, ...restProps } = props;
+          // 检查是否是标签
+          if (className && className.includes('tag')) {
+            // 渲染为非链接的标签
+            return React.createElement('span', {
+              ...restProps,
+              className,
+              style: { cursor: 'default' }
+            }, children);
+          }
+          // 其他 span 元素正常渲染
+          return React.createElement('span', props);
+        },
+        // 处理内部链接的点击事件
+        a: (props: any) => {
+          const { children, href, className, ...restProps } = props;
+          // 检查是否是内部链接
+          const isInternalLink = className && className.includes('internal-link');
+          const filePath = restProps['data-file-path'];
+
+          if (isInternalLink && filePath) {
+            // 内部链接使用自定义处理
+            return React.createElement('a', {
+              ...restProps,
+              href,
+              className,
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault();
+                // 触发导航到文件
+                const navigateEvent = new CustomEvent('navigateToFile', {
+                  detail: { filePath }
+                });
+                window.dispatchEvent(navigateEvent);
+              }
+            }, children);
+          }
+
+          // 外部链接保持默认行为
+          return React.createElement('a', { ...props }, children);
+        },
         // 处理 TrackMap 组件 - 直接映射
         TrackMap: TrackMap,
         // 处理 MermaidDiagram 组件 - 直接映射
@@ -243,8 +290,11 @@ export class MarkdownProcessor {
       tags: [] as string[]
     };
 
+    // 如果有 currentFilePath，创建一个新的 processor 实例，传递正确的路径
+    const processor = currentFilePath ? this.createProcessor({ ...this.options, currentFilePath }) : this.processor;
+
     // 处理 Markdown - 使用 process() 一次性完成所有处理
-    const file = await this.processor.process(markdownContent);
+    const file = await processor.process(markdownContent);
 
     const reactContent = file.result as React.ReactElement;
 

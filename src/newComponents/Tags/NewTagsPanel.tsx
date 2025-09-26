@@ -32,8 +32,8 @@ export function NewTagsPanel() {
 
     try {
       const tags = await vaultService.getAllTags();
-      console.log('📊 NewTagsPanel: 加载所有标签:', tags);
-      console.log('📊 NewTagsPanel: 第一个标签详细信息:', tags[0]);
+      // console.log('📊 NewTagsPanel: 加载所有标签:', tags);
+      // console.log('📊 NewTagsPanel: 第一个标签详细信息:', tags[0]);
 
       // 转换为带计数的格式
       const tagCounts = tags.map(tagData => {
@@ -48,8 +48,8 @@ export function NewTagsPanel() {
         };
       }).sort((a, b) => b.count - a.count); // 按频率排序
 
-      console.log('📊 NewTagsPanel: 转换后的标签:', tagCounts);
-      console.log('📊 NewTagsPanel: 第一个转换后标签详细:', tagCounts[0]);
+      // console.log('📊 NewTagsPanel: 转换后的标签:', tagCounts);
+      // console.log('📊 NewTagsPanel: 第一个转换后标签详细:', tagCounts[0]);
       setAllTags(tagCounts);
     } catch (error) {
       console.error('❌ NewTagsPanel: 加载标签失败:', error);
@@ -73,7 +73,7 @@ export function NewTagsPanel() {
 
       // 获取包含该标签的文件列表
       const filePaths = await vaultService.getFilesByTag(tag);
-      console.log(`📊 NewTagsPanel: 标签 "${tag}" 的文件:`, filePaths);
+      // console.log(`📊 NewTagsPanel: 标签 "${tag}" 的文件:`, filePaths);
 
       // 转换为文件信息数组
       const fileList = filePaths.map(filePath => {

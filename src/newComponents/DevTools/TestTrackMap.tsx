@@ -46,9 +46,9 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
       // 确保路径正确，filePath 可能已经包含 Attachments/ 前缀
       const normalizedPath = filePath.startsWith('Attachments/') ? filePath : `Attachments/${filePath}`;
       const fullPath = `/vaults/Demo/${normalizedPath}`;
-      console.log('🔍 TestTrackMap: Loading file from:', fullPath);
+      // console.log('🔍 TestTrackMap: Loading file from:', fullPath);
       const response = await fetchVault(fullPath);
-      
+
       if (response.ok) {
         const content = await response.text();
         setFileContent(content.slice(0, 500) + (content.length > 500 ? '...' : ''));
@@ -113,7 +113,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
       <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
         {trackFile && (
           <div>
-            <strong>文件路径:</strong> 
+            <strong>文件路径:</strong>
             <code className="ml-1 px-1 py-0.5 bg-gray-200 rounded text-xs">
               {trackFile}
             </code>
@@ -126,7 +126,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
             </button>
           </div>
         )}
-        
+
         {tracks && tracks.length > 0 && (
           <div>
             <strong>包含轨迹:</strong> {tracks.length} 个

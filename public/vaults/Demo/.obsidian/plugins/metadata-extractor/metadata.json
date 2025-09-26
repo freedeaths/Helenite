@@ -704,11 +704,11 @@
         "level": 3
       },
       {
-        "heading": "GPX 内联数据",
+        "heading": "GPX 内联数据(不再支持)",
         "level": 4
       },
       {
-        "heading": "KML 内联数据",
+        "heading": "KML 内联数据(不再支持)",
         "level": 4
       },
       {
@@ -736,11 +736,7 @@
         "level": 4
       },
       {
-        "heading": "混合引用格式",
-        "level": 4
-      },
-      {
-        "heading": "4. 足迹聚合地图",
+        "heading": "4. 足迹聚合地图(不再支持)",
         "level": 3
       },
       {

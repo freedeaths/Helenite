@@ -230,7 +230,7 @@ export class FileTreeService implements IFileTreeService {
   async refreshCache(): Promise<void> {
     // 通过 MetadataService 刷新底层缓存
     await this.metadataService.refreshCache();
-    console.log('🔄 FileTree cache refreshed');
+    // console.log('🔄 FileTree cache refreshed');
   }
 
   /**
@@ -258,7 +258,7 @@ export class FileTreeService implements IFileTreeService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.metadataService.switchVault(vaultId);
-    console.log(`🔄 FileTreeService switched to vault: ${vaultId}`);
+    // console.log(`🔄 FileTreeService switched to vault: ${vaultId}`);
   }
 
   /**
@@ -310,7 +310,7 @@ export class FileTreeService implements IFileTreeService {
       }
     });
 
-    console.log(`📁 FileTreeService: processed ${allPaths.size} paths`);
+    // console.log(`📁 FileTreeService: processed ${allPaths.size} paths`);
 
     // 2. 构建树状结构
     const root: FileTreeNode[] = [];
@@ -531,7 +531,7 @@ export function getFileTreeService(): FileTreeService | null {
  */
 export function initializeFileTreeService(metadataService: IMetadataService, vaultId?: string): FileTreeService {
   _globalFileTreeService = new FileTreeService(metadataService, vaultId);
-  console.log(`✅ FileTreeService initialized for vault: ${vaultId || 'Demo'}`);
+  // console.log(`✅ FileTreeService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalFileTreeService;
 }
 
@@ -540,5 +540,5 @@ export function initializeFileTreeService(metadataService: IMetadataService, vau
  */
 export function disposeFileTreeService(): void {
   _globalFileTreeService = null;
-  console.log('🗑️ FileTreeService disposed');
+  // console.log('🗑️ FileTreeService disposed');
 }

@@ -6,7 +6,7 @@ remark-track 插件支持以下所有轨迹相关的 Markdown 语法，全部转
 
 ### 1. 内联轨迹数据
 
-#### GPX 内联数据
+#### GPX 内联数据(不再支持)
 
 ```gpx
 <?xml version="1.0"?>
@@ -20,7 +20,7 @@ remark-track 插件支持以下所有轨迹相关的 Markdown 语法，全部转
 </gpx>
 ```
 
-#### KML 内联数据
+#### KML 内联数据(不再支持)
 
 ```kml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -59,7 +59,7 @@ Leaflet 代码块支持灵活的 YAML 配置，其中 `gpx` 字段可以是：
 #### 单个 GPX 文件
 
 ```leaflet
-gpx: "[[Attachments/yamap_2025-04-02_08_48.gpx]]"
+gpx: [[Attachments/yamap_2025-04-02_08_48.gpx]]
 zoom: 12
 center: [31.4, 120.7]
 ```
@@ -68,24 +68,15 @@ center: [31.4, 120.7]
 
 ```leaflet
 gpx:
-  - "[[Attachments/红叶尚湖.gpx]]"
-  - "[[Attachments/金牛道拦马墙到普安镇.gpx]]"
-  - "[[Attachments/yamap_2025-04-02_08_48.gpx]]"
+  - [[Attachments/红叶尚湖.gpx]]
+  - [[Attachments/金牛道拦马墙到普安镇.gpx]]
+  - [[Attachments/yamap_2025-04-02_08_48.gpx]]
+  - [[Attachments/东西佘山含地铁绿道.kml]]
 zoom: 10
 showAll: true
 ```
 
-#### 混合引用格式
-
-```leaflet
-gpx:
-  - "[[Attachments/东西佘山含地铁绿道.kml]]"  # 带 [[ ]] 的引用
-  - "Attachments/中西citywalk.kml"           # 直接文件路径
-  - "Attachments/金牛道拦马墙到普安镇.kml"     # 相对路径
-center: [31.3, 120.6]
-```
-
-### 4. 足迹聚合地图
+### 4. 足迹聚合地图(不再支持)
 
 ```footprints
 userInputs:
@@ -185,12 +176,6 @@ const trackOptions: TrackMapsPluginOptions = {
 
 # 测试文档
 
-单个内联 GPX：
-
-```gpx
-<gpx><trk><name>Test</name></trk></gpx>
-```
-
 文件嵌入：
 ![[Attachments/yamap_2025-04-02_08_48.gpx]]
 
@@ -200,15 +185,15 @@ const trackOptions: TrackMapsPluginOptions = {
 Leaflet 单文件：
 
 ```leaflet
-gpx: "[[Attachments/红叶尚湖.gpx]]"
+gpx: [[Attachments/红叶尚湖.gpx]]
 ```
 
 Leaflet 多文件：
 
 ```leaflet
 gpx:
-  - "[[Attachments/金牛道拦马墙到普安镇.gpx]]"
-  - "[[Attachments/中西citywalk.kml]]"
+  - [[Attachments/金牛道拦马墙到普安镇.gpx]]
+  - [[Attachments/中西citywalk.kml]]
 ```
 
 足迹聚合：

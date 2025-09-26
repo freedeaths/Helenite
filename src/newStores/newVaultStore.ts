@@ -113,7 +113,7 @@ export const useNewVaultStore = create<NewAppState>((set, get) => ({
         get().loadAllTags()
       ]);
 
-      console.log('🚀 新架构 VaultService 初始化完成');
+      // console.log('🚀 新架构 VaultService 初始化完成');
     } catch (error) {
       console.error('VaultService 初始化失败:', error);
       set({ error: error instanceof Error ? error.message : '初始化失败' });

@@ -1,6 +1,6 @@
 /**
  * 通用缓存代理工厂
- * 
+ *
  * 提供零侵入式的服务缓存增强，支持灵活的缓存配置
  */
 
@@ -34,11 +34,11 @@ export function createCachedService<T extends object>(
   config: CacheConfig<T>
 ): T {
   const namespacedCache = cache.namespace(namespace);
-  
+
   return new Proxy(service, {
     get(target, prop: string | symbol) {
       const originalMethod = (target as Record<string, unknown>)[prop];
-      
+
       // 只代理配置了缓存的方法
       if (typeof originalMethod === 'function' && config[prop as keyof T]) {
         return createCachedMethod(
@@ -49,7 +49,7 @@ export function createCachedService<T extends object>(
           target
         );
       }
-      
+
       return originalMethod;
     }
   });
@@ -70,14 +70,14 @@ function createCachedMethod(
     if (config.condition && !config.condition(...args)) {
       return originalMethod.apply(context, args);
     }
-    
+
     // 生成缓存键
     const cacheKey = config.keyGenerator
       ? config.keyGenerator(...args)
       : generateDefaultCacheKey(methodName, args);
-    
+
     // 使用getOrSet获取或计算值
-    return cache.getOrSet(cacheKey, () => 
+    return cache.getOrSet(cacheKey, () =>
       originalMethod.apply(context, args),
       config.ttl
     );
@@ -164,25 +164,25 @@ export function cacheConfig<T>(): CacheConfigBuilder<T> {
 export const CachePresets = {
   /** 短期缓存 - 1分钟 */
   SHORT: { ttl: 60000 },
-  
+
   /** 中期缓存 - 5分钟 */
   MEDIUM: { ttl: 300000 },
-  
+
   /** 长期缓存 - 30分钟 */
   LONG: { ttl: 1800000 },
-  
+
   /** 文件内容缓存 - 10分钟，排除临时文件 */
   FILE_CONTENT: {
     ttl: 600000,
     condition: (path: string) => !path.includes('.tmp') && !path.includes('temp')
   },
-  
+
   /** 文件信息缓存 - 5分钟，自定义键生成 */
   FILE_INFO: {
     ttl: 300000,
     keyGenerator: (path: string) => `info:${path.replace(/[/\\]/g, '_')}`
   },
-  
+
   /** 搜索结果缓存 - 2分钟，只缓存非空查询 */
   SEARCH: {
     ttl: 120000,
@@ -241,7 +241,7 @@ export class CacheDebugger {
   log(namespace: string, method: string, key: string, action: 'hit' | 'miss' | 'set'): void {
     if (this.enabled) {
       const timestamp = new Date().toISOString();
-      console.log(`[Cache ${action.toUpperCase()}] ${timestamp} - ${namespace}.${method} - ${key}`);
+      // console.log(`[Cache ${action.toUpperCase()}] ${timestamp} - ${namespace}.${method} - ${key}`);
     }
   }
 }

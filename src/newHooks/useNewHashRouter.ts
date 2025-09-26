@@ -13,14 +13,14 @@ export function useNewHashRouter() {
 
   // 处理路由变化 - 完全复制原版逻辑
   const handleRouteChange = useCallback((route: ParsedRoute) => {
-    console.log('📍 New Route change:', route);
+    // console.log('📍 New Route change:', route);
     if (route.type === 'welcome') {
       setActiveFile(null);
       setMainContentView('file');
     } else if (route.type === 'global-graph') {
       setMainContentView('globalGraph');
     } else if (route.type === 'file' && route.filePath) {
-      console.log('📍 New Setting activeFile to:', route.filePath);
+      // console.log('📍 New Setting activeFile to:', route.filePath);
       setActiveFile(route.filePath, route.anchor);
       setMainContentView('file');
 
@@ -37,7 +37,7 @@ export function useNewHashRouter() {
             const isInView = elementRect.top >= 0 && elementRect.top < viewportHeight * 0.3;
 
             if (isInView) {
-              console.log('🔗 New Hash router: Element already in view, skipping scroll');
+              // console.log('🔗 New Hash router: Element already in view, skipping scroll');
               return;
             }
 
@@ -102,6 +102,23 @@ export function useNewHashRouter() {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, [handleRouteChange]);
+
+  // 监听内部链接点击的自定义事件
+  useEffect(() => {
+    const handleNavigateToFile = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const filePath = customEvent.detail?.filePath;
+      if (filePath) {
+        navigateToFile(filePath);
+      }
+    };
+
+    window.addEventListener('navigateToFile', handleNavigateToFile);
+
+    return () => {
+      window.removeEventListener('navigateToFile', handleNavigateToFile);
+    };
+  }, []);
 
   return {
     getCurrentRoute,

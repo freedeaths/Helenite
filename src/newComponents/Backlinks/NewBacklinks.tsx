@@ -25,11 +25,11 @@ export function NewBacklinks() {
   }, [currentDocument]);
 
   const handleBacklinkClick = (backlink: BacklinkItem) => {
-    console.log('NewBacklinks: 反链点击', backlink);
+    // console.log('NewBacklinks: 反链点击', backlink);
 
     // TODO: 导航到源文档
     if (backlink.relativePath) {
-      console.log('导航到文档:', backlink.relativePath);
+      // console.log('导航到文档:', backlink.relativePath);
     }
   };
 

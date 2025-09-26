@@ -28,10 +28,10 @@ describe('StorageService Real Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
     } else {
-      console.log('🚀 启动临时开发服务器...');
-      
+      // console.log('🚀 启动临时开发服务器...');
+
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -42,11 +42,11 @@ describe('StorageService Real Integration Tests', () => {
       // 等待服务器启动
       let attempts = 0;
       const maxAttempts = 30; // 30秒超时
-      
+
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          console.log('✅ 开发服务器启动成功');
+          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -79,7 +79,7 @@ describe('StorageService Real Integration Tests', () => {
 
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      console.log('🔄 关闭临时开发服务器...');
+      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -129,7 +129,7 @@ describe('StorageService Real Integration Tests', () => {
         // 开发环境: 返回HTML页面信息
         expect(fileInfo.mimeType).toBe('text/html');
       } catch (error) {
-        // 生产环境: 抛出404错误 
+        // 生产环境: 抛出404错误
         expect(error).toBeDefined();
       }
     });
@@ -145,7 +145,7 @@ describe('StorageService Real Integration Tests', () => {
       // 开发环境: Vite对不存在的文件也返回200状态码
       // 生产环境: 静态文件服务器返回正确的404
       const exists = await storageService.exists('/NonExistent.md');
-      
+
       // 在开发环境中可能返回true，生产环境返回false
       expect(typeof exists).toBe('boolean');
     });
@@ -227,7 +227,7 @@ describe('StorageService Real Integration Tests', () => {
       // 开发环境: Vite对不存在的文件返回HTML
       // 生产环境: 静态文件服务器返回404错误
       const content = await storageService.readFile('/NonExistent.md');
-      
+
       // 开发环境: 应该返回HTML内容
       expect(typeof content).toBe('string');
       if (typeof content === 'string' && content.includes('<!doctype html>')) {

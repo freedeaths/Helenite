@@ -75,8 +75,8 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
 
         const processed = await processor.processContent(documentContent, filePath);
 
-        console.log('Processed content type:', typeof processed.content);
-        console.log('Is React element?', React.isValidElement(processed.content));
+        // console.log('Processed content type:', typeof processed.content);
+        // console.log('Is React element?', React.isValidElement(processed.content));
 
         setReactContent(processed.content);
 
@@ -98,9 +98,15 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
           }
         });
 
-      } catch (err) {
+      } catch (err: any) {
         console.error('NewContentViewer: 加载失败', err);
-        setError('加载失败');
+
+        // 检查是否是文件未找到错误
+        if (err?.type === 'FILE_NOT_FOUND' || err?.message?.includes('File not found')) {
+          setError('404');
+        } else {
+          setError('加载失败');
+        }
       } finally {
         setLoading(false);
       }
@@ -133,11 +139,25 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
             <div className="text-[var(--text-muted)]">正在加载...</div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-red-500">错误: {error}</div>
+          <div className="flex items-center justify-center h-full min-h-[500px]">
+            {error === '404' ? (
+              <div className="text-center px-4 py-8 max-w-2xl mx-auto">
+                <img
+                  src="/src/assets/404.png"
+                  alt="404"
+                  className="w-full h-auto max-w-sm md:max-w-md lg:max-w-lg mx-auto mb-8 object-contain"
+                  style={{ minHeight: '300px' }}
+                />
+                <p className="text-lg md:text-xl text-[var(--text-muted)]">
+                  <code className="inline-block px-3 py-1.5 bg-[var(--background-secondary)] rounded text-sm md:text-base break-all">{filePath} 不存在</code>
+                </p>
+              </div>
+            ) : (
+              <div className="text-red-500 text-center px-4">错误: {error}</div>
+            )}
           </div>
         ) : reactContent ? (
-          <div style={{ maxWidth: '1200px', padding: '1.5rem' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 1rem 3rem 1rem' }}>
             {/* 文档标题 - 复制老版本样式 */}
             {documentTitle && (
               <h1 className="text-3xl font-bold mb-4 text-[var(--text-normal)] leading-tight border-b border-[var(--background-modifier-border)] pb-4">
@@ -147,17 +167,13 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
 
             {/* 文档标签 - 完全复制老版本样式和行为 */}
             {fileTags.length > 0 && (
-              <div className="frontmatter-tags mb-6">
-                <span className="tags-label text-sm text-[var(--text-muted)] mr-2">Tags:</span>
+              <div className="frontmatter-tags">
+                <span className="tags-label">Tags:</span>
                 {fileTags.map((tag, index) => (
                   <span
                     key={index}
-                    className="tag frontmatter-tag inline-block px-2 py-1 mr-2 mb-1 text-xs bg-[var(--background-secondary)] text-[var(--text-accent)] rounded-md border border-[var(--background-modifier-border)] hover:bg-[var(--interactive-hover)] cursor-pointer transition-colors"
+                    className="tag frontmatter-tag"
                     data-tag={tag.replace('#', '')}
-                    onClick={() => {
-                      console.log('NewContentViewer: Tag clicked:', tag);
-                      // TODO: Implement tag search/filter - 与老版本保持一致
-                    }}
                   >
                     {tag.startsWith('#') ? tag : `#${tag}`}
                   </span>

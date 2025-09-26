@@ -20,11 +20,11 @@ export function NewMainContent() {
     return <NewContentViewer filePath={activeFile} />;
   }, [activeFile]);
 
-  console.log('NewMainContent: render', {
-    mainContentView,
-    activeFile,
-    hasActiveFile: !!activeFile
-  });
+  // console.log('NewMainContent: render', {
+  //   mainContentView,
+  //   activeFile,
+  //   hasActiveFile: !!activeFile
+  // });
 
   return (
     <div className="h-full flex flex-col bg-[var(--background-primary)]">

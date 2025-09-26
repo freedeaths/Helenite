@@ -4,5 +4,5 @@
  */
 export function useNewSEO() {
   // TODO: 实现新的 SEO 逻辑
-  console.log('📄 新架构 SEO 初始化');
+  // console.log('📄 新架构 SEO 初始化');
 }

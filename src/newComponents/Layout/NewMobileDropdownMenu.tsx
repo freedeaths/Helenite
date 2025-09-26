@@ -64,7 +64,7 @@ export function NewMobileDropdownMenu() {
     const filesToChooseFrom = availableFiles.length > 0 ? availableFiles : allMarkdownFiles;
     const randomIndex = Math.floor(Math.random() * filesToChooseFrom.length);
     const randomFile = filesToChooseFrom[randomIndex];
-    console.log(`🎲 Opening random note: ${randomFile}`);
+    // console.log(`🎲 Opening random note: ${randomFile}`);
     navigateToFile(randomFile);
     setMainContentView('file');
     setMobileDropdownOpen(false); // 关闭下拉菜单

@@ -137,12 +137,12 @@ export interface VaultAPI {
  * 创建高质量的统一 Vault 服务
  */
 async function createVaultAPI(): Promise<VaultAPI> {
-  console.log('🔧 创建统一 Vault API 实例...');
+  // console.log('🔧 创建统一 Vault API 实例...');
 
   try {
     // 1. 创建缓存管理器
     const cacheManager = new CacheManager();
-    console.log('✅ CacheManager 初始化完成');
+    // console.log('✅ CacheManager 初始化完成');
 
     // 2. 创建存储服务配置
     const storageConfig = {
@@ -155,11 +155,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const storageService = new StorageService(storageConfig);
     await storageService.initialize();
     const cachedStorage = cacheManager.createCachedStorageService(storageService);
-    console.log('✅ StorageService 创建并缓存完成');
+    // console.log('✅ StorageService 创建并缓存完成');
 
     const metadataService = new MetadataService('Demo');
     const cachedMetadata = cacheManager.createCachedMetadataService(metadataService);
-    console.log('✅ MetadataService 创建并缓存完成');
+    // console.log('✅ MetadataService 创建并缓存完成');
 
     // 4. 创建并缓存上层服务（使用缓存的基础服务）
     const fileTreeService = new FileTreeService(cachedMetadata);
@@ -179,7 +179,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const cachedSearch = cacheManager.createCachedSearchService(searchService);
 
     const footprintsService = new FootprintsService(cachedStorage, cacheManager);
-    const cachedFootprints = cacheManager.createCachedFootprintsService(footprintsService);
+    // 暂时不使用缓存包装，直接使用原始服务以调试问题
+    const cachedFootprints = footprintsService; // cacheManager.createCachedFootprintsService(footprintsService);
 
     const frontMatterService = new FrontMatterService(cachedStorage, cacheManager);
     const cachedFrontMatter = cacheManager.createCachedFrontMatterService(frontMatterService);
@@ -187,7 +188,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const exifService = new ExifService(cachedStorage, 'Demo');
     const cachedExif = cacheManager.createCachedExifService(exifService);
 
-    console.log('✅ 所有服务创建并缓存完成');
+    // console.log('✅ 所有服务创建并缓存完成');
 
     // 5. 返回统一的 API 对象
     const api: VaultAPI = {
@@ -309,20 +310,26 @@ async function createVaultAPI(): Promise<VaultAPI> {
 
       // === 文档管理 ===
       async getDocumentContent(path: string) {
-        try {
-          console.log('🔍 VaultAPI.getDocumentContent: 开始获取文档内容', path);
-          const content = await cachedStorage.readFile(path);
-          console.log('🔍 VaultAPI.getDocumentContent: 获取到内容长度:', typeof content === 'string' ? content.length : content.byteLength);
-          console.log('🔍 VaultAPI.getDocumentContent: 内容预览:', typeof content === 'string' ? content.substring(0, 100) : 'Binary content');
+        // console.log('🔍 VaultAPI.getDocumentContent: 开始获取文档内容', path);
+        const content = await cachedStorage.readFile(path);
+        // console.log('🔍 VaultAPI.getDocumentContent: 获取到内容长度:', typeof content === 'string' ? content.length : content.byteLength);
+        // console.log('🔍 VaultAPI.getDocumentContent: 内容预览:', typeof content === 'string' ? content.substring(0, 100) : 'Binary content');
 
-          if (content instanceof Uint8Array) {
-            return new TextDecoder('utf-8').decode(content);
-          }
-          return content as string;
-        } catch (error) {
-          console.warn(`获取文档内容失败 ${path}:`, error);
-          return `# 文档内容 (${path})\n\n暂时无法从 vault 获取内容。\n\n**路径**: ${path}`;
+        let textContent: string;
+        if (content instanceof Uint8Array) {
+          textContent = new TextDecoder('utf-8').decode(content);
+        } else {
+          textContent = content as string;
         }
+
+        // 检查是否返回了 HTML（Vite 开发服务器对不存在的文件返回 index.html）
+        if (textContent.includes('<!DOCTYPE html>') || textContent.includes('<html') || textContent.includes('</script>')) {
+          const error = new Error(`File not found: ${path}`);
+          (error as any).type = 'FILE_NOT_FOUND';
+          throw error;
+        }
+
+        return textContent;
       },
 
       async getDocumentInfo(path: string) {
@@ -448,11 +455,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
       }
     };
 
-    console.log('🎉 统一 Vault API 创建成功！');
+    // console.log('🎉 统一 Vault API 创建成功！');
 
     // 测试基本功能
     const vaultInfo = await api.getVaultInfo();
-    console.log('✅ VaultAPI 测试成功:', vaultInfo);
+    // console.log('✅ VaultAPI 测试成功:', vaultInfo);
 
     return api;
 
@@ -571,7 +578,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
       }
     };
 
-    console.log('✅ 降级 VaultAPI 创建成功');
+    // console.log('✅ 降级 VaultAPI 创建成功');
     return fallbackAPI;
   }
 }
@@ -614,7 +621,7 @@ export function useVaultService() {
 
       // 测试 API 基本功能
       const info = await api.getVaultInfo();
-      console.log('✅ VaultAPI 初始化成功:', info);
+      // console.log('✅ VaultAPI 初始化成功:', info);
 
       // 兼容现有的 store 接口，传入一个模拟的 vaultService 对象
       const mockVaultService = {

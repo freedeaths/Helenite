@@ -47,7 +47,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
         matches.forEach(match => {
           const matchStart = match.index!;
           const matchEnd = matchStart + match[0].length;
-          
+
           // 添加匹配前的文本
           if (matchStart > lastIndex) {
             const beforeText = text.slice(lastIndex, matchStart);
@@ -61,7 +61,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
           // 解析 Obsidian 链接
           const parsedLink = parseObsidianLink(match[0]);
-          
+
           if (parsedLink) {
             const linkNode = createLinkNode(parsedLink, options);
             newNodes.push(linkNode);
@@ -81,7 +81,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           const remainingText = text.slice(lastIndex);
           if (remainingText) {
             newNodes.push({
-              type: 'text', 
+              type: 'text',
               value: remainingText
             });
           }
@@ -111,7 +111,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
   const { baseUrl = VAULT_PATH, currentFilePath, metadata } = options;
-  
+
   // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
   const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath, metadata);
 
@@ -120,11 +120,11 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
     case 'file':
       result = createFileLink(parsedLink, resolvedPath);
       break;
-    
+
     case 'image':
       result = createImageEmbed(parsedLink, resolvedPath, baseUrl);
       break;
-    
+
     case 'embed': {
       // 检查是否为轨迹文件
       const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
@@ -135,14 +135,14 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       }
       break;
     }
-    
+
     default:
       result = {
         type: 'text',
         value: `[[${parsedLink.filePath}]]`
       };
   }
-  
+
   return result;
 }
 
@@ -152,40 +152,40 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
  */
 function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: any[]): string {
   let filePath = linkPath.trim();
-  
+
   // 第一步：尝试使用 metadata.json 查找文件
   if (metadata && metadata.length > 0) {
     // 查找文件名匹配的条目（不包括扩展名）
     const targetFileName = filePath.replace(/\.md$/, ''); // 去掉可能的 .md 后缀
-    
+
     const matchedFile = metadata.find(item => {
       const itemFileName = item.fileName || '';
       const itemRelativePath = item.relativePath || '';
-      
+
       // 尝试多种匹配方式
       return itemFileName === targetFileName || // 直接文件名匹配
              itemFileName === `${targetFileName}.md` || // 文件名加扩展名匹配
              itemRelativePath.endsWith(`/${targetFileName}.md`) || // 路径结尾匹配
              itemRelativePath === `${targetFileName}.md`; // 完整路径匹配
     });
-    
+
     if (matchedFile) {
       const resolvedPath = `/${matchedFile.relativePath}`;
       return resolvedPath;
     }
   }
-  
+
   // 第二步：降级到直接路径构造（原有逻辑）
   // 处理相对路径解析
   if (currentFilePath) {
     // 获取当前文件的目录
     const currentDir = currentFilePath.substring(0, currentFilePath.lastIndexOf('/'));
-    
+
     // 处理多级向上的相对路径 (../../ 或 ../)
     if (filePath.startsWith('../')) {
       let workingDir = currentDir;
       let workingPath = filePath;
-      
+
       // 逐级处理 ../
       while (workingPath.startsWith('../')) {
         // 移除一个 ../
@@ -194,7 +194,7 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
         const lastSlash = workingDir.lastIndexOf('/');
         workingDir = lastSlash > 0 ? workingDir.substring(0, lastSlash) : '';
       }
-      
+
       // 组合最终路径
       filePath = workingDir ? `${workingDir}/${workingPath}` : `/${workingPath}`;
     } else if (filePath.startsWith('./')) {
@@ -208,17 +208,17 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
       filePath = `${currentDir}/${filePath}`;
     }
   }
-  
+
   // 如果没有扩展名，添加 .md
   if (!filePath.includes('.') || !filePath.match(/\.[a-zA-Z0-9]+$/)) {
     filePath = `${filePath}.md`;
   }
-  
+
   // 确保路径以 / 开头
   if (!filePath.startsWith('/')) {
     filePath = `/${filePath}`;
   }
-  
+
   return filePath;
 }
 
@@ -226,13 +226,13 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
  * 创建文件链接节点（简化版本）
  */
 function createFileLink(parsedLink: any, resolvedPath: string) {
-  const displayText = parsedLink.displayText || 
+  const displayText = parsedLink.displayText ||
     parsedLink.filePath.split('/').pop()?.replace(/\.md$/, '') ||
     parsedLink.filePath;
 
   // 生成不带 .md 扩展名的 URL 路径
   const urlPath = resolvedPath.replace(/\.md$/, '');
-  
+
   // 总是创建可点击的内部链接（简化版本不验证文件存在性）
   const linkNode = {
     type: 'link',
@@ -258,16 +258,16 @@ function createFileLink(parsedLink: any, resolvedPath: string) {
 function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
   // 处理图片路径
   let imagePath = resolvedPath;
-  
+
   // 如果路径中包含 Attachments，确保路径正确
   if (!imagePath.toLowerCase().includes('attachments')) {
     // 如果不包含 Attachments，假定图片在 Attachments 文件夹中
     imagePath = `/Attachments/${imagePath.replace(/^\/+/, '')}`;
   }
-  
+
   // 构建完整的图片 URL
-  const fullImageUrl = imagePath.startsWith('http') 
-    ? imagePath 
+  const fullImageUrl = imagePath.startsWith('http')
+    ? imagePath
     : `${baseUrl}${imagePath}`;
 
   return {
@@ -292,16 +292,16 @@ function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
   // 对于轨迹文件，确保路径正确
   // 如果 resolvedPath 是相对路径（不以 / 开头），则添加 /
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
-  
-  const fullTrackUrl = normalizedPath.startsWith('http') 
-    ? normalizedPath 
+
+  const fullTrackUrl = normalizedPath.startsWith('http')
+    ? normalizedPath
     : `${baseUrl}${normalizedPath}`;
 
   const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
   const placeholder = `TRACK_EMBED_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   // Log for debugging
-  console.log('[TrackEmbed] Creating track embed:', {
+  // console.log('[TrackEmbed] Creating track embed:', {
     originalPath: parsedLink.filePath,
     resolvedPath,
     normalizedPath,

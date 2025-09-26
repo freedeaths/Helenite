@@ -284,7 +284,7 @@ lat: 33.28
 long: 131.43
 defaultZoom: 14
 maxZoom: 20
-gpx: [[yamap_2025-04-02_08_48.gpx]]
+gpx: [[Attachments/yamap_2025-04-02_08_48.gpx]]
 gpxMarkers:
   start: start
   waypoint: waypoint

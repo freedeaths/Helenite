@@ -231,8 +231,8 @@ function createFileLink(parsedLink: any, resolvedPath: string): Link {
     data: {
       hProperties: {
         className: ['internal-link'],
-        'data-file-path': resolvedPath, // 保留完整路径用于导航
-        onClick: `window.navigateToFile('${resolvedPath}')`
+        'data-file-path': resolvedPath // 保留完整路径用于导航
+        // onClick 应该在 React 组件中处理，而不是在这里设置
       }
     }
   };

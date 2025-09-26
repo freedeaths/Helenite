@@ -1,6 +1,6 @@
 /**
  * Comprehensive Obsidian Theme Variable Mapping
- * 
+ *
  * This module provides complete mapping between Obsidian theme CSS variables
  * and their semantic meanings for use with Mantine components.
  */
@@ -20,7 +20,7 @@ export interface ObsidianThemeVariables {
   '--background-modifier-error-rgb': string;
   '--background-modifier-error-hover': string;
   '--background-modifier-cover': string;
-  
+
   // Text colors
   '--text-normal': string;
   '--text-muted': string;
@@ -33,7 +33,7 @@ export interface ObsidianThemeVariables {
   '--text-on-accent': string;
   '--text-accent': string;
   '--text-accent-hover': string;
-  
+
   // Interactive elements
   '--interactive-normal': string;
   '--interactive-hover': string;
@@ -41,12 +41,12 @@ export interface ObsidianThemeVariables {
   '--interactive-accent-rgb': string;
   '--interactive-accent-hover': string;
   '--interactive-success': string;
-  
+
   // Scrollbars
   '--scrollbar-active-thumb-bg': string;
   '--scrollbar-bg': string;
   '--scrollbar-thumb-bg': string;
-  
+
   // Titlebar (for desktop apps)
   '--titlebar-background': string;
   '--titlebar-background-focused': string;
@@ -54,14 +54,14 @@ export interface ObsidianThemeVariables {
   '--titlebar-text-color-focused': string;
   '--titlebar-text-color-unfocused': string;
   '--titlebar-text-weight': string;
-  
+
   // Tables
   '--table-header-bg': string;
   '--table-header-bg-hover': string;
   '--table-row-alt-bg': string;
   '--table-row-hover-bg': string;
   '--table-border-color': string;
-  
+
   // Code
   '--code-background': string;
   '--code-normal': string;
@@ -75,12 +75,12 @@ export interface ObsidianThemeVariables {
   '--code-string': string;
   '--code-tag': string;
   '--code-value': string;
-  
+
   // Blockquotes and callouts
   '--blockquote-border': string;
   '--embed-border': string;
   '--embed-background': string;
-  
+
   // Tags
   '--tag-background': string;
   '--tag-background-hover': string;
@@ -91,7 +91,7 @@ export interface ObsidianThemeVariables {
   '--tag-padding-x': string;
   '--tag-padding-y': string;
   '--tag-radius': string;
-  
+
   // Graph
   '--graph-line': string;
   '--graph-node': string;
@@ -99,7 +99,7 @@ export interface ObsidianThemeVariables {
   '--graph-node-focused': string;
   '--graph-node-tag': string;
   '--graph-node-attachment': string;
-  
+
   // Sidebar
   '--nav-item-color': string;
   '--nav-item-color-hover': string;
@@ -114,12 +114,12 @@ export interface ObsidianThemeVariables {
   '--nav-item-white-space': string;
   '--nav-collapse-icon-color': string;
   '--nav-collapse-icon-color-collapsed': string;
-  
+
   // Indentation guides
   '--indentation-guide-color': string;
   '--indentation-guide-color-active': string;
   '--indentation-guide-width': string;
-  
+
   // Checkbox
   '--checkbox-color': string;
   '--checkbox-color-hover': string;
@@ -127,7 +127,7 @@ export interface ObsidianThemeVariables {
   '--checkbox-border-color-hover': string;
   '--checklist-done-color': string;
   '--checklist-done-decoration': string;
-  
+
   // Toggles
   '--toggle-border-color': string;
   '--toggle-border-color-hover': string;
@@ -138,7 +138,7 @@ export interface ObsidianThemeVariables {
   '--toggle-thumb-radius': string;
   '--toggle-track-background': string;
   '--toggle-track-background-active': string;
-  
+
   // Sliders
   '--slider-track-background': string;
   '--slider-track-background-active': string;
@@ -146,28 +146,28 @@ export interface ObsidianThemeVariables {
   '--slider-thumb-border-width': string;
   '--slider-thumb-color': string;
   '--slider-thumb-radius': string;
-  
+
   // Ribbons
   '--ribbon-background': string;
   '--ribbon-background-collapsed': string;
-  
+
   // Modals
   '--modal-background': string;
   '--modal-border': string;
   '--modal-border-width': string;
   '--modal-radius': string;
   '--modal-community-sidebar-background': string;
-  
+
   // Prompts
   '--prompt-border': string;
   '--prompt-border-color': string;
   '--prompt-border-width': string;
-  
+
   // Dividers
   '--divider-color': string;
   '--divider-width': string;
   '--divider-vertical-height': string;
-  
+
   // Publish (for Obsidian Publish)
   '--publish-sidebar-background': string;
   '--publish-sidebar-background-hover': string;
@@ -179,7 +179,7 @@ export interface ObsidianThemeVariables {
 export interface MantineThemeMapping {
   // Primary color mappings
   primaryColor: keyof ObsidianThemeVariables;
-  
+
   // Component-specific mappings
   components: {
     ActionIcon: {
@@ -194,7 +194,7 @@ export interface MantineThemeMapping {
         backgroundHover: keyof ObsidianThemeVariables;
       };
     };
-    
+
     Button: {
       light: {
         color: keyof ObsidianThemeVariables;
@@ -213,38 +213,38 @@ export interface MantineThemeMapping {
         backgroundHover: keyof ObsidianThemeVariables;
       };
     };
-    
+
     Tooltip: {
       background: keyof ObsidianThemeVariables;
       color: keyof ObsidianThemeVariables;
       border: keyof ObsidianThemeVariables;
     };
-    
+
     Modal: {
       background: keyof ObsidianThemeVariables;
       border: keyof ObsidianThemeVariables;
     };
-    
+
     Input: {
       background: keyof ObsidianThemeVariables;
       color: keyof ObsidianThemeVariables;
       border: keyof ObsidianThemeVariables;
       backgroundFocused: keyof ObsidianThemeVariables;
     };
-    
+
     Checkbox: {
       color: keyof ObsidianThemeVariables;
       borderColor: keyof ObsidianThemeVariables;
       background: keyof ObsidianThemeVariables;
     };
-    
+
     Table: {
       headerBackground: keyof ObsidianThemeVariables;
       rowHoverBackground: keyof ObsidianThemeVariables;
       borderColor: keyof ObsidianThemeVariables;
     };
   };
-  
+
   // Global mappings
   global: {
     body: keyof ObsidianThemeVariables;
@@ -261,7 +261,7 @@ export interface MantineThemeMapping {
  */
 export const DEFAULT_OBSIDIAN_MANTINE_MAPPING: MantineThemeMapping = {
   primaryColor: '--interactive-accent',
-  
+
   components: {
     ActionIcon: {
       subtle: {
@@ -275,7 +275,7 @@ export const DEFAULT_OBSIDIAN_MANTINE_MAPPING: MantineThemeMapping = {
         backgroundHover: '--interactive-accent-hover',
       },
     },
-    
+
     Button: {
       light: {
         color: '--text-normal',
@@ -294,38 +294,38 @@ export const DEFAULT_OBSIDIAN_MANTINE_MAPPING: MantineThemeMapping = {
         backgroundHover: '--background-secondary',
       },
     },
-    
+
     Tooltip: {
       background: '--background-secondary',
       color: '--text-normal',
       border: '--background-modifier-border',
     },
-    
+
     Modal: {
       background: '--modal-background',
       border: '--modal-border',
     },
-    
+
     Input: {
       background: '--background-modifier-form-field',
       color: '--text-normal',
       border: '--background-modifier-border',
       backgroundFocused: '--background-modifier-form-field-highlighted',
     },
-    
+
     Checkbox: {
       color: '--checkbox-color',
       borderColor: '--checkbox-border-color',
       background: '--background-primary',
     },
-    
+
     Table: {
       headerBackground: '--table-header-bg',
       rowHoverBackground: '--table-row-hover-bg',
       borderColor: '--table-border-color',
     },
   },
-  
+
   global: {
     body: '--background-primary',
     text: '--text-normal',
@@ -342,10 +342,10 @@ export const DEFAULT_OBSIDIAN_MANTINE_MAPPING: MantineThemeMapping = {
 export function createObsidianThemeMapping(): Partial<ObsidianThemeVariables> {
   const computedStyle = getComputedStyle(document.documentElement);
   const mapping: Partial<ObsidianThemeVariables> = {};
-  
+
   // Read all available CSS variables
   const variableNames = Object.keys(DEFAULT_OBSIDIAN_MANTINE_MAPPING.global) as (keyof ObsidianThemeVariables)[];
-  
+
   // Add component-specific variables
   Object.values(DEFAULT_OBSIDIAN_MANTINE_MAPPING.components).forEach(component => {
     Object.values(component).forEach(variant => {
@@ -358,7 +358,7 @@ export function createObsidianThemeMapping(): Partial<ObsidianThemeVariables> {
       }
     });
   });
-  
+
   // Remove duplicates and read values
   [...new Set(variableNames)].forEach(varName => {
     if (typeof varName === 'string' && varName.startsWith('--')) {
@@ -368,7 +368,7 @@ export function createObsidianThemeMapping(): Partial<ObsidianThemeVariables> {
       }
     }
   });
-  
+
   return mapping;
 }
 
@@ -377,17 +377,17 @@ export function createObsidianThemeMapping(): Partial<ObsidianThemeVariables> {
  */
 export function applyObsidianMantineMapping(mapping: Partial<ObsidianThemeVariables>): void {
   const root = document.documentElement;
-  
+
   // Apply global mappings
   const globalMapping = DEFAULT_OBSIDIAN_MANTINE_MAPPING.global;
-  
+
   Object.entries(globalMapping).forEach(([mantineProperty, obsidianVariable]) => {
     if (mapping[obsidianVariable as keyof ObsidianThemeVariables]) {
       const cssProperty = `--mantine-${mantineProperty.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
       root.style.setProperty(cssProperty, `var(${obsidianVariable})`);
     }
   });
-  
+
   // Apply primary color
   if (mapping[DEFAULT_OBSIDIAN_MANTINE_MAPPING.primaryColor]) {
     root.style.setProperty('--mantine-primary-color', `var(${DEFAULT_OBSIDIAN_MANTINE_MAPPING.primaryColor})`);
@@ -400,6 +400,6 @@ export function applyObsidianMantineMapping(mapping: Partial<ObsidianThemeVariab
 export function autoDetectAndApplyObsidianTheme(): void {
   const themeMapping = createObsidianThemeMapping();
   applyObsidianMantineMapping(themeMapping);
-  
-  console.log('Applied Obsidian theme mapping:', Object.keys(themeMapping));
+
+  // console.log('Applied Obsidian theme mapping:', Object.keys(themeMapping));
 }

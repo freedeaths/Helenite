@@ -24,7 +24,7 @@ export type { ObsidianTagsOptions } from './remark/obsidianTagsPlugin.js';
 export type { ObsidianHighlightsOptions } from './remark/obsidianHighlightsPlugin.js';
 export type { ObsidianCalloutsOptions } from './remark/obsidianCalloutsPlugin.js';
 export type { TableWrapperOptions } from './rehype/tableWrapperPlugin.js';
-export type { TrackMapsPluginOptions, FootprintsConfig, TrackData, SingleTrack, LeafletConfig } from './remark/trackMapsPlugin.js';
+export type { TrackMapsPluginOptions, TrackData, SingleTrack, LeafletConfig } from './remark/trackMapsPlugin.js';
 export type { FootprintsPluginOptions, FootprintsData } from './remark/footprintsPlugin.js';
 export type { TrackMapRendererOptions } from './rehype/trackMapRenderer.js';
 export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';

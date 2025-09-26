@@ -12,10 +12,10 @@ export interface ShareButtonProps {
 export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [qrModalOpened, setQrModalOpened] = useState(false);
-  
+
   const currentUrl = window.location.href;
   const pageTitle = document.title;
-  
+
   // URL处理策略：根据不同平台需求
   const getDecodedUrl = () => {
     try {
@@ -25,7 +25,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
       return currentUrl;
     }
   };
-  
+
   const decodedUrl = getDecodedUrl(); // 解码版本（用于原生分享、微信）
   const encodedUrl = currentUrl;      // 编码版本（用于Twitter、调试对比）
 
@@ -40,7 +40,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
         color: 'green',
         icon: <IconCheck size={16} />,
       });
-      
+
       // 2秒后重置图标
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -51,7 +51,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      
+
       setCopied(true);
       notifications.show({
         title: '复制成功',
@@ -66,8 +66,8 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
   // 分享到Twitter/X - 使用编码版本确保URL完整性
   const handleShareToTwitter = () => {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(pageTitle)}&url=${encodeURIComponent(encodedUrl)}`;
-    console.log('Twitter分享URL:', twitterUrl);
-    console.log('使用编码URL:', encodedUrl);
+    // console.log('Twitter分享URL:', twitterUrl);
+    // console.log('使用编码URL:', encodedUrl);
     window.open(twitterUrl, '_blank', 'width=550,height=420');
   };
 
@@ -82,13 +82,13 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           color: 'blue',
           autoClose: 3000,
         });
-        
+
         await navigator.share({
           title: pageTitle,
           text: `查看这篇文章：${pageTitle}`,
           url: decodedUrl,
         });
-        
+
         notifications.show({
           title: '分享成功',
           message: '内容已通过系统分享',
@@ -104,7 +104,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           color: 'red',
           autoClose: 5000,
         });
-        
+
         if (error instanceof Error && error.name !== 'AbortError') {
           console.warn('Native share failed:', error);
           // 降级到复制链接
@@ -129,7 +129,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isWechat = /MicroMessenger/i.test(navigator.userAgent);
     const hasNativeShare = 'share' in navigator;
-    
+
     if (isWechat) {
       // 在微信内直接提示
       notifications.show({
@@ -165,8 +165,8 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
 
         <Menu.Dropdown>
           <Menu.Label>分享到</Menu.Label>
-          
-          
+
+
           <Menu.Item
             leftSection={<IconCopy size={16} />}
             onClick={handleCopyLink}

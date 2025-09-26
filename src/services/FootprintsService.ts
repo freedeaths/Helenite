@@ -1,22 +1,24 @@
 /**
  * FootprintsService 实现
- * 
+ *
  * 统一的足迹数据管理服务，支持：
  * - GPX/KML 轨迹文件解析（多厂商支持）
  * - 地理位置数据聚合（用户输入 + 照片 EXIF）
  * - 统一的地图数据输出接口
  */
 
-import type { 
-  IFootprintsService, 
-  TrackPoint, 
-  TrackPhoto, 
-  TrackData, 
+import type {
+  IFootprintsService,
+  TrackPoint,
+  TrackPhoto,
+  TrackData,
   LocationData,
   GeoBounds,
   FootprintsConfig,
   FootprintsData
 } from './interfaces/IFootprintsService';
+import type { IStorageService } from './interfaces/IStorageService';
+import type { ICacheManager } from './interfaces/ICacheManager';
 
 // 重用现有的解析器基础架构，但转换数据结构
 interface TrackDataParser {
@@ -84,7 +86,7 @@ abstract class BaseGPXParser implements TrackDataParser {
 
     // 使用TrackMap.tsx的全面方法处理轨迹点
     const gpx = gpxObject as Record<string, unknown>;
-    
+
     // 处理轨迹点 - 多种可能的结构 (复制TrackMap.tsx逻辑)
     const trackSources = [
       gpx.trk,
@@ -116,7 +118,7 @@ abstract class BaseGPXParser implements TrackDataParser {
                     pointArray.forEach((point: Record<string, unknown>) => {
                       const lat = point.$.lat || point.lat || point['@_lat'] || point.latitude;
                       const lon = point.$.lon || point.lon || point['@_lon'] || point.longitude;
-                      
+
                       if (lat && lon) {
                         const trackPoint: {
                           latitude: number;
@@ -181,7 +183,7 @@ abstract class BaseGPXParser implements TrackDataParser {
     }> = [];
 
     const gpx = gpxObject as Record<string, unknown>;
-    
+
     // 处理航点 - 使用TrackMap.tsx的方法
     const waypointSources = [gpx.wpt, gpx.gpx?.wpt, gpx.waypoints].filter(Boolean);
     waypointSources.forEach(wptArray => {
@@ -189,7 +191,7 @@ abstract class BaseGPXParser implements TrackDataParser {
         wptArray.forEach((waypoint: Record<string, unknown>) => {
           const lat = waypoint['@_lat'] || waypoint.$.lat || waypoint.lat || waypoint.latitude;
           const lon = waypoint['@_lon'] || waypoint.$.lon || waypoint.lon || waypoint.longitude;
-          
+
           if (lat && lon) {
             waypoints.push({
               latitude: parseFloat(String(lat)),
@@ -211,7 +213,11 @@ abstract class BaseGPXParser implements TrackDataParser {
 // KML 解析器基类（保留现有逻辑）
 abstract class BaseKMLParser implements TrackDataParser {
   canParse(content: string): boolean {
-    return content.trim().startsWith('<?xml') && content.includes('<kml');
+    const trimmedContent = content.trim();
+    // Some KML files don't have <?xml declaration
+    const canParse = (trimmedContent.startsWith('<kml ') || trimmedContent.startsWith('<kml>')) ||
+                     (trimmedContent.startsWith('<?xml') && (trimmedContent.includes('<kml ') || trimmedContent.includes('<kml>')));
+    return canParse;
   }
 
   abstract parse(content: string): Promise<UnifiedTrackData>;
@@ -237,15 +243,17 @@ abstract class BaseKMLParser implements TrackDataParser {
     }> = [];
 
     const kml = kmlObject as Record<string, unknown>;
-    const document = kml.Document as Record<string, unknown>;
-    
+    // Handle xml2js array wrapping
+    const documentArr = kml.Document as unknown;
+    const document = Array.isArray(documentArr) ? documentArr[0] as Record<string, unknown> : documentArr as Record<string, unknown>;
+
     if (document && document.Placemark && Array.isArray(document.Placemark)) {
       document.Placemark.forEach((placemark: unknown) => {
         const placemarkObj = placemark as Record<string, unknown>;
         if (placemarkObj.description && placemarkObj.Point) {
           const description = String(placemarkObj.description);
           const imgMatches = description.match(/<img[^>]+src="([^"]+)"/gi);
-          
+
           if (imgMatches) {
             const point = placemarkObj.Point as Record<string, unknown>;
             if (point.coordinates) {
@@ -262,8 +270,8 @@ abstract class BaseKMLParser implements TrackDataParser {
                     description: description,
                     latitude,
                     longitude,
-                    time: (placemarkObj.TimeStamp as Record<string, unknown>)?.when 
-                      ? new Date(String((placemarkObj.TimeStamp as Record<string, unknown>).when)) 
+                    time: (placemarkObj.TimeStamp as Record<string, unknown>)?.when
+                      ? new Date(String((placemarkObj.TimeStamp as Record<string, unknown>).when))
                       : undefined
                   });
                 }
@@ -295,17 +303,23 @@ abstract class BaseKMLParser implements TrackDataParser {
     }> = [];
 
     const kml = kmlObject as Record<string, unknown>;
-    const document = kml.Document as Record<string, unknown>;
-    
+    // Handle xml2js array wrapping
+    const documentArr = kml.Document as unknown;
+    const document = Array.isArray(documentArr) ? documentArr[0] as Record<string, unknown> : documentArr as Record<string, unknown>;
+
     if (document && document.Placemark && Array.isArray(document.Placemark)) {
       document.Placemark.forEach((placemark: unknown) => {
         const placemarkObj = placemark as Record<string, unknown>;
         const lineString = placemarkObj.LineString as Record<string, unknown>;
-        
+
         if (lineString && lineString.coordinates) {
-          const coordinatesStr = String(lineString.coordinates);
+          // Handle xml2js array wrapping for coordinates
+          const coordsData = Array.isArray(lineString.coordinates)
+            ? lineString.coordinates[0]
+            : lineString.coordinates;
+          const coordinatesStr = String(coordsData);
           const coordLines = coordinatesStr.trim().split(/[\n\r]+/);
-          
+
           coordLines.forEach((line: string) => {
             const coords = line.trim().split(/[\s,]+/); // 支持空格和逗号分隔
             for (let i = 0; i < coords.length; i += 3) {
@@ -319,12 +333,45 @@ abstract class BaseKMLParser implements TrackDataParser {
                     latitude,
                     longitude,
                     elevation,
-                    name: placemarkObj.name ? String(placemarkObj.name) : undefined
+                    name: placemarkObj.name
+                      ? (Array.isArray(placemarkObj.name) ? String(placemarkObj.name[0]) : String(placemarkObj.name))
+                      : undefined
                   });
                 }
               }
             }
           });
+        }
+
+        // Also check for gx:Track (Google Earth extension format)
+        const gxTrack = placemarkObj['gx:Track'] as unknown;
+        if (gxTrack && typeof gxTrack === 'object') {
+          const trackObj = gxTrack as Record<string, unknown>;
+          const gxCoords = trackObj['gx:coord'] as unknown[];
+
+          if (Array.isArray(gxCoords)) {
+            gxCoords.forEach((coord: unknown) => {
+              if (typeof coord === 'string') {
+                const parts = coord.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                  const longitude = parseFloat(parts[0]);
+                  const latitude = parseFloat(parts[1]);
+                  const elevation = parts.length >= 3 ? parseFloat(parts[2]) : undefined;
+
+                  if (!isNaN(longitude) && !isNaN(latitude)) {
+                    points.push({
+                      latitude,
+                      longitude,
+                      elevation,
+                      name: placemarkObj.name
+                      ? (Array.isArray(placemarkObj.name) ? String(placemarkObj.name[0]) : String(placemarkObj.name))
+                      : undefined
+                    });
+                  }
+                }
+              }
+            });
+          }
         }
       });
     }
@@ -344,10 +391,10 @@ class YamapGPXParser extends BaseGPXParser {
 
   async parse(content: string): Promise<UnifiedTrackData> {
     const gpxParserModule = await import('gpx-parser-builder');
-    
+
     // 动态导入需要访问 default 属性
     const gpxParser = gpxParserModule.default || gpxParserModule;
-    
+
     // 尝试多种解析方式 (参考TrackMap.tsx的成功实现)
     let gpxObject;
     let parseError;
@@ -387,19 +434,19 @@ class YamapGPXParser extends BaseGPXParser {
       throw new Error(`GPX parser returned null or undefined. Last error: ${(parseError as Error)?.message || 'Unknown error'}`);
     }
 
-    console.log('🔍 YamapGPXParser - GPX Object keys:', Object.keys(gpxObject));
-    console.log('🔍 YamapGPXParser - GPX Object structure:', JSON.stringify(gpxObject, null, 2).substring(0, 1000));
+    // console.log('🔍 YamapGPXParser - GPX Object keys:', Object.keys(gpxObject));
+    // console.log('🔍 YamapGPXParser - GPX Object structure:', JSON.stringify(gpxObject, null, 2).substring(0, 1000));
 
     const trackPoints = this.parseGPXContent(gpxObject);
     const waypoints = this.parseWaypoints(gpxObject);
-    
-    console.log('🔍 YamapGPXParser - Parsed track points:', trackPoints.length);
-    console.log('🔍 YamapGPXParser - Parsed waypoints:', waypoints.length);
+
+    // console.log('🔍 YamapGPXParser - Parsed track points:', trackPoints.length);
+    // console.log('🔍 YamapGPXParser - Parsed waypoints:', waypoints.length);
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] || 
+      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
             (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'YAMAP Track',
-      description: (gpxObject as Record<string, unknown>).metadata?.desc?.[0] || 
+      description: (gpxObject as Record<string, unknown>).metadata?.desc?.[0] ||
                    (gpxObject as Record<string, unknown>).trk?.[0]?.desc,
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
@@ -466,10 +513,10 @@ class GarminGPXParser extends BaseGPXParser {
 
   async parse(content: string): Promise<UnifiedTrackData> {
     const gpxParserModule = await import('gpx-parser-builder');
-    
+
     // 动态导入需要访问 default 属性
     const gpxParser = gpxParserModule.default || gpxParserModule;
-    
+
     // 使用相同的多种解析方式 (参考TrackMap.tsx)
     let gpxObject;
     let parseError;
@@ -513,7 +560,7 @@ class GarminGPXParser extends BaseGPXParser {
     const waypoints = this.parseWaypoints(gpxObject);
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] || 
+      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
             (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'Garmin Track',
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
@@ -535,32 +582,290 @@ class TwobuluKMLParser extends BaseKMLParser {
   }
 
   async parse(content: string): Promise<UnifiedTrackData> {
-    const { parseString } = await import('xml2js');
-    
-    return new Promise((resolve, reject) => {
-      parseString(content, (err: unknown, result: unknown) => {
-        if (err) {
-          reject(err);
-          return;
+    try {
+      // 使用浏览器原生 DOMParser 或 Node.js 的 xml2js
+      let kmlDoc: Document;
+
+      if (typeof DOMParser !== 'undefined') {
+        // 浏览器环境
+        const parser = new DOMParser();
+        kmlDoc = parser.parseFromString(content, 'text/xml');
+
+        // 检查解析错误
+        const parseError = kmlDoc.querySelector('parsererror');
+        if (parseError) {
+          throw new Error(`XML parsing failed: ${parseError.textContent}`);
         }
 
-        const parsed = result as Record<string, unknown>;
-        const kml = parsed.kml;
-        const trackPoints = this.parseKMLTracks(kml);
-        const photos = this.parseKMLPhotos(kml);
+        // 转换 DOM 到我们需要的格式
+        const documentElement = kmlDoc.querySelector('Document');
+        const name = documentElement?.querySelector('name')?.textContent || '2bulu Track';
+        const description = documentElement?.querySelector('description')?.textContent || undefined;
 
-        resolve({
-          name: (kml as Record<string, unknown>).Document?.name?.[0] || '2bulu Track',
-          description: (kml as Record<string, unknown>).Document?.description?.[0],
+        // 解析轨迹点
+        const trackPoints: Array<{
+          latitude: number;
+          longitude: number;
+          elevation?: number;
+          time?: Date;
+          name?: string;
+          description?: string;
+        }> = [];
+
+        // 处理 LineString
+        const placemarks = kmlDoc.querySelectorAll('Placemark');
+        placemarks.forEach(placemark => {
+          const lineString = placemark.querySelector('LineString');
+          if (lineString) {
+            const coordinates = lineString.querySelector('coordinates')?.textContent;
+            if (coordinates) {
+              const coordLines = coordinates.trim().split(/[\n\r]+/);
+              coordLines.forEach(line => {
+                const coords = line.trim().split(/[\s,]+/);
+                for (let i = 0; i < coords.length; i += 3) {
+                  if (i + 1 < coords.length) {
+                    const longitude = parseFloat(coords[i]);
+                    const latitude = parseFloat(coords[i + 1]);
+                    const elevation = i + 2 < coords.length ? parseFloat(coords[i + 2]) : undefined;
+
+                    if (!isNaN(longitude) && !isNaN(latitude)) {
+                      trackPoints.push({
+                        latitude,
+                        longitude,
+                        elevation,
+                        name: placemark.querySelector('name')?.textContent || undefined
+                      });
+                    }
+                  }
+                }
+              });
+            }
+          }
+
+          // 处理 gx:Track
+          const gxTrack = placemark.querySelector('gx\\:Track, Track');
+          if (gxTrack) {
+            const gxCoords = gxTrack.querySelectorAll('gx\\:coord, coord');
+            gxCoords.forEach(coord => {
+              const text = coord.textContent;
+              if (text) {
+                const parts = text.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                  const longitude = parseFloat(parts[0]);
+                  const latitude = parseFloat(parts[1]);
+                  const elevation = parts.length >= 3 ? parseFloat(parts[2]) : undefined;
+
+                  if (!isNaN(longitude) && !isNaN(latitude)) {
+                    trackPoints.push({
+                      latitude,
+                      longitude,
+                      elevation,
+                      name: placemark.querySelector('name')?.textContent || undefined
+                    });
+                  }
+                }
+              }
+            });
+          }
+        });
+
+        return {
+          name,
+          description,
           trackPoints,
-          photos,
+          photos: [], // TODO: 解析照片
           metadata: {
             source: 'kml',
             provider: '2bulu'
           }
+        };
+      } else {
+        // Node.js 环境（测试环境）
+        const { parseString } = await import('xml2js');
+
+        return new Promise((resolve, reject) => {
+          parseString(content, (err: unknown, result: unknown) => {
+            if (err) {
+              reject(`XML parsing failed: ${err instanceof Error ? err.message : String(err)}`);
+              return;
+            }
+
+            try {
+              const parsed = result as Record<string, unknown>;
+              const kml = parsed.kml;
+              const trackPoints = this.parseKMLTracks(kml);
+              const photos = this.parseKMLPhotos(kml);
+
+              const document = Array.isArray((kml as Record<string, unknown>).Document)
+                ? (kml as Record<string, unknown>).Document[0]
+                : (kml as Record<string, unknown>).Document;
+
+              resolve({
+                name: document?.name?.[0] || '2bulu Track',
+                description: document?.description?.[0],
+                trackPoints,
+                photos,
+                metadata: {
+                  source: 'kml',
+                  provider: '2bulu'
+                }
+              });
+            } catch (parseError) {
+              reject(`Failed to parse KML structure: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+            }
+          });
         });
-      });
-    });
+      }
+    } catch (error) {
+      throw new Error(`KML parsing error: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+}
+
+// 通用 KML 解析器
+class GenericKMLParser extends BaseKMLParser {
+  getProviderInfo(content: string): { provider: string; confidence: number } {
+    return { provider: 'unknown', confidence: 0.1 }; // 低置信度兜底
+  }
+
+  async parse(content: string): Promise<UnifiedTrackData> {
+    try {
+      // 使用浏览器原生 DOMParser 或 Node.js 的 xml2js
+      let kmlDoc: Document;
+
+      if (typeof DOMParser !== 'undefined') {
+        // 浏览器环境
+        const parser = new DOMParser();
+        kmlDoc = parser.parseFromString(content, 'text/xml');
+
+        // 检查解析错误
+        const parseError = kmlDoc.querySelector('parsererror');
+        if (parseError) {
+          throw new Error(`XML parsing failed: ${parseError.textContent}`);
+        }
+
+        // 转换 DOM 到我们需要的格式
+        const documentElement = kmlDoc.querySelector('Document');
+        const name = documentElement?.querySelector('name')?.textContent || 'KML Track';
+        const description = documentElement?.querySelector('description')?.textContent || undefined;
+
+        // 解析轨迹点
+        const trackPoints: Array<{
+          latitude: number;
+          longitude: number;
+          elevation?: number;
+          time?: Date;
+          name?: string;
+          description?: string;
+        }> = [];
+
+        // 处理 LineString
+        const placemarks = kmlDoc.querySelectorAll('Placemark');
+        placemarks.forEach(placemark => {
+          const lineString = placemark.querySelector('LineString');
+          if (lineString) {
+            const coordinates = lineString.querySelector('coordinates')?.textContent;
+            if (coordinates) {
+              const coordLines = coordinates.trim().split(/[\n\r]+/);
+              coordLines.forEach(line => {
+                const coords = line.trim().split(/[\s,]+/);
+                for (let i = 0; i < coords.length; i += 3) {
+                  if (i + 1 < coords.length) {
+                    const longitude = parseFloat(coords[i]);
+                    const latitude = parseFloat(coords[i + 1]);
+                    const elevation = i + 2 < coords.length ? parseFloat(coords[i + 2]) : undefined;
+
+                    if (!isNaN(longitude) && !isNaN(latitude)) {
+                      trackPoints.push({
+                        latitude,
+                        longitude,
+                        elevation,
+                        name: placemark.querySelector('name')?.textContent || undefined
+                      });
+                    }
+                  }
+                }
+              });
+            }
+          }
+
+          // 处理 gx:Track
+          const gxTrack = placemark.querySelector('gx\\:Track, Track');
+          if (gxTrack) {
+            const gxCoords = gxTrack.querySelectorAll('gx\\:coord, coord');
+            gxCoords.forEach(coord => {
+              const text = coord.textContent;
+              if (text) {
+                const parts = text.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                  const longitude = parseFloat(parts[0]);
+                  const latitude = parseFloat(parts[1]);
+                  const elevation = parts.length >= 3 ? parseFloat(parts[2]) : undefined;
+
+                  if (!isNaN(longitude) && !isNaN(latitude)) {
+                    trackPoints.push({
+                      latitude,
+                      longitude,
+                      elevation,
+                      name: placemark.querySelector('name')?.textContent || undefined
+                    });
+                  }
+                }
+              }
+            });
+          }
+        });
+
+        return {
+          name,
+          description,
+          trackPoints,
+          photos: [], // TODO: 解析照片
+          metadata: {
+            source: 'kml',
+            provider: 'unknown'
+          }
+        };
+      } else {
+        // Node.js 环境（测试环境）
+        const { parseString } = await import('xml2js');
+
+        return new Promise((resolve, reject) => {
+          parseString(content, (err: unknown, result: unknown) => {
+            if (err) {
+              reject(`XML parsing failed: ${err instanceof Error ? err.message : String(err)}`);
+              return;
+            }
+
+            try {
+              const parsed = result as Record<string, unknown>;
+              const kml = parsed.kml;
+              const trackPoints = this.parseKMLTracks(kml);
+              const photos = this.parseKMLPhotos(kml);
+
+              const document = Array.isArray((kml as Record<string, unknown>).Document)
+                ? (kml as Record<string, unknown>).Document[0]
+                : (kml as Record<string, unknown>).Document;
+
+              resolve({
+                name: document?.name?.[0] || 'KML Track',
+                description: document?.description?.[0],
+                trackPoints,
+                photos,
+                metadata: {
+                  source: 'kml',
+                  provider: 'unknown'
+                }
+              });
+            } catch (parseError) {
+              reject(`Failed to parse KML structure: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+            }
+          });
+        });
+      }
+    } catch (error) {
+      throw new Error(`KML parsing error: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }
 
@@ -572,10 +877,10 @@ class GenericGPXParser extends BaseGPXParser {
 
   async parse(content: string): Promise<UnifiedTrackData> {
     const gpxParserModule = await import('gpx-parser-builder');
-    
+
     // 动态导入需要访问 default 属性
     const gpxParser = gpxParserModule.default || gpxParserModule;
-    
+
     // 使用相同的多种解析方式 (参考TrackMap.tsx)
     let gpxObject;
     let parseError;
@@ -619,7 +924,7 @@ class GenericGPXParser extends BaseGPXParser {
     const waypoints = this.parseWaypoints(gpxObject);
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] || 
+      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
             (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'Unknown Track',
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
@@ -637,17 +942,45 @@ class TrackDataParserFactory {
     new YamapGPXParser(),
     new GarminGPXParser(),
     new TwobuluKMLParser(),
-    new GenericGPXParser(), // 兜底解析器
+    new GenericGPXParser(), // GPX 兜底解析器
+    new GenericKMLParser(), // KML 兜底解析器
   ];
 
+  // 公共方法：检测文件的提供商
+  detectProvider(content: string): { provider: string; confidence: number } {
+    for (const parser of this.parsers) {
+      if (parser.canParse(content)) {
+        const providerInfo = parser.getProviderInfo(content);
+        if (providerInfo.confidence > 0) {
+          return providerInfo;
+        }
+      }
+    }
+    return { provider: 'unknown', confidence: 0 };
+  }
+
+  // 公共方法：验证是否是有效的轨迹文件
+  canParse(content: string): boolean {
+    return this.parsers.some(parser => parser.canParse(content));
+  }
+
   async parseTrackData(content: string): Promise<UnifiedTrackData> {
+    // 确保 content 是字符串
+    if (typeof content !== 'string') {
+      throw new Error('Content must be a string');
+    }
+
+    // 检查是否是 KML 文件
+    const isKML = content.includes('<kml');
+    const isGPX = content.includes('<gpx');
+
     // 找到最匹配的解析器
     let bestParser: TrackDataParser | null = null;
     let bestConfidence = 0;
 
     for (const parser of this.parsers) {
       if (parser.canParse(content)) {
-        const { confidence } = parser.getProviderInfo(content);
+        const { provider, confidence } = parser.getProviderInfo(content);
         if (confidence > bestConfidence) {
           bestParser = parser;
           bestConfidence = confidence;
@@ -665,7 +998,7 @@ class TrackDataParserFactory {
     }
 
     const result = await bestParser.parse(content);
-    
+
     // 如果解析器没有检测到厂商，再次检测
     if (!result.metadata.provider || result.metadata.provider === 'unknown') {
       for (const parser of this.parsers) {
@@ -676,13 +1009,20 @@ class TrackDataParserFactory {
         }
       }
     }
-    
+
     return result;
   }
 }
 
 export class FootprintsService implements IFootprintsService {
   private parserFactory = new TrackDataParserFactory();
+  private storageService: IStorageService;
+  private cacheManager: ICacheManager;
+
+  constructor(storageService: IStorageService, cacheManager: ICacheManager) {
+    this.storageService = storageService;
+    this.cacheManager = cacheManager;
+  }
 
   // ===============================
   // 核心解析功能
@@ -721,24 +1061,77 @@ export class FootprintsService implements IFootprintsService {
     }
   }
 
+  async parseInlineTrack(content: string, format: 'gpx' | 'kml', sourceName?: string): Promise<FootprintsData> {
+    const startTime = Date.now();
+    const virtualPath = `inline:${format}:${sourceName || 'untitled'}`;
+
+    try {
+      const unifiedTrack = await this.parserFactory.parseTrackData(content);
+      const trackData = this.transformToTrackData(unifiedTrack, virtualPath);
+
+      return {
+        tracks: [trackData],
+        locations: [],
+        metadata: {
+          totalTracks: 1,
+          totalLocations: 0,
+          processingTime: Date.now() - startTime,
+          errors: []
+        }
+      };
+    } catch (error) {
+      return {
+        tracks: [],
+        locations: [],
+        metadata: {
+          totalTracks: 0,
+          totalLocations: 0,
+          processingTime: Date.now() - startTime,
+          errors: [{
+            filePath: virtualPath,
+            error: error instanceof Error ? error.message : String(error)
+          }]
+        }
+      };
+    }
+  }
+
   async parseMultipleTracks(filePaths: string[]): Promise<FootprintsData> {
     const startTime = Date.now();
     const tracks: TrackData[] = [];
     const errors: Array<{ filePath: string; error: string }> = [];
 
-    await Promise.all(filePaths.map(async (filePath) => {
+    // 使用 map 收集结果，避免并发修改数组
+    const results = await Promise.all(filePaths.map(async (filePath) => {
       try {
         const content = await this.fetchFileContent(filePath);
         const unifiedTrack = await this.parserFactory.parseTrackData(content);
         const trackData = this.transformToTrackData(unifiedTrack, filePath);
-        tracks.push(trackData);
+        return { type: 'success' as const, trackData };
       } catch (error) {
-        errors.push({
-          filePath,
-          error: error instanceof Error ? error.message : String(error)
-        });
+        let errorMessage = 'Unknown error';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        } else {
+          errorMessage = 'Error parsing track file';
+        }
+        return { type: 'error' as const, filePath, error: errorMessage };
       }
     }));
+
+    // 分离成功和失败的结果
+    results.forEach(result => {
+      if (result.type === 'success') {
+        tracks.push(result.trackData);
+      } else {
+        errors.push({
+          filePath: result.filePath,
+          error: result.error
+        });
+      }
+    });
 
     return {
       tracks,
@@ -827,17 +1220,7 @@ export class FootprintsService implements IFootprintsService {
   async detectProvider(filePath: string): Promise<{ provider: string; confidence: number }> {
     try {
       const content = await this.fetchFileContent(filePath);
-      
-      for (const parser of this.parserFactory['parsers']) {
-        if (parser.canParse(content)) {
-          const providerInfo = parser.getProviderInfo(content);
-          if (providerInfo.confidence > 0) {
-            return providerInfo;
-          }
-        }
-      }
-      
-      return { provider: 'unknown', confidence: 0 };
+      return this.parserFactory.detectProvider(content);
     } catch (error) {
       return { provider: 'unknown', confidence: 0 };
     }
@@ -846,7 +1229,7 @@ export class FootprintsService implements IFootprintsService {
   async validateTrackFile(filePath: string): Promise<boolean> {
     try {
       const content = await this.fetchFileContent(filePath);
-      return this.parserFactory['parsers'].some(parser => parser.canParse(content));
+      return this.parserFactory.canParse(content);
     } catch (error) {
       return false;
     }
@@ -977,18 +1360,24 @@ export class FootprintsService implements IFootprintsService {
   // ===============================
 
   private async fetchFileContent(filePath: string): Promise<string> {
-    // 实际实现中需要根据环境选择合适的文件读取方式
-    if (typeof window !== 'undefined') {
-      // 浏览器环境：使用 fetch
-      const response = await fetch(filePath);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${filePath}`);
+    try {
+      // 检查 storageService 是否正确初始化
+      if (!this.storageService || typeof this.storageService.readFile !== 'function') {
+        throw new Error('StorageService not properly initialized');
       }
-      return response.text();
-    } else {
-      // Node.js 环境：使用 fs
-      const fs = await import('fs');
-      return fs.promises.readFile(filePath, 'utf-8');
+
+      // 使用 StorageService 读取文件，它会处理路径配置
+      const content = await this.storageService.readFile(filePath);
+
+      // StorageService 可能返回 string 或 Uint8Array
+      if (content instanceof Uint8Array) {
+        const decoded = new TextDecoder('utf-8').decode(content);
+        return decoded;
+      }
+
+      return content as string;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -1053,12 +1442,12 @@ export class FootprintsService implements IFootprintsService {
   private getTrackStyle(provider?: string): { color: string; weight: number; opacity: number } {
     // 根据厂商返回不同的样式
     const styleMap: Record<string, { color: string; weight: number; opacity: number }> = {
-      yamap: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-      garmin: { color: '#0066cc', weight: 3, opacity: 0.8 },
-      '2bulu': { color: '#00aa55', weight: 3, opacity: 0.8 },
-      foooooot: { color: '#ff9500', weight: 3, opacity: 0.8 },
-      google: { color: '#ea4335', weight: 3, opacity: 0.8 },
-      unknown: { color: '#666666', weight: 2, opacity: 0.6 }
+      yamap: { color: '#ff6b35', weight: 3, opacity: 0.8 },      // 橙红色
+      garmin: { color: '#0066cc', weight: 3, opacity: 0.8 },     // 蓝色
+      '2bulu': { color: '#e74c3c', weight: 3, opacity: 0.8 },    // 红色（替换原来的绿色）
+      foooooot: { color: '#ff9500', weight: 3, opacity: 0.8 },   // 橙色
+      google: { color: '#9b59b6', weight: 3, opacity: 0.8 },     // 紫色（替换原来的红色，避免与2bulu重复）
+      unknown: { color: '#3498db', weight: 3, opacity: 0.8 }     // 亮蓝色（替换原来的灰色）
     };
 
     return styleMap[provider || 'unknown'] || styleMap.unknown;

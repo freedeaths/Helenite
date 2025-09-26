@@ -276,6 +276,7 @@
   border-color: var(--background-modifier-border-hover, rgba(0, 0, 0, 0.2));
   color: var(--tag-color-hover, var(--text-normal));
   text-decoration: none;
+  cursor: default; /* Prevent pointer cursor */
 }
 
 /* Highlights ==text== - Obsidian-style highlighting */
