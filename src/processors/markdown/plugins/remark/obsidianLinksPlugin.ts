@@ -16,6 +16,7 @@ export interface ObsidianLinksPluginOptions {
 /**
  * Obsidian 链接处理插件
  */
+
 export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
   return function transformer(tree: Root) {
     // 存储需要替换的节点信息
@@ -104,7 +105,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
  * 根据解析结果创建对应的 AST 节点
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
-  const { baseUrl = '/vault', currentFilePath, metadata } = options;
+  const { baseUrl = '/vaults/Demo', currentFilePath, metadata } = options;
 
   // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
   const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath, metadata);
@@ -120,9 +121,28 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       break;
 
     case 'embed': {
-      // 如果轨迹文件已经被 trackMapsPlugin 处理过，这里就不会看到了
-      // 这里只处理其他类型的嵌入
-      result = createGenericEmbed(parsedLink, resolvedPath);
+      const fileExt = parsedLink.filePath.split('.').pop()?.toLowerCase();
+
+      // GPX/KML 文件可能已经被 trackMapsPlugin 处理了
+      if (fileExt === 'gpx' || fileExt === 'kml') {
+        result = createTrackEmbed(parsedLink, resolvedPath, baseUrl);
+      }
+      // PDF 文件
+      else if (fileExt === 'pdf') {
+        result = createPdfEmbed(parsedLink, resolvedPath, baseUrl);
+      }
+      // 视频文件
+      else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt || '')) {
+        result = createVideoEmbed(parsedLink, resolvedPath, baseUrl);
+      }
+      // 音频文件
+      else if (['mp3', 'wav', 'ogg', 'm4a'].includes(fileExt || '')) {
+        result = createAudioEmbed(parsedLink, resolvedPath, baseUrl);
+      }
+      // 其他嵌入类型
+      else {
+        result = createGenericEmbed(parsedLink, resolvedPath);
+      }
       break;
     }
 
@@ -291,17 +311,86 @@ function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 }
 
 /**
+ * 创建 PDF 嵌入节点
+ */
+function createPdfEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+  const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
+  const fullPdfUrl = normalizedPath.startsWith('http')
+    ? normalizedPath
+    : `${baseUrl}${normalizedPath}`;
+
+  // 使用和 track 一样的方式，返回自定义节点类型
+  return {
+    type: 'pdfEmbed',
+    data: {
+      hName: 'div',
+      hProperties: {
+        className: ['pdf-embed-placeholder'],
+        'data-pdf-url': fullPdfUrl
+      }
+    },
+    children: []
+  };
+}
+
+/**
+ * 创建视频嵌入节点
+ */
+function createVideoEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+  const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
+  const fullVideoUrl = normalizedPath.startsWith('http')
+    ? normalizedPath
+    : `${baseUrl}${normalizedPath}`;
+
+  const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
+
+  // 使用和 track 一样的方式，返回自定义节点类型
+  return {
+    type: 'videoEmbed',
+    data: {
+      hName: 'div',
+      hProperties: {
+        className: ['video-embed-placeholder'],
+        'data-video-url': fullVideoUrl,
+        'data-video-type': ext
+      }
+    },
+    children: []
+  };
+}
+
+/**
+ * 创建音频嵌入节点
+ */
+function createAudioEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+  const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
+  const fullAudioUrl = normalizedPath.startsWith('http')
+    ? normalizedPath
+    : `${baseUrl}${normalizedPath}`;
+
+  const ext = parsedLink.filePath.split('.').pop()?.toLowerCase();
+
+  // 使用和 track 一样的方式，返回自定义节点类型
+  return {
+    type: 'audioEmbed',
+    data: {
+      hName: 'div',
+      hProperties: {
+        className: ['audio-embed-placeholder'],
+        'data-audio-url': fullAudioUrl,
+        'data-audio-type': ext
+      }
+    },
+    children: []
+  };
+}
+
+/**
  * 创建通用嵌入节点
  */
 function createGenericEmbed(parsedLink: any, _resolvedPath: string) {
   return {
     type: 'text',
-    data: {
-      hProperties: {
-        className: ['embed-link'],
-        title: `嵌入: ${parsedLink.filePath}`
-      }
-    },
     value: `![[${parsedLink.filePath}]]`
   };
 }

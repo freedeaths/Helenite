@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "FolderA/SubFolder/Abilities.md",
+                "file": "FolderA/SubFolder/Embedded.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Abilities"
+              "title": "Embedded"
             }
           }
         ]
@@ -172,11 +172,14 @@
   },
   "active": "278919dfa40220f8",
   "lastOpenFiles": [
+    "Attachments/file_example_MP4_480_1_5MG.mp4",
+    "Attachments/file_example_MP3_700KB.mp3",
+    "Attachments/c4611_sample_explain.pdf",
+    "FolderA/SubFolder/Abilities.md",
     "helenite-docs/services-architecture.md",
     "Usages.md",
     "FolderA/TRACK_SYNTAX.md",
     "devtools.md",
-    "FolderA/SubFolder/Abilities.md",
     "FolderA/SubFolder/Abilities.md.bak",
     "FolderA/TRACK_SYNTAX.md.tmp.92757.1757830171215",
     "Attachments/中西citywalk.kml",
@@ -191,13 +194,11 @@
     "helenite-docs/README.md",
     "helenite-docs/components/map-and-tracks-analysis.md",
     "helenite-docs/components/markdown-and-plugins.md",
-    "helenite-docs/components",
     "helenite-docs/core/map-and-tracks-analysis.md",
     "helenite-docs/map-and-tracks-analysis.md",
     "docs/core/services-architecture.md",
     "helenite-docs/core/services-architecture.md",
     "helenite-docs/core/markdown-and-plugins.md",
-    "helenite-docs/core",
     "docs/core/markdown-and-plugins.md",
     "docs/core/map-and-tracks-analysis.md",
     "2025-09-05.md",

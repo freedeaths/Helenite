@@ -21,6 +21,7 @@ import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { parseFrontMatter, type FrontMatterData } from '../../utils/frontMatterParser.js';
 import { MermaidDiagram } from '../../newComponents/MermaidDiagram.js';
 import { TrackMap } from '../../newComponents/TrackMap/TrackMap.js';
+import { PDFViewer } from '../../newComponents/PDFViewer/PDFViewer.js';
 
 // 导入新的插件
 import {
@@ -35,6 +36,7 @@ import {
   obsidianCalloutsPlugin,
   tableWrapperPlugin,
   externalLinksPlugin,
+  mediaEmbedRenderer,
   type TrackMapsPluginOptions,
   type FootprintsPluginOptions,
   type MermaidPluginOptions,
@@ -110,7 +112,9 @@ export class MarkdownProcessor {
   /**
    * 创建 unified 处理器 - 完整的插件管道
    */
-  private createProcessor() {
+  private createProcessor(options?: MarkdownProcessingOptions) {
+    // 确保使用完整的默认选项，然后合并实例选项和传入的选项
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...this.options, ...options };
     const processor = unified()
       .use(remarkParse)
       .use(remarkGfm) // GitHub Flavored Markdown (表格、checkbox、引用等)
@@ -119,61 +123,97 @@ export class MarkdownProcessor {
     // 添加 Obsidian 插件（remark 阶段 - 处理 markdown AST）
     // IMPORTANT: trackMapsPlugin must run BEFORE obsidianLinksPlugin
     // so that [[*.gpx]] and [[*.kml]] files are converted to track maps
-    if (this.options.enableTracks) {
+    if (mergedOptions.enableTracks) {
       processor.use(trackMapsPlugin, {
-        baseUrl: this.options.baseUrl || '/vaults/Demo',
-        currentFilePath: this.options.currentFilePath || ''
+        baseUrl: mergedOptions.baseUrl || '/vaults/Demo',
+        currentFilePath: mergedOptions.currentFilePath || ''
       } as TrackMapsPluginOptions);
     }
 
-    if (this.options.enableObsidianLinks) {
+    if (mergedOptions.enableObsidianLinks) {
       processor.use(obsidianLinksPlugin, {
-        baseUrl: '/vaults/Demo',
-        currentFilePath: ''
+        baseUrl: mergedOptions.baseUrl || '/vaults/Demo',
+        currentFilePath: mergedOptions.currentFilePath || ''
       } as ObsidianLinksPluginOptions);
     }
 
-    if (this.options.enableObsidianTags) {
+    if (mergedOptions.enableObsidianTags) {
       processor.use(obsidianTagsPlugin, {} as ObsidianTagsOptions);
     }
 
-    if (this.options.enableHighlights) {
+    if (mergedOptions.enableHighlights) {
       processor.use(obsidianHighlightsPlugin, {} as ObsidianHighlightsOptions);
     }
 
-    if (this.options.enableCallouts) {
+    if (mergedOptions.enableCallouts) {
       processor.use(obsidianCalloutsPlugin, {} as ObsidianCalloutsOptions);
     }
 
-    if (this.options.enableMermaid) {
+    if (mergedOptions.enableMermaid) {
       processor.use(mermaidPlugin, {} as MermaidPluginOptions);
     }
 
     // 转换为 HTML AST
     processor.use(remarkRehype, {
-      allowDangerousHtml: true
+      allowDangerousHtml: true,
+      // 添加自定义节点处理器
+      handlers: {
+        // 处理 PDF 嵌入
+        pdfEmbed: (state: any, node: any) => {
+          // 直接返回 HAST 节点
+          return {
+            type: 'element',
+            tagName: 'div',
+            properties: node.data?.hProperties || {},
+            children: []
+          };
+        },
+        // 处理视频嵌入
+        videoEmbed: (state: any, node: any) => {
+          // 直接返回 HAST 节点
+          return {
+            type: 'element',
+            tagName: 'div',
+            properties: node.data?.hProperties || {},
+            children: []
+          };
+        },
+        // 处理音频嵌入
+        audioEmbed: (state: any, node: any) => {
+          // 直接返回 HAST 节点
+          return {
+            type: 'element',
+            tagName: 'div',
+            properties: node.data?.hProperties || {},
+            children: []
+          };
+        }
+      }
     });
 
     // 添加 rehype 插件（处理 HTML AST）
     processor.use(rehypeSlug); // 为标题添加 ID（TOC 跳转需要）
 
-    if (this.options.enableMath) {
+    if (mergedOptions.enableMath) {
       processor.use(rehypeKatex); // 渲染数学公式
     }
 
-    if (this.options.enableCodeHighlight) {
+    if (mergedOptions.enableCodeHighlight) {
       processor.use(rehypeHighlight); // 代码高亮
     }
 
     // Track map 渲染器（rehype 阶段）
-    if (this.options.enableTracks) {
+    if (mergedOptions.enableTracks) {
       processor.use(trackMapRenderer);
     }
 
     // Mermaid 渲染器（rehype 阶段）
-    if (this.options.enableMermaid) {
+    if (mergedOptions.enableMermaid) {
       processor.use(mermaidRenderer);
     }
+
+    // 媒体嵌入渲染器（PDF、视频、音频）
+    processor.use(mediaEmbedRenderer);
 
     // 表格包装器（为表格添加样式和响应式支持）
     processor.use(tableWrapperPlugin, {} as TableWrapperOptions);
@@ -233,6 +273,72 @@ export class MarkdownProcessor {
           const isInternalLink = className && className.includes('internal-link');
           const filePath = restProps['data-file-path'];
 
+          // 检查是否是脚注链接
+          const isFootnoteLink = href && (
+            href.startsWith('#user-content-fn-') ||
+            href.startsWith('#user-content-fnref-')
+          );
+
+          if (isFootnoteLink) {
+            // 脚注链接使用自定义滚动行为
+            return React.createElement('a', {
+              ...props,
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault();
+                // 获取目标元素 ID
+                const targetId = href.replace('#', '');
+                const targetElement = document.getElementById(targetId);
+                if (!targetElement) return;
+
+                // 使用类似 TOC 的方法查找滚动容器
+                const findScrollContainer = (element: HTMLElement): HTMLElement | null => {
+                  let currentElement = element.parentElement;
+                  while (currentElement && currentElement !== document.body) {
+                    const computedStyle = window.getComputedStyle(currentElement);
+                    const hasScroll = computedStyle.overflowY === 'auto' ||
+                                     computedStyle.overflowY === 'scroll' ||
+                                     computedStyle.overflow === 'auto' ||
+                                     computedStyle.overflow === 'scroll';
+
+                    if (hasScroll && currentElement.scrollHeight > currentElement.clientHeight) {
+                      return currentElement;
+                    }
+                    currentElement = currentElement.parentElement;
+                  }
+                  return null;
+                };
+
+                const scrollContainer = findScrollContainer(targetElement);
+                if (!scrollContainer) return;
+
+                // 使用 requestAnimationFrame 确保 DOM 更新后再计算
+                requestAnimationFrame(() => {
+                  const containerRect = scrollContainer.getBoundingClientRect();
+                  const elementRect = targetElement.getBoundingClientRect();
+
+                  // 计算相对位置，类似 TOC 的实现
+                  const elementRelativeTop = elementRect.top - containerRect.top + scrollContainer.scrollTop;
+                  const scrollOffset = 10; // 留一点间距，不要紧贴顶部
+                  const targetScrollTop = Math.max(0, elementRelativeTop - scrollOffset);
+
+                  // 先使用 instant 滚动到位置，然后再使用 smooth
+                  scrollContainer.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'instant'
+                  });
+
+                  // 再次使用 requestAnimationFrame 确保第一次滚动完成
+                  requestAnimationFrame(() => {
+                    scrollContainer.scrollTo({
+                      top: targetScrollTop,
+                      behavior: 'smooth'
+                    });
+                  });
+                });
+              }
+            }, children);
+          }
+
           if (isInternalLink && filePath) {
             // 内部链接使用自定义处理
             return React.createElement('a', {
@@ -256,7 +362,9 @@ export class MarkdownProcessor {
         // 处理 TrackMap 组件 - 直接映射
         TrackMap: TrackMap,
         // 处理 MermaidDiagram 组件 - 直接映射
-        MermaidDiagram: MermaidDiagram
+        MermaidDiagram: MermaidDiagram,
+        // 处理 PDFViewer 组件 - 直接映射
+        PDFViewer: PDFViewer
       }
     });
 

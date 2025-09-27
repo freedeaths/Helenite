@@ -807,7 +807,25 @@
   },
   {
     "fileName": "Embedded",
-    "relativePath": "FolderA/SubFolder/Embedded.md"
+    "relativePath": "FolderA/SubFolder/Embedded.md",
+    "headings": [
+      {
+        "heading": "Embedded Media Examples",
+        "level": 1
+      },
+      {
+        "heading": "PDF",
+        "level": 2
+      },
+      {
+        "heading": "MP4",
+        "level": 2
+      },
+      {
+        "heading": "MP3",
+        "level": 2
+      }
+    ]
   },
   {
     "fileName": "Abilities",

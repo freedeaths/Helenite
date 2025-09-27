@@ -71,7 +71,11 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
 
         // 创建 MarkdownProcessor 实例
         const { MarkdownProcessor } = await import('../../processors/markdown/MarkdownProcessor.js');
-        const processor = new MarkdownProcessor(vaultService);
+        const processor = new MarkdownProcessor(vaultService, {
+          enableObsidianLinks: true,
+          baseUrl: '/vaults/Demo',
+          currentFilePath: filePath
+        });
 
         const processed = await processor.processContent(documentContent, filePath);
 

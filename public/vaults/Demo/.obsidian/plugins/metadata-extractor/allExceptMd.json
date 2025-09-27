@@ -95,6 +95,21 @@
       "name": "金牛道拦马墙到普安镇.kml",
       "basename": "金牛道拦马墙到普安镇",
       "relativePath": "Attachments/金牛道拦马墙到普安镇.kml"
+    },
+    {
+      "name": "c4611_sample_explain.pdf",
+      "basename": "c4611_sample_explain",
+      "relativePath": "Attachments/c4611_sample_explain.pdf"
+    },
+    {
+      "name": "file_example_MP3_700KB.mp3",
+      "basename": "file_example_MP3_700KB",
+      "relativePath": "Attachments/file_example_MP3_700KB.mp3"
+    },
+    {
+      "name": "file_example_MP4_480_1_5MG.mp4",
+      "basename": "file_example_MP4_480_1_5MG",
+      "relativePath": "Attachments/file_example_MP4_480_1_5MG.mp4"
     }
   ]
 }

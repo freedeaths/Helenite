@@ -18,6 +18,7 @@ export { tableWrapperPlugin } from './rehype/tableWrapperPlugin.js';
 export { trackMapRenderer } from './rehype/trackMapRenderer.js';
 export { mermaidRenderer } from './rehype/mermaidRenderer.js';
 export { externalLinksPlugin } from './rehype/externalLinksPlugin.js';
+export { mediaEmbedRenderer } from './rehype/mediaEmbedRenderer.js';
 
 // 类型导出
 export type { ObsidianTagsOptions } from './remark/obsidianTagsPlugin.js';
@@ -31,3 +32,4 @@ export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';
 export type { MermaidPluginOptions, MermaidData } from './remark/mermaidPlugin.js';
 export type { ObsidianLinksPluginOptions } from './remark/obsidianLinksPlugin.js';
 export type { ExternalLinksOptions } from './rehype/externalLinksPlugin.js';
+export type { MediaEmbedRendererOptions } from './rehype/mediaEmbedRenderer.js';
