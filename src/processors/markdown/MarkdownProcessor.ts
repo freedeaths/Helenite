@@ -19,6 +19,7 @@ import * as prod from 'react/jsx-runtime';
 
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { parseFrontMatter, type FrontMatterData } from '../../utils/frontMatterParser.js';
+import { VAULT_PATH } from '../../config/vaultConfig.js';
 import { MermaidDiagram } from '../../newComponents/MermaidDiagram.js';
 import { TrackMap } from '../../newComponents/TrackMap/TrackMap.js';
 import { PDFViewer } from '../../newComponents/PDFViewer/PDFViewer.js';
@@ -125,14 +126,14 @@ export class MarkdownProcessor {
     // so that [[*.gpx]] and [[*.kml]] files are converted to track maps
     if (mergedOptions.enableTracks) {
       processor.use(trackMapsPlugin, {
-        baseUrl: mergedOptions.baseUrl || '/vaults/Demo',
+        baseUrl: mergedOptions.baseUrl || VAULT_PATH,
         currentFilePath: mergedOptions.currentFilePath || ''
       } as TrackMapsPluginOptions);
     }
 
     if (mergedOptions.enableObsidianLinks) {
       processor.use(obsidianLinksPlugin, {
-        baseUrl: mergedOptions.baseUrl || '/vaults/Demo',
+        baseUrl: mergedOptions.baseUrl || VAULT_PATH,
         currentFilePath: mergedOptions.currentFilePath || ''
       } as ObsidianLinksPluginOptions);
     }

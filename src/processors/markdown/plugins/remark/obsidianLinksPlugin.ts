@@ -6,6 +6,7 @@
 import { visit } from 'unist-util-visit';
 import type { Root, Text, Link, Image } from 'mdast';
 import { parseObsidianLink } from '../../../../utils/obsidianLinkUtils.js';
+import { VAULT_PATH } from '../../../../config/vaultConfig.js';
 
 export interface ObsidianLinksPluginOptions {
   baseUrl?: string;
@@ -19,7 +20,117 @@ export interface ObsidianLinksPluginOptions {
 
 export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
   return function transformer(tree: Root) {
-    // 存储需要替换的节点信息
+    // 第一遍：处理段落中的块级嵌入
+    visit(tree, 'paragraph', (node, index, parent) => {
+      if (!parent || typeof index !== 'number') return;
+
+      const children = node.children;
+      const newNodes: any[] = [];
+      let currentParagraphChildren: any[] = [];
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+
+        if (child.type === 'text') {
+          const text = child.value;
+          const linkRegex = /(!?\[\[[^\]]+\]\])/g;
+          const matches = Array.from(text.matchAll(linkRegex));
+
+          if (matches.length > 0) {
+            let lastIndex = 0;
+
+            for (const match of matches) {
+              const matchStart = match.index!;
+              const matchEnd = matchStart + match[0].length;
+
+              // 添加匹配前的文本
+              if (matchStart > lastIndex) {
+                const beforeText = text.slice(lastIndex, matchStart);
+                if (beforeText) {
+                  currentParagraphChildren.push({
+                    type: 'text',
+                    value: beforeText
+                  });
+                }
+              }
+
+              // 解析链接
+              const parsedLink = parseObsidianLink(match[0]);
+              if (parsedLink) {
+                if (parsedLink.type === 'embed') {
+                  const fileExt = parsedLink.filePath.split('.').pop()?.toLowerCase();
+
+                  // 检查是否是块级嵌入
+                  if (['pdf', 'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'm4a', 'gpx', 'kml'].includes(fileExt || '')) {
+                    // 如果当前段落有内容，先结束它
+                    if (currentParagraphChildren.length > 0) {
+                      newNodes.push({
+                        type: 'paragraph',
+                        children: [...currentParagraphChildren]
+                      });
+                      currentParagraphChildren = [];
+                    }
+
+                    // 添加块级嵌入作为独立节点
+                    const embedNode = createLinkNode(parsedLink, options);
+                    newNodes.push(embedNode);
+                  } else {
+                    // 内联嵌入（如图片），保留在段落中
+                    const embedNode = createLinkNode(parsedLink, options);
+                    currentParagraphChildren.push(embedNode);
+                  }
+                } else {
+                  // 普通链接，保留在段落中
+                  const linkNode = createLinkNode(parsedLink, options);
+                  currentParagraphChildren.push(linkNode);
+                }
+              } else {
+                // 解析失败，保持原文
+                currentParagraphChildren.push({
+                  type: 'text',
+                  value: match[0]
+                });
+              }
+
+              lastIndex = matchEnd;
+            }
+
+            // 添加剩余文本
+            if (lastIndex < text.length) {
+              const remainingText = text.slice(lastIndex);
+              if (remainingText) {
+                currentParagraphChildren.push({
+                  type: 'text',
+                  value: remainingText
+                });
+              }
+            }
+          } else {
+            // 没有嵌入，直接添加
+            currentParagraphChildren.push(child);
+          }
+        } else {
+          // 非文本节点，直接添加
+          currentParagraphChildren.push(child);
+        }
+      }
+
+      // 如果有剩余的段落内容
+      if (currentParagraphChildren.length > 0) {
+        newNodes.push({
+          type: 'paragraph',
+          children: currentParagraphChildren
+        });
+      }
+
+      // 如果生成了多个节点，替换原段落
+      if (newNodes.length > 1 || (newNodes.length === 1 && newNodes[0].type !== 'paragraph')) {
+        parent.children.splice(index, 1, ...newNodes);
+        return index + newNodes.length; // 跳过新插入的节点
+      }
+    });
+
+    // 第二遍：处理其他链接（保持原有逻辑）
     const replacements: Array<{
       node: Text;
       parent: any;
@@ -30,13 +141,16 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
     visit(tree, 'text', (node: Text, index, parent) => {
       if (!parent || index === undefined) return;
 
+      // 跳过段落中的文本节点，因为已经在第一遍处理过了
+      if (parent.type === 'paragraph') return;
+
       const text = node.value;
       const linkRegex = /(!?\[\[[^\]]+\]\])/g;
       const matches = Array.from(text.matchAll(linkRegex));
 
       if (matches.length === 0) return;
 
-      // 分割文本并创建新节点
+      // 处理非段落中的链接（标题、列表项等）
       const newNodes: any[] = [];
       let lastIndex = 0;
 
@@ -105,7 +219,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
  * 根据解析结果创建对应的 AST 节点
  */
 function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
-  const { baseUrl = '/vaults/Demo', currentFilePath, metadata } = options;
+  const { baseUrl = VAULT_PATH, currentFilePath, metadata } = options;
 
   // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
   const resolvedPath = constructDirectPath(parsedLink.filePath, currentFilePath, metadata);
@@ -270,10 +384,10 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
     imagePath = '/' + imagePath;
   }
 
-  // 构建完整的图片 URL - 使用 /vaults/Demo 而不是 /vault
+  // 构建完整的图片 URL
   const fullImageUrl = imagePath.startsWith('http')
     ? imagePath
-    : `/vaults/Demo${imagePath}`;
+    : `${VAULT_PATH}${imagePath}`;
 
   return {
     type: 'image',

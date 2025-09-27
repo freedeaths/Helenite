@@ -7,6 +7,7 @@ import { useNewVaultStore } from '../../newStores/newVaultStore.js';
 import { useNewUIStore } from '../../newStores/newUIStore.js';
 import './NewContentViewer.css';
 import 'katex/dist/katex.min.css';
+import { VAULT_PATH } from '../../config/vaultConfig.js';
 
 interface NewContentViewerProps {
   filePath: string | null;
@@ -73,7 +74,7 @@ export const NewContentViewer = React.memo(function NewContentViewer({ filePath 
         const { MarkdownProcessor } = await import('../../processors/markdown/MarkdownProcessor.js');
         const processor = new MarkdownProcessor(vaultService, {
           enableObsidianLinks: true,
-          baseUrl: '/vaults/Demo',
+          baseUrl: VAULT_PATH,
           currentFilePath: filePath
         });
 
