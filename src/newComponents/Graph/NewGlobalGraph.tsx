@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useVaultService } from '../../newHooks/useVaultService.js';
-import { navigateToFile } from '../../utils/routeUtils';
+import { navigateToFile } from '../../newHooks/routeUtils.js';
 import type { GraphData, GraphNode, GraphEdge } from '../../apis/interfaces/IGraphAPI';
 
 interface D3Node extends GraphNode {

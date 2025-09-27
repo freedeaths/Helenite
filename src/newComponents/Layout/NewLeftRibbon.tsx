@@ -4,7 +4,7 @@ import { PiGraphFill } from "react-icons/pi";
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useNewUIStore } from '../../newStores/newUIStore';
 import { useNewVaultStore } from '../../newStores/newVaultStore';
-import { getVaultConfig } from '../../config/vaultConfig';
+import { getVaultConfig } from '../../newConfig/newVaultConfig';
 import { useState, useCallback, useEffect } from 'react';
 
 export function NewLeftRibbon() {

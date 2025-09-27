@@ -18,11 +18,11 @@ import React from 'react';
 import * as prod from 'react/jsx-runtime';
 
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
-import { parseFrontMatter, type FrontMatterData } from '../../utils/frontMatterParser.js';
-import { VAULT_PATH } from '../../config/vaultConfig.js';
+import { VAULT_PATH } from '../../newConfig/newVaultConfig.js';
 import { MermaidDiagram } from '../../newComponents/MermaidDiagram.js';
 import { TrackMap } from '../../newComponents/TrackMap/TrackMap.js';
 import { PDFViewer } from '../../newComponents/PDFViewer/PDFViewer.js';
+import { parseFrontMatter, type FrontMatterData } from './utils/frontMatterParser.js';
 
 // 导入新的插件
 import {

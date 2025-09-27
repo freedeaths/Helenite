@@ -8,8 +8,8 @@
  * - 缓存支持
  */
 
-import { createVaultConfig } from '../config/vaultConfig.js';
-import type { VaultPaths } from '../config/vaultConfig.js';
+import { createVaultConfig } from '../newConfig/newVaultConfig.js';
+import type { VaultPaths } from '../newConfig/newVaultConfig.js';
 import type { IStorageService } from './interfaces/IStorageService.js';
 import type { IMetadataService } from './interfaces/IMetadataService.js';
 import type { SearchResult, SearchMatch } from './interfaces/ISearchAPI.js';

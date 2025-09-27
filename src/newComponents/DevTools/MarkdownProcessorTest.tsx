@@ -6,11 +6,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MarkdownProcessor } from '../../processors/markdown/MarkdownProcessor.js';
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
-import { useVaultStore } from '../../stores/vaultStore.js';
+import { useNewVaultStore } from '../../newStores/newVaultStore.js';
 import { TestTrackMap } from './TestTrackMap.js';
 import { TrackMap } from '../TrackMap/TrackMap.js';
-import { MermaidDiagram } from '../../components/MarkdownViewer/MermaidDiagram.js';
-import { fetchVault } from '../../utils/fetchWithAuth.js';
+import { MermaidDiagram } from '../MermaidDiagram.js';
+import { useVaultService } from '../../newHooks/useVaultService.js';
+import { VAULT_PATH } from '../../newConfig/newVaultConfig.js';
 
 interface MarkdownProcessorTestProps {
   vaultService?: IVaultService;
@@ -168,6 +169,7 @@ clustering:
 export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
   vaultService
 }) => {
+  const { getAPI } = useVaultService();
   const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
   const [processedResult, setProcessedResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -177,7 +179,6 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
   // 创建真实的文件加载服务
   const createRealVaultService = () => {
-    const VAULT_PATH = '/vaults/Demo'; // Demo vault 路径
 
     return {
       getRawDocumentContent: async (path: string) => {
@@ -189,16 +190,9 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             normalizedPath = `Attachments/${path}`;
           }
 
-          const fullPath = normalizedPath.startsWith('/') ?
-            `${VAULT_PATH}${normalizedPath}` :
-            `${VAULT_PATH}/${normalizedPath}`;
-
-          // console.log('📁 Trying to load from:', fullPath);
-          const response = await fetchVault(fullPath);
-          if (!response.ok) {
-            throw new Error(`Failed to load ${path}: ${response.status}`);
-          }
-          const content = await response.text();
+          // 使用新的 VaultAPI 来获取文件内容
+          const api = await getAPI();
+          const content = await api.getDocumentContent(normalizedPath);
           // console.log('✅ Loaded file:', path, 'Length:', content.length);
           return content;
         } catch (error) {

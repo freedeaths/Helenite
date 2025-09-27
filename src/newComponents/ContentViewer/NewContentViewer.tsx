@@ -7,7 +7,7 @@ import { useNewVaultStore } from '../../newStores/newVaultStore.js';
 import { useNewUIStore } from '../../newStores/newUIStore.js';
 import './NewContentViewer.css';
 import 'katex/dist/katex.min.css';
-import { VAULT_PATH } from '../../config/vaultConfig.js';
+import { VAULT_PATH } from '../../newConfig/newVaultConfig.js';
 
 interface NewContentViewerProps {
   filePath: string | null;

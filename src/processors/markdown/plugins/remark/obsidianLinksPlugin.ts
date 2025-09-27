@@ -5,8 +5,8 @@
 
 import { visit } from 'unist-util-visit';
 import type { Root, Text, Link, Image } from 'mdast';
-import { parseObsidianLink } from '../../../../utils/obsidianLinkUtils.js';
-import { VAULT_PATH } from '../../../../config/vaultConfig.js';
+import { parseObsidianLink } from '../../utils/obsidianLinkUtils.js';
+import { VAULT_PATH } from '../../../../newConfig/newVaultConfig.js';
 
 export interface ObsidianLinksPluginOptions {
   baseUrl?: string;
@@ -397,7 +397,7 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
       hProperties: {
         className: ['obsidian-image'],
         loading: 'lazy',
-        // 添加自定义属性，让前端组件知道需要使用 fetchWithAuth
+        // 添加自定义属性，让前端组件知道这是 vault 图片
         'data-vault-image': 'true'
       }
     }

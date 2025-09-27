@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { fetchVault } from '../../utils/fetchWithAuth.js';
+import { useVaultService } from '../../newHooks/useVaultService.js';
 
 interface TestTrackMapProps {
   trackId: string;
@@ -33,6 +33,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
   config,
   ...otherProps
 }) => {
+  const { getAPI } = useVaultService();
   const [expanded, setExpanded] = useState(false);
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,16 +46,11 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
     try {
       // 确保路径正确，filePath 可能已经包含 Attachments/ 前缀
       const normalizedPath = filePath.startsWith('Attachments/') ? filePath : `Attachments/${filePath}`;
-      const fullPath = `/vaults/Demo/${normalizedPath}`;
-      // console.log('🔍 TestTrackMap: Loading file from:', fullPath);
-      const response = await fetchVault(fullPath);
+      // console.log('🔍 TestTrackMap: Loading file from:', normalizedPath);
 
-      if (response.ok) {
-        const content = await response.text();
-        setFileContent(content.slice(0, 500) + (content.length > 500 ? '...' : ''));
-      } else {
-        setFileContent('文件加载失败');
-      }
+      const api = await getAPI();
+      const content = await api.getDocumentContent(normalizedPath);
+      setFileContent(content.slice(0, 500) + (content.length > 500 ? '...' : ''));
     } catch (error) {
       setFileContent(`加载错误: ${error}`);
     } finally {
