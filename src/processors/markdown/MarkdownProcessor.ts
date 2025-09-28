@@ -18,10 +18,10 @@ import React from 'react';
 import * as prod from 'react/jsx-runtime';
 
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
-import { VAULT_PATH } from '../../newConfig/newVaultConfig.js';
-import { MermaidDiagram } from '../../newComponents/MermaidDiagram.js';
-import { TrackMap } from '../../newComponents/TrackMap/TrackMap.js';
-import { PDFViewer } from '../../newComponents/PDFViewer/PDFViewer.js';
+import { VAULT_PATH } from '../../config/vaultConfig.js';
+import { MermaidDiagram } from '../../components/MermaidDiagram.js';
+import { TrackMap } from '../../components/TrackMap/TrackMap.js';
+import { PDFViewer } from '../../components/PDFViewer/PDFViewer.js';
 import { parseFrontMatter, type FrontMatterData } from './utils/frontMatterParser.js';
 
 // 导入新的插件
@@ -241,7 +241,7 @@ export class MarkdownProcessor {
         img: (props: any) => {
           const { children, dangerouslySetInnerHTML, ...restProps } = props;
           // 使用延迟加载的 ImageWithZoom 组件
-          const ImageWithZoom = React.lazy(() => import('../../newComponents/ImageWithZoom/ImageWithZoom.js').then(module => ({
+          const ImageWithZoom = React.lazy(() => import('../../components/ImageWithZoom/ImageWithZoom.js').then(module => ({
             default: module.ImageWithZoom
           })));
           return React.createElement(React.Suspense, {

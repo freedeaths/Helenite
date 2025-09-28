@@ -6,7 +6,7 @@
 import { visit } from 'unist-util-visit';
 import type { Root, Text, Link, Image } from 'mdast';
 import { parseObsidianLink } from '../../utils/obsidianLinkUtils.js';
-import { VAULT_PATH } from '../../../../newConfig/newVaultConfig.js';
+import { VAULT_PATH } from '../../../../config/vaultConfig.js';
 
 export interface ObsidianLinksPluginOptions {
   baseUrl?: string;

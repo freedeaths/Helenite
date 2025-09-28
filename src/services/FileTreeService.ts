@@ -7,8 +7,8 @@
  * 架构设计：FileTreeService 通过 CacheManager 实现透明缓存
  */
 
-import { createVaultConfig, getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../newConfig/newVaultConfig.js';
-import type { VaultPaths } from '../newConfig/newVaultConfig.js';
+import { createVaultConfig, getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../config/vaultConfig.js';
+import type { VaultPaths } from '../config/vaultConfig.js';
 import type {
   IFileTreeService,
   FileTreeNode,
