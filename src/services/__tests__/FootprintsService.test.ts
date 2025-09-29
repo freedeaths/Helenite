@@ -14,7 +14,6 @@ import type {
   TrackData,
   LocationData,
   FootprintsConfig,
-  FootprintsData,
   GeoBounds
 } from '../interfaces/IFootprintsService';
 import type { IStorageService } from '../interfaces/IStorageService';
@@ -54,28 +53,28 @@ const createMockStorageService = (): IStorageService => {
     dispose: vi.fn(),
     healthCheck: vi.fn().mockResolvedValue(true),
     config: { basePath: '/test' }
-  } as any;
+  } as IStorageService;
 };
 
 // Mock CacheManager for unit tests
 const createMockCacheManager = (): ICacheManager => {
   return {
-    createCachedStorageService: (service: any) => service,
-    createCachedMetadataService: (service: any) => service,
-    createCachedFileTreeService: (service: any) => service,
-    createCachedSearchService: (service: any) => service,
-    createCachedGraphService: (service: any) => service,
-    createCachedTagService: (service: any) => service,
-    createCachedFootprintsService: (service: any) => service,
-    createCachedFrontMatterService: (service: any) => service,
-    createCachedExifService: (service: any) => service,
+    createCachedStorageService: (service: unknown) => service,
+    createCachedMetadataService: (service: unknown) => service,
+    createCachedFileTreeService: (service: unknown) => service,
+    createCachedSearchService: (service: unknown) => service,
+    createCachedGraphService: (service: unknown) => service,
+    createCachedTagService: (service: unknown) => service,
+    createCachedFootprintsService: (service: unknown) => service,
+    createCachedFrontMatterService: (service: unknown) => service,
+    createCachedExifService: (service: unknown) => service,
     clearAll: vi.fn(),
     getStatistics: vi.fn().mockResolvedValue({
       totalEntries: 0,
       totalSize: 0,
       hitRate: 0
     })
-  } as any;
+  } as ICacheManager;
 };
 
 describe('FootprintsService', () => {

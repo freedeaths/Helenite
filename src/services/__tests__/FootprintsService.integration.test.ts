@@ -37,7 +37,7 @@ class IntegrationTestStorageService implements IStorageService {
   }
 
   // 其他方法简单实现
-  async readFileWithInfo(path: string): Promise<any> {
+  async readFileWithInfo(path: string): Promise<{ content: string; info: Record<string, unknown> }> {
     const content = await this.readFile(path);
     return { content, info: {} };
   }
@@ -51,11 +51,11 @@ class IntegrationTestStorageService implements IStorageService {
     }
   }
 
-  async getFileInfo(path: string): Promise<any> {
+  async getFileInfo(_path: string): Promise<Record<string, unknown>> {
     return {};
   }
 
-  async listFiles(dirPath: string, recursive?: boolean): Promise<string[]> {
+  async listFiles(_dirPath: string, _recursive?: boolean): Promise<string[]> {
     return [];
   }
 
@@ -67,15 +67,15 @@ class IntegrationTestStorageService implements IStorageService {
     return path;
   }
 
-  isValidPath(path: string): boolean {
+  isValidPath(_path: string): boolean {
     return true;
   }
 
-  getMimeType(path: string): string {
+  getMimeType(_path: string): string {
     return 'text/plain';
   }
 
-  isImageFile(path: string): boolean {
+  isImageFile(_path: string): boolean {
     return false;
   }
 
@@ -87,9 +87,9 @@ class IntegrationTestStorageService implements IStorageService {
     return path.endsWith('.md');
   }
 
-  async clearCache(path?: string): Promise<void> {}
+  async clearCache(_path?: string): Promise<void> {}
 
-  async preloadFiles(paths: string[]): Promise<void> {}
+  async preloadFiles(_paths: string[]): Promise<void> {}
 
   async initialize(): Promise<void> {}
 
@@ -99,7 +99,7 @@ class IntegrationTestStorageService implements IStorageService {
     return true;
   }
 
-  get config(): any {
+  get config(): { basePath: string } {
     return { basePath: 'http://localhost:5173/vaults/Demo' };
   }
 }
@@ -107,22 +107,22 @@ class IntegrationTestStorageService implements IStorageService {
 // 简单的 CacheManager 实现用于集成测试
 const createMockCacheManager = (): ICacheManager => {
   return {
-    createCachedStorageService: (service: any) => service,
-    createCachedMetadataService: (service: any) => service,
-    createCachedFileTreeService: (service: any) => service,
-    createCachedSearchService: (service: any) => service,
-    createCachedGraphService: (service: any) => service,
-    createCachedTagService: (service: any) => service,
-    createCachedFootprintsService: (service: any) => service,
-    createCachedFrontMatterService: (service: any) => service,
-    createCachedExifService: (service: any) => service,
+    createCachedStorageService: (service: unknown) => service,
+    createCachedMetadataService: (service: unknown) => service,
+    createCachedFileTreeService: (service: unknown) => service,
+    createCachedSearchService: (service: unknown) => service,
+    createCachedGraphService: (service: unknown) => service,
+    createCachedTagService: (service: unknown) => service,
+    createCachedFootprintsService: (service: unknown) => service,
+    createCachedFrontMatterService: (service: unknown) => service,
+    createCachedExifService: (service: unknown) => service,
     clearAll: async () => {},
     getStatistics: async () => ({
       totalEntries: 0,
       totalSize: 0,
       hitRate: 0
     })
-  } as any;
+  } as ICacheManager;
 };
 
 describe('FootprintsService Integration Tests', () => {
@@ -134,7 +134,10 @@ describe('FootprintsService Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error Setting global.fetch for testing with node-fetch in Node.js environment
+    // This directive is necessary because TypeScript does not allow assigning a value to the global.fetch property.
+    // However, in a Node.js environment, global.fetch is not defined by default, so we need to set it manually.
+    // By using @ts-expect-error, we are telling TypeScript to ignore this error and allow the assignment.
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -148,9 +151,8 @@ describe('FootprintsService Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -166,7 +168,6 @@ describe('FootprintsService Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -185,7 +186,6 @@ describe('FootprintsService Integration Tests', () => {
   afterAll(async () => {
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -205,19 +205,10 @@ describe('FootprintsService Integration Tests', () => {
     it('should parse YAMAP GPX file from Demo vault', async () => {
       const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`);
       if (!response.ok) {
-        // console.log('⚠️ YAMAP GPX file not accessible, skipping test');
         return;
       }
 
-      // console.log('📁 File accessible, starting parse...');
       const result = await service.parseSingleTrack(`${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`);
-
-      console.log('📊 Parse result:', {
-        tracksCount: result.tracks.length,
-        locationsCount: result.locations.length,
-        errorsCount: result.metadata.errors.length,
-        errors: result.metadata.errors
-      });
 
       expect(result.tracks).toHaveLength(1);
       expect(result.locations).toHaveLength(0);
@@ -229,7 +220,6 @@ describe('FootprintsService Integration Tests', () => {
       expect(track.style.color).toBe('#ff6b35'); // YAMAP 颜色
       expect(track.waypoints.length).toBeGreaterThan(0);
 
-      // console.log(`✅ YAMAP GPX 解析成功: ${track.name}, ${track.waypoints.length} 个轨迹点`);
     }, 15000);
 
     it('should parse Chinese GPX files from Demo vault', async () => {
@@ -242,7 +232,6 @@ describe('FootprintsService Integration Tests', () => {
         try {
           const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`);
           if (!response.ok) {
-            // console.log(`⚠️ ${filename} 不可访问，跳过测试`);
             continue;
           }
 
@@ -255,9 +244,8 @@ describe('FootprintsService Integration Tests', () => {
           expect(track.name).toBeDefined();
           expect(track.waypoints.length).toBeGreaterThan(0);
 
-          // console.log(`✅ ${filename} 解析成功: ${track.name} (${track.provider}), ${track.waypoints.length} 个轨迹点`);
-        } catch (error) {
-          // console.log(`⚠️ ${filename} 解析错误:`, error);
+        } catch {
+          // TODO: 处理错误
         }
       }
     }, 30000);
@@ -272,7 +260,6 @@ describe('FootprintsService Integration Tests', () => {
         try {
           const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`);
           if (!response.ok) {
-            // console.log(`⚠️ ${filename} 不可访问，跳过测试`);
             continue;
           }
 
@@ -285,9 +272,8 @@ describe('FootprintsService Integration Tests', () => {
           expect(track.name).toBeDefined();
           expect(track.waypoints.length).toBeGreaterThan(0);
 
-          // console.log(`✅ ${filename} 解析成功: ${track.name} (${track.provider}), ${track.waypoints.length} 个轨迹点`);
-        } catch (error) {
-          // console.log(`⚠️ ${filename} 解析错误:`, error);
+        } catch {
+          // TODO: 处理错误
         }
       }
     }, 30000);
@@ -310,17 +296,15 @@ describe('FootprintsService Integration Tests', () => {
           if (response.ok) {
             availableFiles.push(`${serverUrl}/vaults/Demo/Attachments/${filename}`);
           }
-        } catch (error) {
-          // console.log(`⚠️ ${filename} 不可访问，跳过`);
+        } catch {
+          // TODO: 处理错误
         }
       }
 
       if (availableFiles.length === 0) {
-        // console.log('⚠️ 没有可用的轨迹文件，跳过批量解析测试');
         return;
       }
 
-      // console.log(`📁 找到 ${availableFiles.length} 个可用文件，开始批量解析`);
 
       const result = await service.parseMultipleTracks(availableFiles);
 
@@ -329,16 +313,14 @@ describe('FootprintsService Integration Tests', () => {
       expect(result.locations).toHaveLength(0);
 
       // 验证不同厂商的轨迹都被正确处理
-      const providers = [...new Set(result.tracks.map(track => track.provider))];
-      // console.log(`✅ 批量解析成功: ${result.tracks.length} 个轨迹，涉及厂商: ${providers.join(', ')}`);
+      const _providers = [...new Set(result.tracks.map(track => track.provider))];
 
       // 验证每个轨迹都有基本数据
-      result.tracks.forEach((track, index) => {
+      result.tracks.forEach((track, _index) => {
         expect(track.name).toBeDefined();
         expect(track.waypoints).toBeDefined();
         expect(track.provider).toBeDefined();
         expect(track.style.color).toBeDefined();
-        // console.log(`  - 轨迹 ${index + 1}: ${track.name} (${track.provider}) - ${track.waypoints.length} 点`);
       });
 
       // 验证处理时间合理
@@ -562,7 +544,7 @@ describe('FootprintsService Integration Tests', () => {
 
   describe('Performance and Stability', () => {
     it('should handle multiple concurrent requests', async () => {
-      const concurrentRequests = Array.from({ length: 5 }, (_, i) =>
+      const concurrentRequests = Array.from({ length: 5 }, (_, _i) =>
         service.getCurrentVault()
       );
 
@@ -604,7 +586,7 @@ describe('FootprintsService Integration Tests', () => {
 
     it('should maintain service instance integrity', async () => {
       // 测试服务实例在多次操作后的状态
-      const initialVault = service.getCurrentVault();
+      const _initialVault = service.getCurrentVault();
 
       // 执行多种操作
       await service.refreshCache();

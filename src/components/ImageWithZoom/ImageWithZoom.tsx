@@ -5,7 +5,7 @@ interface ImageWithZoomProps {
   src: string;
   alt?: string;
   className?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, className, ...restProps }) => {

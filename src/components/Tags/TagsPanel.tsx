@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { IconFile, IconX } from '@tabler/icons-react';
 import { ActionIcon } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore.js';
@@ -20,14 +20,7 @@ export function TagsPanel() {
   // 从当前文档获取标签
   const currentTags = currentDocument?.metadata?.tags || [];
 
-  // 初始化时获取所有标签
-  useEffect(() => {
-    if (vaultService) {
-      loadAllTags();
-    }
-  }, [vaultService]);
-
-  const loadAllTags = async () => {
+  const loadAllTags = useCallback(async () => {
     if (!vaultService) return;
 
     try {
@@ -51,10 +44,17 @@ export function TagsPanel() {
       // console.log('📊 NewTagsPanel: 转换后的标签:', tagCounts);
       // console.log('📊 NewTagsPanel: 第一个转换后标签详细:', tagCounts[0]);
       setAllTags(tagCounts);
-    } catch (error) {
-      console.error('❌ NewTagsPanel: 加载标签失败:', error);
+    } catch {
+      // console.error('❌ NewTagsPanel: 加载标签失败:', error);
     }
-  };
+  }, [vaultService]);
+
+  // 初始化时获取所有标签
+  useEffect(() => {
+    if (vaultService) {
+      loadAllTags();
+    }
+  }, [vaultService, loadAllTags]);
 
   // 处理标签点击 - 展开/收起文件列表（复制老版本逻辑）
   const handleTagClick = async (tag: string) => {
@@ -87,8 +87,8 @@ export function TagsPanel() {
 
       setExpandedTag(tag);
       setTagFiles(fileList);
-    } catch (error) {
-      console.error('❌ NewTagsPanel: 加载标签文件失败:', error);
+    } catch {
+      // console.error('❌ NewTagsPanel: 加载标签文件失败:', error);
     } finally {
       setIsLoading(false);
     }

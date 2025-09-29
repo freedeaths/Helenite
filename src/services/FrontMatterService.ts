@@ -53,8 +53,8 @@ export class FrontMatterService implements IFrontMatterService {
       // 缓存结果
       this.frontMatterCache.set(filePath, frontMatter);
       return frontMatter;
-    } catch (error) {
-      console.error(`❌ Failed to get front matter for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -76,8 +76,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return results;
-    } catch (error) {
-      console.error('❌ Failed to get all front matter:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -90,8 +90,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.uuid || null;
-    } catch (error) {
-      console.error(`❌ Failed to get UUID for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -108,8 +108,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return null;
-    } catch (error) {
-      console.error(`❌ Failed to find file by UUID ${uuid}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -128,8 +128,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return uuidMap;
-    } catch (error) {
-      console.error('❌ Failed to get all UUIDs:', error);
+    } catch {
+      
       return {};
     }
   }
@@ -138,8 +138,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const filePath = await this.getFileByUuid(uuid);
       return filePath !== null;
-    } catch (error) {
-      console.error(`❌ Failed to check UUID existence ${uuid}:`, error);
+    } catch {
+      
       return false;
     }
   }
@@ -152,8 +152,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.publish ?? null;
-    } catch (error) {
-      console.error(`❌ Failed to get publish status for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -164,8 +164,8 @@ export class FrontMatterService implements IFrontMatterService {
       return allFrontMatter
         .filter(({ frontMatter }) => frontMatter.publish === true)
         .map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error('❌ Failed to get published files:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -176,8 +176,8 @@ export class FrontMatterService implements IFrontMatterService {
       return allFrontMatter
         .filter(({ frontMatter }) => frontMatter.publish === false || frontMatter.publish === undefined)
         .map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error('❌ Failed to get unpublished files:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -186,8 +186,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.author || null;
-    } catch (error) {
-      console.error(`❌ Failed to get author for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -198,8 +198,8 @@ export class FrontMatterService implements IFrontMatterService {
       return allFrontMatter
         .filter(({ frontMatter }) => frontMatter.author === author)
         .map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error(`❌ Failed to get files by author ${author}:`, error);
+    } catch {
+      
       return [];
     }
   }
@@ -216,8 +216,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return Array.from(authors).sort();
-    } catch (error) {
-      console.error('❌ Failed to get all authors:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -226,8 +226,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.description || null;
-    } catch (error) {
-      console.error(`❌ Failed to get description for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -236,8 +236,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.cssclass || null;
-    } catch (error) {
-      console.error(`❌ Failed to get CSS class for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -248,8 +248,8 @@ export class FrontMatterService implements IFrontMatterService {
       return allFrontMatter
         .filter(({ frontMatter }) => frontMatter.cssclass === cssClass)
         .map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error(`❌ Failed to get files by CSS class ${cssClass}:`, error);
+    } catch {
+      
       return [];
     }
   }
@@ -261,8 +261,8 @@ export class FrontMatterService implements IFrontMatterService {
 
       const date = new Date(frontMatter.created);
       return isNaN(date.getTime()) ? null : date;
-    } catch (error) {
-      console.error(`❌ Failed to get created date for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -274,8 +274,8 @@ export class FrontMatterService implements IFrontMatterService {
 
       const date = new Date(frontMatter.modified);
       return isNaN(date.getTime()) ? null : date;
-    } catch (error) {
-      console.error(`❌ Failed to get modified date for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -341,8 +341,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return filteredFiles.map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error('❌ Failed to query files:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -396,8 +396,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return results;
-    } catch (error) {
-      console.error(`❌ Failed to search front matter for "${query}":`, error);
+    } catch {
+      
       return [];
     }
   }
@@ -406,8 +406,8 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.[fieldName] ?? null;
-    } catch (error) {
-      console.error(`❌ Failed to get custom field ${fieldName} for ${filePath}:`, error);
+    } catch {
+      
       return null;
     }
   }
@@ -424,8 +424,8 @@ export class FrontMatterService implements IFrontMatterService {
           return fieldValue === value;
         })
         .map(({ filePath }) => filePath);
-    } catch (error) {
-      console.error(`❌ Failed to get files by custom field ${fieldName}:`, error);
+    } catch {
+      
       return [];
     }
   }
@@ -450,8 +450,8 @@ export class FrontMatterService implements IFrontMatterService {
       }
 
       return Array.from(allFields).sort();
-    } catch (error) {
-      console.error('❌ Failed to get all custom fields:', error);
+    } catch {
+      
       return [];
     }
   }
@@ -538,8 +538,8 @@ export class FrontMatterService implements IFrontMatterService {
         topCssClasses,
         customFieldStats: customFieldStatsResult
       };
-    } catch (error) {
-      console.error('❌ Failed to get front matter statistics:', error);
+    } catch {
+      
       return {
         totalFiles: 0,
         filesWithUuid: 0,
@@ -594,8 +594,8 @@ export class FrontMatterService implements IFrontMatterService {
         fieldValueDistribution,
         recommendedFields
       };
-    } catch (error) {
-      console.error('❌ Failed to analyze front matter patterns:', error);
+    } catch {
+      
       return {
         commonFields: [],
         fieldValueDistribution: {},
@@ -621,8 +621,8 @@ export class FrontMatterService implements IFrontMatterService {
         frontMatterCacheSize: this.frontMatterCache.size,
         ...stats
       };
-    } catch (error) {
-      console.error('❌ Failed to get cache stats:', error);
+    } catch {
+      
       return {
         vaultId: this.vaultConfig.id,
         frontMatterCacheSize: this.frontMatterCache.size

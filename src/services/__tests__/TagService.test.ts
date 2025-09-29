@@ -1,6 +1,6 @@
 /**
  * TagService 单元测试
- * 
+ *
  * 测试 TagService 的核心功能，包括：
  * - 全局标签从 tags.json 读取
  * - 局部标签从 metadata 计算
@@ -12,7 +12,6 @@ import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { TagService } from '../TagService.js';
 import type { IMetadataService, MetadataArray } from '../interfaces/IMetadataService.js';
 import type { IStorageService } from '../interfaces/IStorageService.js';
-import type { TagData, TagStats } from '../interfaces/ITagService.js';
 
 // ===============================
 // Mock 依赖服务
@@ -205,7 +204,7 @@ describe('TagService', () => {
       (mockMetadataService.getMetadata as Mock).mockResolvedValue(mockMetadata);
 
       // Act
-      const result = await tagService.getAllTags();
+      const _result = await tagService.getAllTags();
 
       // Assert
       expect(mockMetadataService.getMetadata).toHaveBeenCalled();

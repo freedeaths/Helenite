@@ -3,15 +3,13 @@
  * 用于在不影响现有应用的情况下测试新的处理器
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { MarkdownProcessor } from '../../processors/markdown/MarkdownProcessor.js';
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
-import { useVaultStore } from '../../stores/vaultStore.js';
 import { TestTrackMap } from './TestTrackMap.js';
 import { TrackMap } from '../TrackMap/TrackMap.js';
 import { MermaidDiagram } from '../MermaidDiagram.js';
 import { useVaultService } from '../../hooks/useVaultService.js';
-import { VAULT_PATH } from '../../config/vaultConfig.js';
 
 interface MarkdownProcessorTestProps {
   vaultService?: IVaultService;
@@ -171,11 +169,10 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 }) => {
   const { getAPI } = useVaultService();
   const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
-  const [processedResult, setProcessedResult] = useState<any>(null);
+  const [processedResult, setProcessedResult] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showRealMaps, setShowRealMaps] = useState(false);
-  const htmlOutputRef = useRef<HTMLDivElement>(null);
 
   // 创建真实的文件加载服务
   const createRealVaultService = () => {
@@ -196,7 +193,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
           // console.log('✅ Loaded file:', path, 'Length:', content.length);
           return content;
         } catch (error) {
-          console.warn('❌ Failed to load file:', path, error);
+          // console.warn('❌ Failed to load file:', path, error);
           // 返回示例内容作为降级
           if (path.endsWith('.gpx')) {
             return `<?xml version="1.0"?>
@@ -244,7 +241,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
     };
   };
 
-  const processMarkdown = async () => {
+  const processMarkdown = useCallback(async () => {
     if (!markdown.trim()) return;
 
     setProcessing(true);
@@ -255,7 +252,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
       const realVaultService = createRealVaultService();
 
       const processor = new MarkdownProcessor(
-        vaultService || realVaultService as any,
+        vaultService || (realVaultService as IVaultService),
         {
           enableTracks: true,
           enableObsidianLinks: true,
@@ -273,30 +270,30 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
       // Debug trackMaps data in detail
       if (result.trackMaps && result.trackMaps.length > 0) {
-        result.trackMaps.forEach((track, index) => {
-          console.log(`🔍 TrackMap ${index}:`, {
-            trackId: track.trackId,
-            trackType: track.trackType,
-            format: track.format,
-            source: track.source,
-            hasTrackData: !!track.trackData,
-            hasTrackFile: !!track.trackFile,
-            allProps: Object.keys(track)
-          });
+        result.trackMaps.forEach((_track, _index) => {
+          // console.log(`🔍 TrackMap ${index}:`, {
+          //   trackId: track.trackId,
+          //   trackType: track.trackType,
+          //   format: track.format,
+          //   source: track.source,
+          //   hasTrackData: !!track.trackData,
+          //   hasTrackFile: !!track.trackFile,
+          //   allProps: Object.keys(track)
+          // });
         });
       }
       setProcessedResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : '处理失败');
-      console.error('❌ Markdown processing error:', err);
+      // console.error('❌ Markdown processing error:', err);
     } finally {
       setProcessing(false);
     }
-  };
+  }, [vaultService, markdown, getAPI]);
 
   useEffect(() => {
     processMarkdown();
-  }, []);
+  }, [processMarkdown]);
 
   return (
     <div className="markdown-processor-test" style={{
@@ -403,7 +400,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
               <div>
                 <h4>Mermaid 图表渲染 ({processedResult.mermaidDiagrams.length} 个)</h4>
                 <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '2rem' }}>
-                  {processedResult.mermaidDiagrams.map((diagram: any, index: number) => (
+                  {processedResult.mermaidDiagrams.map((diagram: { code: string }, index: number) => (
                     <div key={`mermaid-${index}`} style={{
                       marginBottom: '1rem',
                       border: '1px solid #ddd',
@@ -450,7 +447,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
               {processedResult.trackMaps && processedResult.trackMaps.length > 0 ? (
                 <div style={{ maxHeight: '800px', overflow: 'auto' }}>
-                  {processedResult.trackMaps.map((trackData: any, index: number) =>
+                  {processedResult.trackMaps.map((trackData: Record<string, unknown>, index: number) =>
                     showRealMaps ? (
                       <div key={`real-track-${index}`} style={{ marginBottom: '2rem' }}>
                         <div style={{

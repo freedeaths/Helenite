@@ -6,10 +6,7 @@
 
 import type { Root, Code } from 'mdast';
 import { visit } from 'unist-util-visit';
-
-export interface MermaidPluginOptions {
-  // 预留扩展选项
-}
+import type { VFile } from 'vfile';
 
 export interface MermaidData {
   id: string;
@@ -20,8 +17,8 @@ export interface MermaidData {
 /**
  * Remark 插件：处理 Mermaid 代码块
  */
-export function mermaidPlugin(options: MermaidPluginOptions = {}) {
-  return function transformer(tree: Root, file: any) {
+export function mermaidPlugin() {
+  return function transformer(tree: Root, file: VFile) {
     const mermaidDiagrams: MermaidData[] = [];
     let diagramId = 0;
 
@@ -61,7 +58,7 @@ export function mermaidPlugin(options: MermaidPluginOptions = {}) {
  * 从处理后的 HTML 中提取 Mermaid 占位符并替换为组件占位符
  */
 export function extractMermaidFromHTML(html: string, mermaidDiagrams: MermaidData[] = []) {
-  let processedHtml = html;
+  const processedHtml = html;
   const foundDiagrams: MermaidData[] = [];
 
   // 查找 HTML 中的 Mermaid 占位符

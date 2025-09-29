@@ -64,23 +64,19 @@ export class MetadataService implements IMetadataService {
 
       // 直接从网络加载 metadata.json
       const metadataUrl = this.resolveUrl(this.vaultConfig.getMetadataUrl());
-      // console.log('🌐 Loading metadata from network...');
-      // console.log('🔍 MetadataService URL:', metadataUrl);
       const response = await fetch(metadataUrl);
 
       if (!response.ok) {
-        console.warn(`⚠️ Metadata not found for vault ${this.vaultConfig.id}`);
         return null;
       }
 
       const metadata = await response.json() as MetadataArray;
 
       this.cachedMetadata = metadata;
-      // console.log(`✅ Metadata loaded: ${metadata.length} files`);
 
       return metadata;
-    } catch (error) {
-      console.error('❌ Failed to load metadata:', error);
+    } catch {
+      
       return null;
     }
   }
@@ -292,7 +288,6 @@ export class MetadataService implements IMetadataService {
     // 重新加载
     await this.getMetadata();
 
-    // console.log('🔄 Metadata cache refreshed');
   }
 
   /**
@@ -316,7 +311,6 @@ export class MetadataService implements IMetadataService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.cachedMetadata = null;
-    // console.log(`🔄 Switched to vault: ${vaultId}`);
   }
 
   /**
@@ -358,7 +352,6 @@ export function getMetadataService(): MetadataService {
  */
 export function initializeMetadataService(vaultId?: string): MetadataService {
   _globalMetadataService = new MetadataService(vaultId);
-  // console.log(`✅ MetadataService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalMetadataService;
 }
 
@@ -367,5 +360,4 @@ export function initializeMetadataService(vaultId?: string): MetadataService {
  */
 export function disposeMetadataService(): void {
   _globalMetadataService = null;
-  // console.log('🗑️ MetadataService disposed');
 }

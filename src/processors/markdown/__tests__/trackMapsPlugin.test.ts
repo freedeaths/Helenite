@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import type { Node } from 'mdast';
 import { trackMapsPlugin } from '../plugins/remark/trackMapsPlugin.js';
 
 describe('trackMapsPlugin', () => {
@@ -33,7 +34,7 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.type).toBe('single-track');
       expect(trackNode.trackData.format).toBe('gpx');
       expect(trackNode.trackData.source).toBe('inline');
@@ -54,7 +55,7 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.format).toBe('kml');
       expect(trackNode.trackData.content).toContain('<kml>');
     });
@@ -71,7 +72,7 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.type).toBe('single-track');
       expect(trackNode.trackData.format).toBe('gpx');
       expect(trackNode.trackData.source).toBe('file');
@@ -88,7 +89,7 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.format).toBe('kml');
       expect(trackNode.trackData.filePath).toBe('city-walk.kml');
     });
@@ -125,7 +126,7 @@ zoom: 12
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.type).toBe('single-track');
       expect(trackNode.trackData.format).toBe('leaflet');
       expect(trackNode.trackData.tracks).toHaveLength(1);
@@ -150,7 +151,7 @@ zoom: 10
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as any;
+      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
       expect(trackNode.trackData.type).toBe('multi-track');
       expect(trackNode.trackData.format).toBe('leaflet');
       expect(trackNode.trackData.tracks).toHaveLength(3);
@@ -182,18 +183,18 @@ invalid: yaml: content
 });
 
 // 辅助函数：查找指定类型的节点
-function findNodesOfType(tree: any, type: string): any[] {
-  const nodes: any[] = [];
-  
-  function visit(node: any) {
+function findNodesOfType(tree: Node, type: string): Node[] {
+  const nodes: Node[] = [];
+
+  function visit(node: Node) {
     if (node.type === type) {
       nodes.push(node);
     }
-    if (node.children) {
+    if ('children' in node && Array.isArray(node.children)) {
       node.children.forEach(visit);
     }
   }
-  
+
   visit(tree);
   return nodes;
 }

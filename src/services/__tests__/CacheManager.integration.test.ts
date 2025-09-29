@@ -24,7 +24,7 @@ describe('CacheManager Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error - Global fetch setup for testing
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -33,15 +33,14 @@ describe('CacheManager Integration Tests', () => {
         const response = await fetch(`${serverUrl}/vaults/Demo/Welcome.md`);
         const contentType = response.headers.get('content-type');
         return response.ok && contentType?.includes('text');
-      } catch (error) {
+      } catch {
         return false;
       }
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -57,7 +56,6 @@ describe('CacheManager Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -72,7 +70,6 @@ describe('CacheManager Integration Tests', () => {
       }
     }
 
-    // console.log('✅ 检测到开发服务器已运行在', serverUrl);
 
     // 配置真实的 StorageService 指向测试 vault
     const config: StorageConfig = {
@@ -83,13 +80,7 @@ describe('CacheManager Integration Tests', () => {
 
     storageService = new StorageService(config);
 
-    try {
-      await storageService.initialize(); // 初始化 StorageService
-      // console.log('✅ StorageService initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize StorageService:', error);
-      throw error; // 如果服务器在运行但初始化失败，这是真正的错误
-    }
+    await storageService.initialize(); // 初始化 StorageService
 
     cacheManager = new CacheManager({
       tiers: {
@@ -115,13 +106,11 @@ describe('CacheManager Integration Tests', () => {
 
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      // console.log('🛑 关闭临时开发服务器...');
       viteProcess.kill('SIGTERM');
 
       // 等待进程关闭
       await new Promise<void>((resolve) => {
         viteProcess!.on('exit', () => {
-          // console.log('✅ 开发服务器已关闭');
           resolve();
         });
 
@@ -251,9 +240,8 @@ describe('CacheManager Integration Tests', () => {
         await cachedStorageService.readFile('/Attachments/inversed mt fuji.png');
         stats = await cacheManager.getStatistics();
         // 图片文件可能不会增加缓存条目（因为缓存条件）
-      } catch (error) {
+      } catch {
         // 文件可能不存在，这是正常的
-        // console.log('Image file not found, which is expected');
       }
     }, 15000);
 
@@ -266,7 +254,7 @@ describe('CacheManager Integration Tests', () => {
       // 以二进制模式读取（如果支持）
       try {
         await cachedStorageService.readFile(filePath, { binary: true });
-      } catch (error) {
+      } catch {
         // 某些实现可能不支持二进制模式，这是正常的
       }
 
@@ -297,12 +285,6 @@ describe('CacheManager Integration Tests', () => {
       const start3 = Date.now();
       await cachedStorageService.readFile(filePath);
       const secondCachedTime = Date.now() - start3;
-
-      console.log(`Performance comparison:
-        Uncached: ${uncachedTime}ms
-        First cached: ${firstCachedTime}ms
-        Second cached: ${secondCachedTime}ms
-        Improvement: ${Math.round((uncachedTime / secondCachedTime) * 100)}%`);
 
       // 缓存应该显著提升性能，但在本地测试中网络很快，所以允许相等的情况
       // 由于 JavaScript 计时器精度问题，允许 1ms 的误差
@@ -391,14 +373,13 @@ describe('CacheManager Integration Tests', () => {
       };
 
       const timeoutStorageService = new StorageService(timeoutConfig);
-      const cachedTimeoutService = cacheManager.createCachedStorageService(timeoutStorageService);
+      const _cachedTimeoutService = cacheManager.createCachedStorageService(timeoutStorageService);
 
       // 尝试读取文件 - 应该失败
       let error: unknown;
       try {
         await timeoutStorageService.initialize();
         // 如果初始化成功，说明网络很快，跳过这个测试
-        // console.log('Network is too fast for timeout test, skipping');
         return;
       } catch (e) {
         error = e;
@@ -426,7 +407,7 @@ describe('CacheManager Integration Tests', () => {
         // 添加超过限制的条目
         await smallCachedService.readFile('/Welcome.md');
 
-        let stats = await smallCacheManager.getStatistics();
+        const stats = await smallCacheManager.getStatistics();
         expect(stats.totalEntries).toBeLessThanOrEqual(3);
 
       } finally {

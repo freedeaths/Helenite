@@ -14,7 +14,7 @@ describe('StorageService Real Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error - Global fetch setup for testing with node-fetch
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -28,9 +28,8 @@ describe('StorageService Real Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -46,7 +45,6 @@ describe('StorageService Real Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -79,7 +77,6 @@ describe('StorageService Real Integration Tests', () => {
 
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -212,7 +209,6 @@ describe('StorageService Real Integration Tests', () => {
         try {
           await shortTimeoutService.readFile('/Welcome.md');
           // 如果成功，说明网络环境下1ms足够了，这是意料之外但可接受的
-          console.warn('Network is very fast, timeout test may not be reliable');
         } catch (error) {
           // 预期的超时错误
           expect(error).toBeDefined();

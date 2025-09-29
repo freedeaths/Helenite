@@ -49,8 +49,8 @@ export function StatusBar() {
         } else {
           setBacklinksCount(0);
         }
-      } catch (error) {
-        console.error('❌ NewStatusBar: 计算 backlinks 失败:', error);
+      } catch {
+        // console.error('❌ NewStatusBar: 计算 backlinks 失败:', error);
         setBacklinksCount(0);
       }
     };
@@ -103,8 +103,8 @@ export function StatusBar() {
           setWordCount(0);
         }
 
-      } catch (error) {
-        console.error('❌ NewStatusBar: 计算单词/字符数失败:', error);
+      } catch {
+        // console.error('❌ NewStatusBar: 计算单词/字符数失败:', error);
         setWordCount(0);
         setCharCount(0);
       }

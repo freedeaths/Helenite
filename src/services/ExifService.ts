@@ -1,6 +1,6 @@
 /**
  * ExifService - EXIF 元数据解析服务
- * 
+ *
  * 解析图片文件的 EXIF 元数据，包括 GPS 坐标、拍摄参数、设备信息等
  * 支持的格式：JPEG、PNG、TIFF、WebP 等包含 EXIF 信息的图片格式
  */
@@ -8,7 +8,7 @@
 import exifr from 'exifr';
 import { createVaultConfig } from '../config/vaultConfig.js';
 import type { VaultPaths } from '../config/vaultConfig.js';
-import type { 
+import type {
   IExifService,
   ExifData,
   GpsCoordinates,
@@ -55,10 +55,9 @@ export class ExifService implements IExifService {
    */
   async parseExif(filePath: string): Promise<ExifData | null> {
     try {
-      
+
       // 检查是否支持 EXIF 解析
       if (!this.isExifSupported(filePath)) {
-        console.warn(`⚠️ File format not supported for EXIF: ${filePath}`);
         return this.createEmptyExifData(filePath);
       }
 
@@ -68,12 +67,11 @@ export class ExifService implements IExifService {
       }
 
       // 读取文件内容（二进制）
-      const fileContent = await this.storageService.readFile(filePath, { 
-        binary: true 
+      const fileContent = await this.storageService.readFile(filePath, {
+        binary: true
       });
 
       if (!fileContent) {
-        console.warn(`❌ Failed to read file: ${filePath}`);
         return this.createEmptyExifData(filePath);
       }
 
@@ -82,7 +80,7 @@ export class ExifService implements IExifService {
 
       // 解析 EXIF 数据 - 多种格式尝试
       let rawExif: Record<string, unknown> | null = null;
-      
+
       // 方法1: 直接用 Buffer
       if (Buffer.isBuffer(fileContent)) {
         try {
@@ -98,11 +96,11 @@ export class ExifService implements IExifService {
             translateValues: true,
             reviveValues: true
           });
-        } catch (error) {
-          console.warn(`Buffer parsing failed, trying ArrayBuffer:`, error);
+        } catch {
+          // TODO: 记录错误
         }
       }
-      
+
       // 方法2: 用 ArrayBuffer（通常在 HTTP 环境中成功）
       if (!rawExif) {
         try {
@@ -118,11 +116,11 @@ export class ExifService implements IExifService {
             translateValues: true,
             reviveValues: true
           });
-        } catch (error) {
-          console.warn(`ArrayBuffer parsing failed, trying Uint8Array:`, error);
+        } catch {
+          // TODO: 记录错误
         }
       }
-      
+
       // 方法3: 用 Uint8Array（最后尝试）
       if (!rawExif) {
         try {
@@ -139,8 +137,8 @@ export class ExifService implements IExifService {
             translateValues: true,
             reviveValues: true
           });
-        } catch (error) {
-          console.warn(`Uint8Array parsing failed:`, error);
+        } catch {
+          // TODO: 记录错误
         }
       }
 
@@ -166,8 +164,8 @@ export class ExifService implements IExifService {
 
 
       return exifData;
-    } catch (error) {
-      console.error(`❌ Failed to parse EXIF for ${filePath}:`, error);
+    } catch {
+
       return this.createEmptyExifData(filePath);
     }
   }
@@ -208,10 +206,10 @@ export class ExifService implements IExifService {
 
       // 获取目录下的所有文件
       const files = await this.storageService.listFiles(dirPath);
-      
+
       // 过滤出图片文件
       const imageFiles = files.filter(file => this.isExifSupported(file));
-      
+
 
       if (imageFiles.length === 0) {
         return [];
@@ -219,8 +217,8 @@ export class ExifService implements IExifService {
 
       // 批量解析 EXIF
       return this.parseMultipleExif(imageFiles);
-    } catch (error) {
-      console.error(`❌ Failed to scan directory ${dirPath}:`, error);
+    } catch {
+
       return [];
     }
   }
@@ -276,8 +274,8 @@ export class ExifService implements IExifService {
    * 根据相机信息搜索图片
    */
   async searchImagesByCamera(
-    cameraMake?: string, 
-    cameraModel?: string, 
+    cameraMake?: string,
+    cameraModel?: string,
     options: ExifSearchOptions = {}
   ): Promise<ExifData[]> {
     return this.searchExif({
@@ -291,8 +289,8 @@ export class ExifService implements IExifService {
    * 根据拍摄时间范围搜索图片
    */
   async searchImagesByDateRange(
-    startDate: Date, 
-    endDate: Date, 
+    startDate: Date,
+    endDate: Date,
     options: ExifSearchOptions = {}
   ): Promise<ExifData[]> {
     return this.searchExif({
@@ -305,7 +303,7 @@ export class ExifService implements IExifService {
    * 根据地理位置范围搜索图片
    */
   async searchImagesByGeoBounds(
-    bounds: ExifSearchOptions['geoBounds'], 
+    bounds: ExifSearchOptions['geoBounds'],
     options: ExifSearchOptions = {}
   ): Promise<ExifData[]> {
     return this.searchExif({
@@ -388,8 +386,8 @@ export class ExifService implements IExifService {
       }
 
       return filteredResults;
-    } catch (error) {
-      console.error('❌ Failed to search EXIF data:', error);
+    } catch {
+
       return [];
     }
   }
@@ -418,14 +416,14 @@ export class ExifService implements IExifService {
       for (const exifData of imagesWithExif) {
         if (exifData.camera?.make) {
           cameraMakeMap.set(
-            exifData.camera.make, 
+            exifData.camera.make,
             (cameraMakeMap.get(exifData.camera.make) || 0) + 1
           );
         }
 
         if (exifData.camera?.model) {
           cameraModelMap.set(
-            exifData.camera.model, 
+            exifData.camera.model,
             (cameraModelMap.get(exifData.camera.model) || 0) + 1
           );
         }
@@ -471,8 +469,8 @@ export class ExifService implements IExifService {
       };
 
       return statistics;
-    } catch (error) {
-      console.error('❌ Failed to calculate EXIF statistics:', error);
+    } catch {
+
       return {
         totalImages: 0,
         imagesWithExif: 0,
@@ -490,13 +488,13 @@ export class ExifService implements IExifService {
   async getAllCameraMakes(): Promise<string[]> {
     const allExifData = await this.scanDirectoryForExif();
     const makes = new Set<string>();
-    
+
     for (const exifData of allExifData) {
       if (exifData.camera?.make) {
         makes.add(exifData.camera.make);
       }
     }
-    
+
     return Array.from(makes).sort();
   }
 
@@ -506,13 +504,13 @@ export class ExifService implements IExifService {
   async getAllCameraModels(): Promise<string[]> {
     const allExifData = await this.scanDirectoryForExif();
     const models = new Set<string>();
-    
+
     for (const exifData of allExifData) {
       if (exifData.camera?.model) {
         models.add(exifData.camera.model);
       }
     }
-    
+
     return Array.from(models).sort();
   }
 
@@ -522,17 +520,17 @@ export class ExifService implements IExifService {
   async getDateTimeRange(): Promise<{ earliest: Date; latest: Date } | null> {
     const allExifData = await this.scanDirectoryForExif();
     const dates: Date[] = [];
-    
+
     for (const exifData of allExifData) {
       if (exifData.dateTime?.dateTimeOriginal) {
         dates.push(exifData.dateTime.dateTimeOriginal);
       }
     }
-    
+
     if (dates.length === 0) {
       return null;
     }
-    
+
     return {
       earliest: new Date(Math.min(...dates.map(d => d.getTime()))),
       latest: new Date(Math.max(...dates.map(d => d.getTime())))
@@ -545,17 +543,17 @@ export class ExifService implements IExifService {
   async getGpsBounds(): Promise<ExifStatistics['gpsBounds'] | null> {
     const allExifData = await this.scanDirectoryForExif();
     const coordinates: GpsCoordinates[] = [];
-    
+
     for (const exifData of allExifData) {
       if (exifData.gps) {
         coordinates.push(exifData.gps);
       }
     }
-    
+
     if (coordinates.length === 0) {
       return null;
     }
-    
+
     return {
       north: Math.max(...coordinates.map(coord => coord.latitude)),
       south: Math.min(...coordinates.map(coord => coord.latitude)),
@@ -733,7 +731,7 @@ export class ExifService implements IExifService {
    */
   private extractShootingParams(rawExif: Record<string, unknown>): ShootingParams | undefined {
     const hasShootingParams = rawExif.ISO || rawExif.FNumber || rawExif.ExposureTime || rawExif.FocalLength;
-    
+
     if (!hasShootingParams) {
       return undefined;
     }
@@ -755,9 +753,9 @@ export class ExifService implements IExifService {
    */
   private extractDateTimeInfo(rawExif: Record<string, unknown>): DateTimeInfo | undefined {
     // exifr 可能已经解析了日期（作为 Date 对象）或返回原始字符串
-    const hasDateTime = rawExif.DateTime || rawExif.DateTimeOriginal || rawExif.DateTimeDigitized || 
+    const hasDateTime = rawExif.DateTime || rawExif.DateTimeOriginal || rawExif.DateTimeDigitized ||
                        rawExif.ModifyDate || rawExif.CreateDate;
-    
+
     if (!hasDateTime) {
       return undefined;
     }
@@ -810,7 +808,7 @@ export class ExifService implements IExifService {
    */
   private extractImageInfo(rawExif: Record<string, unknown>): ImageInfo | undefined {
     const hasImageInfo = rawExif.ImageWidth || rawExif.ImageHeight || rawExif.ColorSpace;
-    
+
     if (!hasImageInfo) {
       return undefined;
     }
@@ -830,8 +828,8 @@ export class ExifService implements IExifService {
    * 对 EXIF 搜索结果进行排序
    */
   private sortExifResults(
-    results: ExifData[], 
-    sortBy: ExifSearchOptions['sortBy'], 
+    results: ExifData[],
+    sortBy: ExifSearchOptions['sortBy'],
     sortOrder: ExifSearchOptions['sortOrder'] = 'asc'
   ): ExifData[] {
     return results.sort((a, b) => {

@@ -28,8 +28,8 @@ Here are some useful external links:
 ## Obsidian Syntax Support
 
 ### Internal Links
-[[Usages]]
-[[Welcome]]
+[[../../Usages|Usages]]
+[[../../Welcome|Welcome]]
 
 ### Tag System
 Related tags: #react #markdown #obsidian #abc `#test`
@@ -272,7 +272,7 @@ Select other files from the left sidebar to explore more content.
 
 ## Pictures
 
-![[Attachments/inversed mt fuji.png]]
+![[../../Attachments/inversed_mt_fuji.png]]
 
 ## Tracks
 

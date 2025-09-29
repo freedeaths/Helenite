@@ -62,11 +62,6 @@
       "relativePath": "Attachments/Pasted image 20250902132433.png"
     },
     {
-      "name": "inversed mt fuji.png",
-      "basename": "inversed mt fuji",
-      "relativePath": "Attachments/inversed mt fuji.png"
-    },
-    {
       "name": "yamap_2025-04-02_08_48.gpx",
       "basename": "yamap_2025-04-02_08_48",
       "relativePath": "Attachments/yamap_2025-04-02_08_48.gpx"
@@ -110,6 +105,11 @@
       "name": "file_example_MP4_480_1_5MG.mp4",
       "basename": "file_example_MP4_480_1_5MG",
       "relativePath": "Attachments/file_example_MP4_480_1_5MG.mp4"
+    },
+    {
+      "name": "inversed_mt_fuji.png",
+      "basename": "inversed_mt_fuji",
+      "relativePath": "Attachments/inversed_mt_fuji.png"
     }
   ]
 }

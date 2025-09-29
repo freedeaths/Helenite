@@ -10,15 +10,15 @@ import type { Root as HastRoot, Element as HastElement } from 'hast';
 
 export interface TrackMapRendererOptions {
   baseUrl?: string;
-  vaultService?: any; // VaultService 实例，用于加载文件
+  vaultService?: unknown; // VaultService 实例，用于加载文件
 }
 
 /**
  * Track Map Renderer 插件
  */
-export function trackMapRenderer(options: TrackMapRendererOptions = {}) {
+export function trackMapRenderer() {
   return (tree: HastRoot) => {
-    visit(tree, (node: any) => {
+    visit(tree, (node: HastElement) => {
       // 查找已转换的 track-map-container div 元素
       if (node.type !== 'element' || node.tagName !== 'div') return;
       if (!node.properties?.className?.includes('track-map-container')) return;
@@ -27,47 +27,46 @@ export function trackMapRenderer(options: TrackMapRendererOptions = {}) {
       const trackPropsJson = node.properties?.['data-track-props'];
 
       if (!trackPropsJson) {
-        console.warn('🔄 trackMapRenderer: Missing track props in container');
+        // console.warn('🔄 trackMapRenderer: Missing track props in container');
         return;
       }
 
       // 解析存储的数据
-      let trackData: any;
+      let trackData: unknown;
       try {
         trackData = JSON.parse(trackPropsJson);
-      } catch (error) {
-        console.warn('Failed to parse track props:', error);
+      } catch {
+        // console.warn('Failed to parse track props:', error);
         return;
       }
 
-      const displayType = trackData.displayType || 'single';
-
-      let componentProps: any = {
-        trackId: trackData.id,
-        trackType: trackData.type
+      const trackDataTyped = trackData as { id: string; type: string; [key: string]: unknown };
+      let componentProps: Record<string, unknown> = {
+        trackId: trackDataTyped.id,
+        trackType: trackDataTyped.type
       };
 
-      if (trackData.type === 'single-track') {
+      if (trackDataTyped.type === 'single-track') {
         // 单个轨迹地图 - 只传递文件路径
         componentProps = {
           ...componentProps,
-          format: trackData.format,
-          filePathsJson: JSON.stringify([trackData.filePath])  // 使用 JSON 字符串避免序列化问题
+          format: trackDataTyped.format,
+          filePathsJson: JSON.stringify([trackDataTyped.filePath])  // 使用 JSON 字符串避免序列化问题
         };
 
-      } else if (trackData.type === 'leaflet') {
+      } else if (trackDataTyped.type === 'leaflet') {
         // Leaflet 配置地图 - 从 tracks 中提取文件路径
         // console.log('trackMapRenderer - leaflet trackData:', JSON.stringify(trackData, null, 2));
 
-        const filePaths = (trackData.tracks || [])
-          .filter((track: any) => track.filePath)
-          .map((track: any) => track.filePath);
+        const filePaths = (trackDataTyped.tracks as { filePath: string }[] || [])
+          .filter((track) => track.filePath)
+          .map((track) => track.filePath);
 
         // console.log('trackMapRenderer - leaflet filePaths:', filePaths);
 
         componentProps = {
           ...componentProps,
-          config: trackData.leafletConfig || {},
+          config: trackDataTyped.leafletConfig || {},
           filePathsJson: JSON.stringify(filePaths)  // 使用 JSON 字符串避免序列化问题
         };
       }

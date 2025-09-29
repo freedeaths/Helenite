@@ -12,7 +12,6 @@ import { GraphService } from '../GraphService.js';
 import { MetadataService } from '../MetadataService.js';
 import { CacheManager } from '../CacheManager.js';
 import type { IGraphService, GraphNode } from '../interfaces/IGraphService.js';
-import type { IMetadataService } from '../interfaces/IMetadataService.js';
 import fetch from 'node-fetch';
 import { spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
@@ -29,7 +28,7 @@ describe('GraphService Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error Setting global.fetch for testing with node-fetch in Node.js environment
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -43,9 +42,8 @@ describe('GraphService Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -61,7 +59,6 @@ describe('GraphService Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -75,13 +72,11 @@ describe('GraphService Integration Tests', () => {
 
   afterAll(async () => {
     if (viteProcess) {
-      // console.log('🛑 关闭临时开发服务器...');
       viteProcess.kill('SIGTERM');
 
       // 等待进程关闭
       await new Promise<void>((resolve) => {
         viteProcess!.on('exit', () => {
-          // console.log('✅ 开发服务器已关闭');
           resolve();
         });
 
@@ -113,8 +108,7 @@ describe('GraphService Integration Tests', () => {
   describe('Real Data Graph Construction', () => {
     it('should build global graph from real metadata', async () => {
       // 调试：检查 GraphService 使用的数据源
-      const metadata = await metadataService.getMetadata();
-      // console.log(`🔍 MetadataService loaded ${metadata?.length || 0} files`);
+      const _metadata = await metadataService.getMetadata();
 
       const graph = await graphService.getGlobalGraph();
 
@@ -140,7 +134,6 @@ describe('GraphService Integration Tests', () => {
       expect(linkEdges.length).toBeGreaterThan(0);
       expect(tagEdges.length).toBeGreaterThan(0);
 
-      // console.log(`📊 Global graph: ${fileNodes.length} files, ${tagNodes.length} tags, ${linkEdges.length} links, ${tagEdges.length} tag edges`);
     });
 
     it('should find specific files in graph nodes', async () => {
@@ -155,7 +148,6 @@ describe('GraphService Integration Tests', () => {
       expect(fileNames).toContain('Abilities');
       expect(fileNames).toContain('README');
 
-      // console.log('✅ Found expected file nodes in graph:', fileNames.join(', '));
     });
 
     it('should find specific tag nodes in graph', async () => {
@@ -170,7 +162,6 @@ describe('GraphService Integration Tests', () => {
       expect(tagLabels).toContain('#react');
       expect(tagLabels).toContain('#markdown');
 
-      // console.log('✅ Found expected tag nodes in graph:', tagLabels.join(', '));
     });
 
     it('should verify link relationships in real graph', async () => {
@@ -198,7 +189,6 @@ describe('GraphService Integration Tests', () => {
 
       expect(linkExists).toBe(true);
 
-      // console.log('✅ Verified link relationship between Abilities and Welcome');
     });
   });
 
@@ -216,7 +206,6 @@ describe('GraphService Integration Tests', () => {
       expect(centerNode).toBeDefined();
       expect(centerNode?.type).toBe('file');
 
-      // console.log(`📊 Local graph for Welcome: ${localGraph.nodes.length} nodes, ${localGraph.edges.length} edges`);
     });
 
     it('should build local graph for nested file path', async () => {
@@ -230,7 +219,6 @@ describe('GraphService Integration Tests', () => {
       );
       expect(centerNode).toBeDefined();
 
-      // console.log(`📊 Local graph for Abilities: ${localGraph.nodes.length} nodes, ${localGraph.edges.length} edges`);
     });
 
     it('should respect depth parameter in local graph', async () => {
@@ -240,7 +228,6 @@ describe('GraphService Integration Tests', () => {
       // 深度2应该包含相同或更多节点
       expect(depth2Graph.nodes.length).toBeGreaterThanOrEqual(depth1Graph.nodes.length);
 
-      // console.log(`📊 Depth comparison - Depth 1: ${depth1Graph.nodes.length} nodes, Depth 2: ${depth2Graph.nodes.length} nodes`);
     });
 
     it('should handle URL-encoded paths correctly', async () => {
@@ -254,7 +241,6 @@ describe('GraphService Integration Tests', () => {
       expect(graph1.nodes.length).toBe(graph2.nodes.length);
       expect(graph1.edges.length).toBe(graph2.edges.length);
 
-      // console.log('✅ URL encoding handling works correctly');
     });
   });
 
@@ -276,7 +262,6 @@ describe('GraphService Integration Tests', () => {
       );
       expect(servicesArchNode).toBeDefined();
 
-      // console.log(`📊 Tag filtered graph for 'helenite': ${tagGraph.nodes.length} nodes, ${tagGraph.edges.length} edges`);
     });
 
     it('should filter graph by tag with # prefix', async () => {
@@ -288,7 +273,6 @@ describe('GraphService Integration Tests', () => {
       const tagNode = tagGraph.nodes.find(node => node.label === '#react');
       expect(tagNode).toBeDefined();
 
-      // console.log(`📊 Tag filtered graph for '#react': ${tagGraph.nodes.length} nodes`);
     });
 
     it('should return empty graph for non-existent tag', async () => {
@@ -314,7 +298,6 @@ describe('GraphService Integration Tests', () => {
       expect(stats.totalNodes).toBeGreaterThan(stats.totalTags);
       expect(stats.averageConnections).toBe(Number(((stats.totalEdges * 2) / stats.totalNodes).toFixed(2)));
 
-      // console.log(`📊 Graph statistics: ${stats.totalNodes} nodes, ${stats.totalEdges} edges, ${stats.totalTags} tags, ${stats.orphanedNodes} orphaned, ${stats.averageConnections} avg connections`);
     });
   });
 
@@ -332,7 +315,6 @@ describe('GraphService Integration Tests', () => {
       // 应该返回同一个节点
       expect(node1?.id).toBe(node2?.id);
 
-      // console.log('✅ Node finding by different identifiers works correctly');
     });
 
     it('should get node neighbors correctly', async () => {
@@ -344,7 +326,6 @@ describe('GraphService Integration Tests', () => {
       expect(Array.isArray(neighbors)).toBe(true);
       expect(neighbors.length).toBeGreaterThan(0);
 
-      // console.log(`🔗 Welcome node has ${neighbors.length} neighbors:`, neighbors.map(n => n.label).join(', '));
     });
 
     it('should find path between connected nodes', async () => {
@@ -360,10 +341,6 @@ describe('GraphService Integration Tests', () => {
       if (path.length > 0) {
         expect(path[0].id).toBe(welcomeNode!.id);
         expect(path[path.length - 1].id).toBe(abilitiesNode!.id);
-
-        // console.log(`🛤️ Path from Welcome to Abilities: ${path.length} nodes - ${path.map(n => n.label).join(' → ')}`);
-      } else {
-        // console.log('ℹ️ No direct path found between Welcome and Abilities');
       }
     });
 
@@ -380,9 +357,6 @@ describe('GraphService Integration Tests', () => {
         const previous = hubs[i - 1] as GraphNode & { connectionCount: number };
         expect(current.connectionCount).toBeLessThanOrEqual(previous.connectionCount);
       }
-
-      console.log(`🌟 Top ${hubs.length} most connected nodes:`,
-        hubs.map(n => `${n.label} (${(n as GraphNode & { connectionCount: number }).connectionCount} connections)`));
     });
   });
 
@@ -400,7 +374,6 @@ describe('GraphService Integration Tests', () => {
       expect(tagNodes.every(node => node.type === 'tag')).toBe(true);
       expect(fileNodes.every(node => node.type === 'file')).toBe(true);
 
-      // console.log(`📊 Analysis: ${fileNodes.length} file nodes, ${tagNodes.length} tag nodes`);
     });
 
     it('should analyze node connectivity', async () => {
@@ -416,35 +389,23 @@ describe('GraphService Integration Tests', () => {
       expect(Array.isArray(connectivity.connectedTags)).toBe(true);
       expect(Array.isArray(connectivity.connectedFiles)).toBe(true);
 
-      // console.log(`🔗 Welcome connectivity: ${connectivity.totalDegree} total (${connectivity.inDegree} in, ${connectivity.outDegree} out), tags: [${connectivity.connectedTags.join(', ')}], files: [${connectivity.connectedFiles.join(', ')}]`);
     });
 
     it('should identify orphaned nodes if any', async () => {
       const orphanedNodes = await graphService.getOrphanedNodes();
 
       expect(Array.isArray(orphanedNodes)).toBe(true);
-
-      if (orphanedNodes.length > 0) {
-        console.log(`🏝️ Found ${orphanedNodes.length} orphaned nodes:`, orphanedNodes.map(n => n.label));
-      } else {
-        console.log('✅ No orphaned nodes found - all nodes are connected');
-      }
     });
   });
 
   describe('Caching Integration', () => {
     it('should demonstrate caching performance with real graph data', async () => {
-      // console.log('🔄 Testing graph caching performance...');
 
       // 第一次调用 - 从网络加载
-      console.time('First global graph call (network)');
       const graph1 = await cachedGraphService.getGlobalGraph();
-      console.timeEnd('First global graph call (network)');
 
       // 第二次调用 - 从缓存加载
-      console.time('Second global graph call (cached)');
       const graph2 = await cachedGraphService.getGlobalGraph();
-      console.timeEnd('Second global graph call (cached)');
 
       // 验证数据一致性
       expect(graph1.nodes.length).toBe(graph2.nodes.length);
@@ -454,83 +415,61 @@ describe('GraphService Integration Tests', () => {
       const stats = await cacheManager.getStatistics();
       expect(stats.totalEntries).toBeGreaterThan(0);
 
-      // console.log(`📊 Cache stats: ${stats.totalEntries} entries, hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
     });
 
     it('should cache local graph results', async () => {
       // 测试局部图谱的缓存
-      console.time('First local graph call');
       const localGraph1 = await cachedGraphService.getLocalGraph('Welcome.md');
-      console.timeEnd('First local graph call');
 
-      console.time('Second local graph call (cached)');
       const localGraph2 = await cachedGraphService.getLocalGraph('Welcome.md');
-      console.timeEnd('Second local graph call (cached)');
 
       expect(localGraph1.nodes.length).toBe(localGraph2.nodes.length);
       expect(localGraph1.edges.length).toBe(localGraph2.edges.length);
 
-      // console.log('✅ Local graph caching works correctly');
     });
 
     it('should cache graph statistics and queries', async () => {
       // 测试统计信息的缓存
-      console.time('First stats call');
       const stats1 = await cachedGraphService.getGraphStats();
-      console.timeEnd('First stats call');
 
-      console.time('Second stats call (cached)');
       const stats2 = await cachedGraphService.getGraphStats();
-      console.timeEnd('Second stats call (cached)');
 
       expect(stats1).toEqual(stats2);
 
       // 测试节点查询的缓存
-      console.time('First node search');
       const node1 = await cachedGraphService.findNode('Welcome');
-      console.timeEnd('First node search');
 
-      console.time('Second node search (cached)');
       const node2 = await cachedGraphService.findNode('Welcome');
-      console.timeEnd('Second node search (cached)');
 
       expect(node1).toEqual(node2);
 
-      // console.log('✅ Graph statistics and queries caching works correctly');
     });
   });
 
   describe('Graph Operations Integration', () => {
     it('should perform complex graph analysis workflow', async () => {
-      // console.log('🔄 Executing complex graph analysis workflow...');
 
       // 1. 获取全局统计
-      const stats = await graphService.getGraphStats();
-      // console.log(`📊 Global stats: ${stats.totalNodes} nodes, ${stats.totalEdges} edges`);
+      const _stats = await graphService.getGraphStats();
 
       // 2. 找到最连接的节点
       const hubs = await graphService.getMostConnectedNodes(3);
-      // console.log(`🌟 Top hubs: ${hubs.map(n => n.label).join(', ')}`);
 
       // 3. 分析最连接节点的连通性
       if (hubs.length > 0) {
-        const hubConnectivity = await graphService.analyzeNodeConnectivity(hubs[0].id);
-        // console.log(`🔗 Hub connectivity: ${hubConnectivity.totalDegree} connections`);
+        const _hubConnectivity = await graphService.analyzeNodeConnectivity(hubs[0].id);
 
         // 4. 获取该节点的邻居
-        const neighbors = await graphService.getNodeNeighbors(hubs[0].id, 2);
-        // console.log(`👥 Hub neighbors (depth 2): ${neighbors.length} nodes`);
+        const _neighbors = await graphService.getNodeNeighbors(hubs[0].id, 2);
       }
 
       // 5. 获取所有标签并过滤其中一个
       const allTags = await graphService.getAllTagNodes();
       if (allTags.length > 0) {
         const tagName = allTags[0].label.replace('#', '');
-        const tagGraph = await graphService.filterByTag(tagName);
-        // console.log(`🏷️ Tag '${tagName}' graph: ${tagGraph.nodes.length} nodes`);
+        const _tagGraph = await graphService.filterByTag(tagName);
       }
 
-      // console.log('✅ Complex graph analysis workflow completed successfully');
     });
 
     it('should handle mixed graph operations efficiently', async () => {
@@ -548,7 +487,6 @@ describe('GraphService Integration Tests', () => {
       expect(globalGraph.nodes.length).toBe(stats.totalNodes);
       expect(globalGraph.edges.length).toBe(stats.totalEdges);
 
-      // console.log('✅ Parallel graph operations completed with consistent results');
     });
   });
 

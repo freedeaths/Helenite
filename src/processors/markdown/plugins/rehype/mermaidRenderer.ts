@@ -5,17 +5,15 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root as HastRoot, Element as HastElement, Text as HastText } from 'hast';
-
-export interface MermaidRendererOptions {
-  // 预留扩展选项
-}
+import type { Root as HastRoot, Element as HastElement, Node as HastNode } from 'hast';
+import type { VFile } from 'vfile';
+import type { MermaidData } from '../remark/mermaidPlugin.js';
 
 /**
  * Mermaid Renderer 插件
  */
-export function mermaidRenderer(options: MermaidRendererOptions = {}) {
-  return (tree: HastRoot, file: any) => {
+export function mermaidRenderer() {
+  return (tree: HastRoot, file: VFile) => {
     // 获取存储的 mermaid 数据
     const mermaidDiagrams = file.data?.mermaidDiagrams || [];
 
@@ -23,11 +21,11 @@ export function mermaidRenderer(options: MermaidRendererOptions = {}) {
 
     // 创建占位符到数据的映射
     const placeholderMap = new Map();
-    mermaidDiagrams.forEach((diagram: any) => {
+    (mermaidDiagrams as MermaidData[]).forEach((diagram) => {
       placeholderMap.set(diagram.placeholder, diagram);
     });
 
-    visit(tree, (node: any, index, parent) => {
+    visit(tree, (node: HastNode, index, parent) => {
       // 查找包含 Mermaid 占位符的文本节点
       if (node.type !== 'text') return;
       if (!parent || index === undefined) return;
@@ -66,7 +64,7 @@ export function mermaidRenderer(options: MermaidRendererOptions = {}) {
         parent.children[index] = mermaidNode;
       } else {
         // 如果文本中混合了占位符和其他内容，需要分割处理
-        const parts: any[] = [];
+        const parts: HastNode[] = [];
         let lastIndex = 0;
 
         matches.forEach(match => {

@@ -195,8 +195,8 @@ export class IndexedDBCache implements ICacheService {
           await this.checkAndUpdateEntry(entry);
         }
       }
-    } catch (error) {
-      console.warn('MD5轮询检查失败:', error);
+    } catch {
+      // TODO: 处理错误
     }
   }
 
@@ -213,7 +213,6 @@ export class IndexedDBCache implements ICacheService {
 
       // MD5不匹配，需要更新
       if (currentHash !== entry.contentHash) {
-        // console.log(`🔄 检测到文件变更，更新缓存: ${entry.key}`);
 
         // 更新缓存条目
         await this.set(entry.key, content, entry.ttl, {
@@ -225,8 +224,8 @@ export class IndexedDBCache implements ICacheService {
         // 触发上层服务更新事件
         this.notifyUpstreamServices(entry.key, content);
       }
-    } catch (error) {
-      console.warn(`检查文件变更失败 ${entry.key}:`, error);
+    } catch {
+      // TODO: 处理错误
     }
   }
 
@@ -245,27 +244,22 @@ export class IndexedDBCache implements ICacheService {
   private async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    try {
-      this.db = await openDB(this.options.dbName || 'helenite-cache', this.options.dbVersion || 1, {
-        upgrade(db) {
-          // 创建主缓存存储
-          if (!db.objectStoreNames.contains('cache')) {
-            const store = db.createObjectStore('cache', { keyPath: 'key' });
-            store.createIndex('lastAccessed', 'lastAccessed');
-            store.createIndex('timestamp', 'timestamp');
-          }
+    this.db = await openDB(this.options.dbName || 'helenite-cache', this.options.dbVersion || 1, {
+      upgrade(db) {
+        // 创建主缓存存储
+        if (!db.objectStoreNames.contains('cache')) {
+          const store = db.createObjectStore('cache', { keyPath: 'key' });
+          store.createIndex('lastAccessed', 'lastAccessed');
+          store.createIndex('timestamp', 'timestamp');
+        }
 
-          // 创建命名空间存储
-          if (!db.objectStoreNames.contains('namespaces')) {
-            db.createObjectStore('namespaces');
-          }
-        },
-      });
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize IndexedDB cache:', error);
-      throw error;
-    }
+        // 创建命名空间存储
+        if (!db.objectStoreNames.contains('namespaces')) {
+          db.createObjectStore('namespaces');
+        }
+      },
+    });
+    this.initialized = true;
   }
 
   private async ensureInitialized(): Promise<void> {
@@ -302,8 +296,7 @@ export class IndexedDBCache implements ICacheService {
 
       this.stats.hits++;
       return entry.value as T;
-    } catch (error) {
-      console.error('IndexedDB cache get error:', error);
+    } catch {
       this.stats.misses++;
       return null;
     }
@@ -324,42 +317,38 @@ export class IndexedDBCache implements ICacheService {
   ): Promise<void> {
     await this.ensureInitialized();
 
-    try {
-      const tier = options?.tier || this.determineTier(key);
-      const tierConfig = this.options.tiers![tier]!;
+    const tier = options?.tier || this.determineTier(key);
+    const tierConfig = this.options.tiers![tier]!;
 
-      // 计算TTL：持久层可能没有TTL
-      const finalTTL = ttl ?? tierConfig.defaultTTL;
-      const now = Date.now();
+    // 计算TTL：持久层可能没有TTL
+    const finalTTL = ttl ?? tierConfig.defaultTTL;
+    const now = Date.now();
 
-      // 计算内容哈希（如果是字符串内容）
-      let contentHash = options?.contentHash;
-      if (!contentHash && typeof value === 'string' && options?.sourceUrl) {
-        contentHash = await this.calculateMD5(value);
-      }
-
-      const entry: StoredCacheEntry = {
-        key,
-        value,
-        timestamp: now,
-        ttl: finalTTL,
-        size: this.estimateSize(value),
-        lastAccessed: now,
-        tier,
-        contentHash,
-        sourceUrl: options?.sourceUrl
-      };
-
-      // 只对LRU层执行容量检查和清理
-      if (tier === 'lru') {
-        await this.enforceCapacityLimits('lru');
-      }
-
-      await this.db!.put('cache', entry);
-    } catch (error) {
-      console.error('IndexedDB cache set error:', error);
-      throw error;
+    // 计算内容哈希（如果是字符串内容）
+    let contentHash = options?.contentHash;
+    if (!contentHash && typeof value === 'string' && options?.sourceUrl) {
+      contentHash = await this.calculateMD5(value);
     }
+
+    const entry: StoredCacheEntry = {
+      key,
+      value,
+      timestamp: now,
+      ttl: finalTTL,
+      size: this.estimateSize(value),
+      lastAccessed: now,
+      tier,
+      contentHash,
+      sourceUrl: options?.sourceUrl
+    };
+
+    // 只对LRU层执行容量检查和清理
+    if (tier === 'lru') {
+      await this.enforceCapacityLimits('lru');
+    }
+
+    await this.db!.put('cache', entry);
+
   }
 
   async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
@@ -368,22 +357,17 @@ export class IndexedDBCache implements ICacheService {
       return cached;
     }
 
-    try {
-      const value = await factory();
-      await this.set(key, value, ttl);
-      return value;
-    } catch (error) {
-      // 如果factory函数失败，重新抛出错误，不进行缓存
-      throw error;
-    }
+    const value = await factory();
+    await this.set(key, value, ttl);
+    return value;
   }
 
   async delete(key: string): Promise<void> {
     await this.ensureInitialized();
     try {
       await this.db!.delete('cache', key);
-    } catch (error) {
-      console.error('IndexedDB cache delete error:', error);
+    } catch {
+      // TODO: 处理错误
     }
   }
 
@@ -400,8 +384,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       return true;
-    } catch (error) {
-      console.error('IndexedDB cache has error:', error);
+    } catch {
       return false;
     }
   }
@@ -445,8 +428,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       return matchingKeys;
-    } catch (error) {
-      console.error('IndexedDB cache getKeysMatching error:', error);
+    } catch {
       return [];
     }
   }
@@ -468,8 +450,8 @@ export class IndexedDBCache implements ICacheService {
       const tx = this.db!.transaction('cache', 'readwrite');
       await tx.objectStore('cache').clear();
       this.stats = { hits: 0, misses: 0, evictions: 0 };
-    } catch (error) {
-      console.error('IndexedDB cache clear error:', error);
+    } catch {
+      // TODO: 处理错误
     }
   }
 
@@ -488,8 +470,7 @@ export class IndexedDBCache implements ICacheService {
         missRate: total > 0 ? this.stats.misses / total : 0,
         evictions: this.stats.evictions
       };
-    } catch (error) {
-      console.error('IndexedDB cache getStatistics error:', error);
+    } catch {
       return {
         totalEntries: 0,
         totalSize: 0,
@@ -513,8 +494,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       return totalSize;
-    } catch (error) {
-      console.error('IndexedDB cache getSize error:', error);
+    } catch {
       return 0;
     }
   }
@@ -524,8 +504,7 @@ export class IndexedDBCache implements ICacheService {
 
     try {
       return await this.db!.count('cache');
-    } catch (error) {
-      console.error('IndexedDB cache getCount error:', error);
+    } catch {
       return 0;
     }
   }
@@ -553,13 +532,13 @@ export class IndexedDBCache implements ICacheService {
 
       // 获取该层级的所有条目，按访问时间排序
       const tierEntries: StoredCacheEntry[] = [];
-      let totalSize = 0;
+      let _totalSize = 0;
 
       for await (const cursor of store) {
         const entry: StoredCacheEntry = cursor.value;
         if (entry.tier === tier) {
           tierEntries.push(entry);
-          totalSize += entry.size || 0;
+          _totalSize += entry.size || 0;
         }
       }
 
@@ -590,14 +569,9 @@ export class IndexedDBCache implements ICacheService {
         }
       }
 
-      if (evicted > 0) {
-        // console.log(`♻️ 自动清理 ${tier} 层: ${evicted} 个条目 (LRU策略)`);
-      }
-
       this.stats.evictions += evicted;
       return evicted;
-    } catch (error) {
-      console.error('IndexedDB capacity enforcement error:', error);
+    } catch {
       return 0;
     }
   }
@@ -620,7 +594,6 @@ export class IndexedDBCache implements ICacheService {
         if (entry.ttl && now > entry.timestamp + entry.ttl) {
           // 额外检查：即使过期，持久层数据也需要用户确认才删除
           if (entry.tier === 'persistent') {
-            console.warn(`⚠️ 持久层数据已过期但未自动清理: ${entry.key}`);
             continue; // 跳过持久层数据的自动清理
           }
 
@@ -629,13 +602,8 @@ export class IndexedDBCache implements ICacheService {
         }
       }
 
-      if (expiredKeys.length > 0) {
-        // console.log(`🧹 自动清理过期缓存: ${expiredKeys.length} 个条目`);
-      }
-
       return expiredKeys.length;
-    } catch (error) {
-      console.error('IndexedDB cache cleanup error:', error);
+    } catch {
       return 0;
     }
   }
@@ -664,10 +632,8 @@ export class IndexedDBCache implements ICacheService {
         }
       }
 
-      // console.log(`🗑️ 手动清理 ${tier} 层: ${cleared} 个条目`);
       return cleared;
-    } catch (error) {
-      console.error('IndexedDB tier clear error:', error);
+    } catch {
       return 0;
     }
   }
@@ -707,8 +673,8 @@ export class IndexedDBCache implements ICacheService {
       stats.persistent.sizeMB = Math.round(stats.persistent.sizeMB * 100) / 100;
       stats.lru.sizeMB = Math.round(stats.lru.sizeMB * 100) / 100;
 
-    } catch (error) {
-      console.error('IndexedDB tier stats error:', error);
+    } catch {
+      // TODO: 处理错误
     }
 
     return stats;
@@ -761,13 +727,11 @@ export class IndexedDBCache implements ICacheService {
     if (typeof window !== 'undefined') {
       const confirmed = window.confirm(confirmMessage);
       if (!confirmed) {
-        // console.log('❌ 用户取消了持久层数据清理');
         return 0;
       }
     }
 
     const cleared = await this.clearTier('persistent');
-    // console.log(`🗑️ 用户确认清理持久层: ${cleared} 个条目`);
     return cleared;
   }
 
@@ -791,8 +755,8 @@ export class IndexedDBCache implements ICacheService {
           expiredKeys.push(entry.key);
         }
       }
-    } catch (error) {
-      console.error('检查过期持久层数据失败:', error);
+    } catch {
+      // TODO: 处理错误
     }
 
     return expiredKeys;
@@ -818,9 +782,8 @@ export class IndexedDBCache implements ICacheService {
         cleared++;
       }
 
-      // console.log(`🗑️ 强制清理过期持久层数据: ${cleared} 个条目`);
-    } catch (error) {
-      console.error('强制清理过期持久层数据失败:', error);
+    } catch {
+      // TODO: 处理错误
     }
 
     return cleared;
@@ -856,8 +819,7 @@ export class IndexedDBCache implements ICacheService {
       }
 
       return Array.from(namespaces);
-    } catch (error) {
-      console.error('IndexedDB cache getNamespaces error:', error);
+    } catch {
       return [];
     }
   }
@@ -898,8 +860,8 @@ export class IndexedDBCache implements ICacheService {
         await cursor.delete();
         this.stats.evictions++;
       }
-    } catch (error) {
-      console.error('IndexedDB cache evictLRU error:', error);
+    } catch {
+      // TODO: 处理错误
     }
   }
 

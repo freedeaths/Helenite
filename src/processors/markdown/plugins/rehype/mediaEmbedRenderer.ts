@@ -5,7 +5,7 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Element as HastElement } from 'hast';
+import type { Root as HastRoot, Element as HastElement } from 'hast';
 
 export interface MediaEmbedRendererOptions {
   pdfHeight?: string;
@@ -25,8 +25,8 @@ const DEFAULT_OPTIONS: MediaEmbedRendererOptions = {
 export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
-  return (tree: any) => {
-    visit(tree, (node: any, index, parent) => {
+  return (tree: HastRoot) => {
+    visit(tree, (node: HastElement, index, parent) => {
       if (!parent || typeof index !== 'number') return;
 
       // 处理来自 remark 阶段的 HTML 占位符

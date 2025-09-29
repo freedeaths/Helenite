@@ -68,8 +68,8 @@ export function parseHashRoute(hash: string): ParsedRoute {
     // URL解码文件路径，支持中文和日文字符
     try {
       filePath = decodeURIComponent(filePath);
-    } catch (error) {
-      console.warn('Failed to decode URI component:', filePath, error);
+    } catch {
+      // console.warn('Failed to decode URI component:', filePath, error);
       // 如果解码失败，使用原始路径
     }
     

@@ -30,8 +30,8 @@ export function QRCodeModal({ opened, onClose, url, title }: QRCodeModalProps) {
           setQRCodeDataURL(dataURL);
           setLoading(false);
         })
-        .catch((error) => {
-          console.error('生成二维码失败:', error);
+        .catch(() => {
+          // console.error('生成二维码失败:', error);
           setLoading(false);
         });
     }

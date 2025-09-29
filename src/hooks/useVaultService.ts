@@ -67,7 +67,7 @@ export interface VaultAPI {
     title: string;
     tags: string[];
     aliases: string[];
-    frontmatter: Record<string, any>;
+    frontmatter: Record<string, unknown>;
     headings: Array<{ level: number; text: string; id: string }>;
     links: Array<{ path: string; text: string }>;
     backlinks: Array<{ path: string; text: string }>;
@@ -76,7 +76,7 @@ export interface VaultAPI {
   // 复杂的文档上下文获取（编排多个服务）
   getDocumentWithContext(path: string): Promise<{
     content: string;
-    metadata: any;
+    metadata: Record<string, unknown>;
     localGraph: { nodes: GraphNode[]; edges: GraphEdge[] };
     backlinks: Array<{ path: string; text: string }>;
     hasGraph: boolean;
@@ -111,15 +111,15 @@ export interface VaultAPI {
 
   // === 原始服务访问（如果需要） ===
   services: {
-    storage: any;
-    metadata: any;
-    fileTree: any;
-    search: any;
-    graph: any;
-    tag: any;
-    footprints: any;
-    frontMatter: any;
-    exif: any;
+    storage: Record<string, unknown>;
+    metadata: Record<string, unknown>;
+    fileTree: Record<string, unknown>;
+    search: Record<string, unknown>;
+    graph: Record<string, unknown>;
+    tag: Record<string, unknown>;
+    footprints: Record<string, unknown>;
+    frontMatter: Record<string, unknown>;
+    exif: Record<string, unknown>;
   };
 
   // === 缓存管理 ===
@@ -211,8 +211,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
               footprints: true
             }
           };
-        } catch (error) {
-          console.warn('getVaultInfo 失败，返回默认值:', error);
+        } catch {
+          // console.warn('getVaultInfo 失败，返回默认值:', error);
           return {
             name: 'Demo Vault',
             path: VAULT_CONFIG.VAULT_PATH,
@@ -263,8 +263,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
             graphEdges: graph.edges.length,
             trackFiles: 0 // TODO: 实现轨迹文件统计
           };
-        } catch (error) {
-          console.warn('getVaultStatistics 失败，返回默认值:', error);
+        } catch {
+          // console.warn('getVaultStatistics 失败，返回默认值:', error);
           return {
             totalDocuments: 12,
             totalFolders: 6,
@@ -292,8 +292,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
             cachedStorage.initialize?.() || Promise.resolve(),
             cachedMetadata.getMetadata().then(() => true).catch(() => false)
           ]);
-        } catch (error) {
-          console.warn('健康检查发现问题:', error);
+        } catch {
+          // console.warn('健康检查发现问题:', error);
           return {
             status: 'degraded' as const,
             services: { ...services, storage: 'degraded' as const },
@@ -325,7 +325,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         // 检查是否返回了 HTML（Vite 开发服务器对不存在的文件返回 index.html）
         if (textContent.includes('<!DOCTYPE html>') || textContent.includes('<html') || textContent.includes('</script>')) {
           const error = new Error(`File not found: ${path}`);
-          (error as any).type = 'FILE_NOT_FOUND';
+          (error as Record<string, unknown>).type = 'FILE_NOT_FOUND';
           throw error;
         }
 
@@ -344,8 +344,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
             links: metadata?.links || [],
             backlinks: metadata?.backlinks || []
           };
-        } catch (error) {
-          console.warn(`获取文档信息失败 ${path}:`, error);
+        } catch {
+          // console.warn(`获取文档信息失败 ${path}:`, error);
           return {
             title: path.split('/').pop()?.replace('.md', '') || 'Untitled',
             tags: [],
@@ -376,8 +376,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
             backlinks,
             hasGraph: localGraph.nodes.length > 1 // 超过当前文件本身
           };
-        } catch (error) {
-          console.warn(`获取文档上下文失败 ${path}:`, error);
+        } catch {
+          // console.warn(`获取文档上下文失败 ${path}:`, error);
           const content = await api.getDocumentContent(path);
           return {
             content,
@@ -457,14 +457,10 @@ async function createVaultAPI(): Promise<VaultAPI> {
 
     // console.log('🎉 统一 Vault API 创建成功！');
 
-    // 测试基本功能
-    const vaultInfo = await api.getVaultInfo();
-    // console.log('✅ VaultAPI 测试成功:', vaultInfo);
-
     return api;
 
-  } catch (error) {
-    console.error('❌ VaultAPI 创建失败，使用降级方案:', error);
+  } catch {
+    // console.error('❌ VaultAPI 创建失败，使用降级方案:', error);
 
     // 降级方案：简化的 API 实现
     const fallbackAPI: VaultAPI = {
@@ -552,7 +548,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return [];
       },
 
-      async getFilesByTag(tag: string) {
+      async getFilesByTag(_tag: string) {
         return [];
       },
 
@@ -568,7 +564,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return null;
       },
 
-      services: {} as any,
+      services: {} as Record<string, unknown>,
 
       cache: {
         async clear() { },
@@ -620,7 +616,7 @@ export function useVaultService() {
       const api = await vaultAPI.getAPI();
 
       // 测试 API 基本功能
-      const info = await api.getVaultInfo();
+      const _info = await api.getVaultInfo();
       // console.log('✅ VaultAPI 初始化成功:', info);
 
       // 兼容现有的 store 接口，传入一个模拟的 vaultService 对象
@@ -640,9 +636,9 @@ export function useVaultService() {
         getLocalGraph: api.getLocalGraph
       };
 
-      await initializeVaultService(mockVaultService as any);
-    } catch (error) {
-      console.error('VaultAPI 初始化失败:', error);
+      await initializeVaultService(mockVaultService as Record<string, unknown>);
+    } catch {
+      // console.error('VaultAPI 初始化失败:', error);
     }
   }, [vaultAPI, initializeVaultService]);
 

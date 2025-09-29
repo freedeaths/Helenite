@@ -4,10 +4,10 @@
  * 所有轨迹数据通过 FootprintsService 统一处理
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLngBounds, LatLngTuple } from 'leaflet';
-import type { IFootprintsService, FootprintsData, TrackData } from '../../services/interfaces/IFootprintsService.js';
+import type { IFootprintsService, FootprintsData } from '../../services/interfaces/IFootprintsService.js';
 import { useVaultService } from '../../hooks/useVaultService.js';
 
 // Import Leaflet CSS
@@ -15,7 +15,7 @@ import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet default markers
 import L from 'leaflet';
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -27,7 +27,7 @@ interface TrackMapProps {
   trackType: 'single-track' | 'multi-track' | 'leaflet';
   filePathsJson?: string;  // JSON 字符串格式的文件路径数组
   filePaths?: string[];  // 直接传递的数组（用于测试）
-  config?: any;  // Leaflet 特定配置
+  config?: Record<string, unknown>;  // Leaflet 特定配置
 }
 
 // 组件用于在地图加载后重新适应边界（主要用于全屏切换）
@@ -45,7 +45,7 @@ const RefitBounds: React.FC<{ bounds: LatLngBounds; trigger: boolean }> = ({ bou
         });
       }, 100);
     }
-  }, [map, trigger]);  // 当 trigger (全屏状态) 改变时触发
+  }, [map, bounds, trigger]);  // 当 trigger (全屏状态) 改变时触发
 
   return null;
 };
@@ -209,10 +209,8 @@ const MapControls: React.FC<{
 
 export const TrackMap: React.FC<TrackMapProps> = ({
   trackId,
-  trackType,
   filePathsJson,
-  filePaths: filePathsProp,
-  config
+  filePaths: filePathsProp
 }) => {
   const [footprintsData, setFootprintsData] = useState<FootprintsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,8 +226,8 @@ export const TrackMap: React.FC<TrackMapProps> = ({
       try {
         const parsed = JSON.parse(filePathsJson);
         return Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
-        console.error('Failed to parse filePathsJson:', error);
+      } catch {
+        // console.error('Failed to parse filePathsJson:', error);
         return [];
       }
     }
@@ -251,23 +249,17 @@ export const TrackMap: React.FC<TrackMapProps> = ({
         const api = await getAPI();
         // 使用 vault API 中的 footprints service
         setFootprintsService(api.services.footprints);
-      } catch (error) {
-        console.error('Failed to initialize FootprintsService:', error);
+      } catch {
+        // console.error('Failed to initialize FootprintsService:', error);
       }
     };
     initService();
   }, [getAPI]);
 
 
-  useEffect(() => {
-    if (footprintsService) {
-      loadTrackData();
-    }
-  }, [trackId, filePaths, footprintsService]);
-
-  const loadTrackData = async () => {
+  const loadTrackData = useCallback(async () => {
     if (!footprintsService) {
-      console.log('FootprintsService not initialized yet');
+      // console.log('FootprintsService not initialized yet');
       return;
     }
 
@@ -287,8 +279,8 @@ export const TrackMap: React.FC<TrackMapProps> = ({
       // 检查是否有错误
       if (result.metadata.errors.length > 0) {
         // 如果有部分文件加载失败，记录错误但继续处理成功的文件
-        result.metadata.errors.forEach(error => {
-          console.warn(`Failed to load ${error.filePath}: ${error.error}`);
+        result.metadata.errors.forEach(_error => {
+          // console.warn(`Failed to load ${_error.filePath}: ${_error.error}`);
         });
       }
 
@@ -301,15 +293,15 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
       // 计算地图边界
       const bounds = footprintsService.calculateTracksBounds(result.tracks);
-      console.log('Calculated bounds:', bounds);
+      // console.log('Calculated bounds:', bounds);
 
       const leafletBounds = new LatLngBounds([
         [bounds.south, bounds.west],
         [bounds.north, bounds.east]
       ]);
 
-      console.log('Leaflet bounds valid?', leafletBounds.isValid());
-      console.log('Leaflet bounds:', leafletBounds.toBBoxString());
+      // console.log('Leaflet bounds valid?', leafletBounds.isValid());
+      // console.log('Leaflet bounds:', leafletBounds.toBBoxString());
 
       if (leafletBounds.isValid()) {
         setMapBounds(leafletBounds);
@@ -325,13 +317,18 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     } catch (err) {
       setError(err instanceof Error ? err.message : '轨迹数据加载失败');
       if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
-        console.error('Track loading error:', err);
+        // console.error('Track loading error:', err);
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [footprintsService, filePaths]);
 
+  useEffect(() => {
+    if (footprintsService) {
+      loadTrackData();
+    }
+  }, [trackId, filePaths, footprintsService, loadTrackData]);
 
   const getMapTitle = (): string => {
     if (!footprintsData || footprintsData.tracks.length === 0) return '轨迹地图';

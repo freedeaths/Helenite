@@ -1,11 +1,12 @@
 /**
  * 新版 Markdown 处理器
- * 
+ *
  * 基于 unified 生态系统，通过 VaultService 获取数据
  * 支持完整的 Obsidian 语法和扩展功能
  */
 
 import { unified } from 'unified';
+import type { Processor } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -16,6 +17,7 @@ import rehypeSlug from 'rehype-slug';
 import rehypeReact from 'rehype-react';
 import React from 'react';
 import * as prod from 'react/jsx-runtime';
+import type { Node } from 'unist';
 
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { VAULT_PATH } from '../../config/vaultConfig.js';
@@ -27,10 +29,10 @@ import { parseFrontMatter, type FrontMatterData } from './utils/frontMatterParse
 // 导入新的插件
 import {
   trackMapsPlugin,
-  footprintsPlugin,
   trackMapRenderer,
   mermaidPlugin,
   mermaidRenderer,
+  type MermaidData,
   obsidianLinksPlugin,
   obsidianTagsPlugin,
   obsidianHighlightsPlugin,
@@ -39,9 +41,7 @@ import {
   externalLinksPlugin,
   mediaEmbedRenderer,
   type TrackMapsPluginOptions,
-  type FootprintsPluginOptions,
   type MermaidPluginOptions,
-  type MermaidRendererOptions,
   type ObsidianLinksPluginOptions,
   type ObsidianTagsOptions,
   type ObsidianHighlightsOptions,
@@ -49,6 +49,9 @@ import {
   type TableWrapperOptions,
   type ExternalLinksOptions
 } from './plugins/index.js';
+
+// 导入TrackData类型（由于TypeScript模块系统限制，需要单独导入）
+import type { TrackData } from './plugins/remark/trackMapsPlugin.js';
 
 /**
  * Markdown 处理选项
@@ -101,7 +104,7 @@ export interface ProcessedMarkdown {
  * 通过 VaultService 获取数据，确保一致的缓存和错误处理
  */
 export class MarkdownProcessor {
-  private processor: any;
+  private processor: Processor;
 
   constructor(
     private vaultService: IVaultService,
@@ -160,7 +163,7 @@ export class MarkdownProcessor {
       // 添加自定义节点处理器
       handlers: {
         // 处理 PDF 嵌入
-        pdfEmbed: (state: any, node: any) => {
+        pdfEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
@@ -170,7 +173,7 @@ export class MarkdownProcessor {
           };
         },
         // 处理视频嵌入
-        videoEmbed: (state: any, node: any) => {
+        videoEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
@@ -180,7 +183,7 @@ export class MarkdownProcessor {
           };
         },
         // 处理音频嵌入
-        audioEmbed: (state: any, node: any) => {
+        audioEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
@@ -189,6 +192,7 @@ export class MarkdownProcessor {
             children: []
           };
         }
+        // 移除了 image handler - 让 rehype-react 自动处理标准 image 节点
       }
     });
 
@@ -229,17 +233,26 @@ export class MarkdownProcessor {
       jsxs: prod.jsxs,
       passKeys: true,
       components: {
+        // PDF Viewer 组件
+        PDFViewer: (props: { url: string }) => {
+          const PDFViewer = React.lazy(() => import('../../components/PDFViewer/PDFViewer.js').then(module => ({
+            default: module.PDFViewer
+          })));
+          return React.createElement(React.Suspense, {
+            fallback: React.createElement('div', { style: { padding: '2rem', textAlign: 'center' } }, '正在加载 PDF...')
+          }, React.createElement(PDFViewer, props));
+        },
         // 修复 void 元素
-        hr: (props: any) => {
-          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+        hr: (props: React.HTMLAttributes<HTMLHRElement>) => {
+          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
           return React.createElement('hr', restProps);
         },
-        br: (props: any) => {
-          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+        br: (props: React.HTMLAttributes<HTMLBRElement>) => {
+          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
           return React.createElement('br', restProps);
         },
-        img: (props: any) => {
-          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+        img: (props: React.ImgHTMLAttributes<HTMLImageElement> & Record<string, unknown>) => {
+          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
           // 使用延迟加载的 ImageWithZoom 组件
           const ImageWithZoom = React.lazy(() => import('../../components/ImageWithZoom/ImageWithZoom.js').then(module => ({
             default: module.ImageWithZoom
@@ -248,12 +261,12 @@ export class MarkdownProcessor {
             fallback: React.createElement('img', restProps)
           }, React.createElement(ImageWithZoom, restProps));
         },
-        input: (props: any) => {
-          const { children, dangerouslySetInnerHTML, ...restProps } = props;
+        input: (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
           return React.createElement('input', restProps);
         },
         // 处理标签渲染
-        span: (props: any) => {
+        span: (props: React.HTMLAttributes<HTMLSpanElement> & { children?: React.ReactNode }) => {
           const { children, className, ...restProps } = props;
           // 检查是否是标签
           if (className && className.includes('tag')) {
@@ -268,7 +281,7 @@ export class MarkdownProcessor {
           return React.createElement('span', props);
         },
         // 处理内部链接的点击事件
-        a: (props: any) => {
+        a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { 'data-file-path'?: string }) => {
           const { children, href, className, ...restProps } = props;
           // 检查是否是内部链接
           const isInternalLink = className && className.includes('internal-link');
@@ -389,8 +402,8 @@ export class MarkdownProcessor {
     const { frontMatter, content: markdownContent } = parseFrontMatter(content);
 
     // 用于收集处理过程中的数据
-    const mermaidDiagrams: any[] = [];
-    const trackMaps: any[] = [];
+    const mermaidDiagrams: MermaidData[] = [];
+    const trackMaps: TrackData[] = [];
 
     // 提取元数据
     const metadata = {
@@ -403,26 +416,41 @@ export class MarkdownProcessor {
     const processor = currentFilePath ? this.createProcessor({ ...this.options, currentFilePath }) : this.processor;
 
     // 处理 Markdown - 使用 process() 一次性完成所有处理
+    // 先解析为 markdown AST
+    const markdownAst = processor.parse(markdownContent);
+    this.logImageNodes(markdownAst, 'Markdown AST');
+
+    // 转换为 HTML AST
+    const htmlAst = await processor.run(markdownAst);
+    this.logImageNodes(htmlAst, 'HTML AST');
+
+    // 最终处理为 React
     const file = await processor.process(markdownContent);
 
     const reactContent = file.result as React.ReactElement;
 
     // 从文件数据中提取 mermaid diagrams
-    if (file.data && (file.data as any).mermaidDiagrams) {
-      mermaidDiagrams.push(...(file.data as any).mermaidDiagrams);
+    const fileData = file.data as {
+      mermaidDiagrams?: MermaidData[];
+      trackMaps?: TrackData[];
+      headings?: Array<{ level: number; text: string; id: string }>;
+      links?: Array<{ href: string; text: string }>;
+      tags?: string[];
+    };
+    if (fileData && fileData.mermaidDiagrams) {
+      mermaidDiagrams.push(...fileData.mermaidDiagrams);
     }
 
     // 从文件数据中提取 trackMaps (插件应该在 file.data 中存储这些)
-    if (file.data && (file.data as any).trackMaps) {
-      trackMaps.push(...(file.data as any).trackMaps);
+    if (fileData && fileData.trackMaps) {
+      trackMaps.push(...fileData.trackMaps);
     }
 
     // 从 file.data 中提取 metadata (如果插件正确设置了的话)
-    if (file.data) {
-      const data = file.data as any;
-      if (data.headings) metadata.headings = data.headings;
-      if (data.links) metadata.links = data.links;
-      if (data.tags) metadata.tags = data.tags;
+    if (fileData) {
+      if (fileData.headings) metadata.headings = fileData.headings;
+      if (fileData.links) metadata.links = fileData.links;
+      if (fileData.tags) metadata.tags = fileData.tags;
     }
 
     // 如果 metadata 为空，我们需要从 AST 中提取
@@ -444,8 +472,8 @@ export class MarkdownProcessor {
   /**
    * 从 AST 中提取文档元数据
    */
-  private extractMetadataFromAst(ast: any, metadata: any): void {
-    const visit = (node: any) => {
+  private extractMetadataFromAst(ast: Node, metadata: { headings: Array<{ level: number; text: string; id: string }>; links: Array<{ href: string; text: string }>; tags: string[] }): void {
+    const visit = (node: Node & { type?: string; tagName?: string; properties?: Record<string, unknown>; children?: Node[] }) => {
       // 提取标题
       if (node.type === 'element' && /^h[1-6]$/.test(node.tagName)) {
         const level = parseInt(node.tagName.charAt(1));
@@ -483,23 +511,47 @@ export class MarkdownProcessor {
   /**
    * 从节点中提取纯文本
    */
-  private extractTextFromNode(node: any): string {
+  private extractTextFromNode(node: Node & { type?: string; value?: string; children?: Node[] }): string {
     if (node.type === 'text') {
       return node.value || '';
     }
 
     if (node.children) {
-      return node.children.map((child: any) => this.extractTextFromNode(child)).join('');
+      return node.children.map((child) => this.extractTextFromNode(child as Node & { type?: string; value?: string; children?: Node[] })).join('');
     }
 
     return '';
   }
 
   /**
+   * 调试用：在 AST 中查找并记录 image 节点
+   */
+  private logImageNodes(ast: Node, _stage: string): void {
+    const imageNodes: Array<{type: string; url?: string; alt?: string; data?: unknown}> = [];
+
+    const visit = (node: Node & {type: string; url?: string; alt?: string; data?: unknown; children?: Node[]}) => {
+      if (node.type === 'image') {
+        imageNodes.push({
+          type: node.type,
+          url: node.url,
+          alt: node.alt,
+          data: node.data
+        });
+      }
+
+      if (node.children) {
+        node.children.forEach(visit);
+      }
+    };
+
+    visit(ast);
+  }
+
+  /**
    * 从 AST 中提取 trackMaps 数据
    */
-  private extractTrackMapsFromAst(ast: any, trackMaps: any[]): void {
-    const visit = (node: any) => {
+  private extractTrackMapsFromAst(ast: Node, trackMaps: TrackData[]): void {
+    const visit = (node: Node & { type?: string; tagName?: string; properties?: Record<string, unknown>; children?: Node[] }) => {
       if (node.type === 'element' && node.tagName === 'div') {
         if (node.properties?.className?.includes('track-map-component')) {
           // 从 data-props 属性中提取 trackMap 数据
@@ -508,8 +560,9 @@ export class MarkdownProcessor {
             try {
               const parsedProps = typeof propsData === 'string' ? JSON.parse(propsData) : propsData;
               trackMaps.push(parsedProps);
-            } catch (error) {
-              console.warn('Failed to parse track props:', error);
+            } catch {
+              // console.warn('Failed to parse track props:', error);
+              // 静默处理JSON解析错误
             }
           }
         }

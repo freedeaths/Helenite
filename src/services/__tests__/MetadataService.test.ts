@@ -7,7 +7,7 @@ import 'fake-indexeddb/auto';
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MetadataService, getMetadataService, initializeMetadataService, disposeMetadataService } from '../MetadataService.js';
-import type { MetadataArray, Metadata, FrontMatter } from '../interfaces/IMetadataService.js';
+import type { MetadataArray } from '../interfaces/IMetadataService.js';
 
 // Mock 数据 - 基于 metadata-extractor 插件格式
 const mockMetadata: MetadataArray = [
@@ -55,17 +55,17 @@ describe('MetadataService', () => {
   beforeEach(async () => {
     // 清理全局实例
     disposeMetadataService();
-    
+
     // 彻底清理所有缓存
     const { getCacheManager } = await import('../CacheManager.js');
     const cacheManager = getCacheManager();
-    
+
     // 清理所有缓存（不传 namespace 参数）
     await cacheManager.clearCache();
-    
+
     // Mock fetch
     global.fetch = vi.fn();
-    
+
     // 创建全新的 MetadataService 实例
     metadataService = new MetadataService('Demo');
   });
@@ -73,7 +73,7 @@ describe('MetadataService', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     disposeMetadataService();
-    
+
     // 彻底清理所有缓存
     const { getCacheManager } = await import('../CacheManager.js');
     const cacheManager = getCacheManager();
@@ -108,7 +108,7 @@ describe('MetadataService', () => {
       });
 
       const metadata = await metadataService.getMetadata();
-      
+
       expect(metadata).toEqual(mockMetadata);
       expect(global.fetch).toHaveBeenCalledWith('/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json');
     });
@@ -121,7 +121,7 @@ describe('MetadataService', () => {
       });
 
       const metadata = await metadataService.getMetadata();
-      
+
       expect(metadata).toBeNull();
     });
 
@@ -130,7 +130,7 @@ describe('MetadataService', () => {
       (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
 
       const metadata = await metadataService.getMetadata();
-      
+
       expect(metadata).toBeNull();
     });
 
@@ -167,7 +167,7 @@ describe('MetadataService', () => {
 
     it('should get single file metadata', async () => {
       const fileMetadata = await metadataService.getFileMetadata('Welcome.md');
-      
+
       expect(fileMetadata).toEqual(mockMetadata[0]);
       expect(fileMetadata?.fileName).toBe('Welcome');
       expect(fileMetadata?.tags).toContain('welcome');
@@ -175,7 +175,7 @@ describe('MetadataService', () => {
 
     it('should handle file not found', async () => {
       const fileMetadata = await metadataService.getFileMetadata('NonExistent.md');
-      
+
       expect(fileMetadata).toBeNull();
     });
 
@@ -183,14 +183,14 @@ describe('MetadataService', () => {
       // Test with leading slash
       const fileMetadata1 = await metadataService.getFileMetadata('/Welcome.md');
       const fileMetadata2 = await metadataService.getFileMetadata('Welcome.md');
-      
+
       expect(fileMetadata1).toEqual(fileMetadata2);
       expect(fileMetadata1).toEqual(mockMetadata[0]);
     });
 
     it('should get all files', async () => {
       const allFiles = await metadataService.getAllFiles();
-      
+
       expect(allFiles).toHaveLength(3);
       expect(allFiles.map(f => f.relativePath)).toContain('Welcome.md');
       expect(allFiles.map(f => f.relativePath)).toContain('About.md');
@@ -199,28 +199,28 @@ describe('MetadataService', () => {
 
     it('should search files by name in metadata', async () => {
       const results = await metadataService.searchInMetadata('Welcome');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].relativePath).toBe('Welcome.md');
     });
 
     it('should search files by tag', async () => {
       const results = await metadataService.searchInMetadata('daily');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].relativePath).toBe('Notes/Daily.md');
     });
 
     it('should search files by path', async () => {
       const results = await metadataService.searchInMetadata('Notes');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].relativePath).toBe('Notes/Daily.md');
     });
 
     it('should search case-insensitively', async () => {
       const results = await metadataService.searchInMetadata('WELCOME');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].relativePath).toBe('Welcome.md');
     });
@@ -237,7 +237,7 @@ describe('MetadataService', () => {
 
     it('should get all unique tags', async () => {
       const tags = await metadataService.getAllTags();
-      
+
       expect(tags).toHaveLength(5);
       expect(tags).toContain('welcome');
       expect(tags).toContain('intro');
@@ -249,14 +249,14 @@ describe('MetadataService', () => {
 
     it('should get files by tag', async () => {
       const files = await metadataService.getFilesByTag('welcome');
-      
+
       expect(files).toHaveLength(1);
       expect(files[0].relativePath).toBe('Welcome.md');
     });
 
     it('should handle non-existent tag', async () => {
       const files = await metadataService.getFilesByTag('nonexistent');
-      
+
       expect(files).toHaveLength(0);
     });
   });
@@ -272,7 +272,7 @@ describe('MetadataService', () => {
 
     it('should get file outgoing links', async () => {
       const links = await metadataService.getFileLinks('Welcome.md');
-      
+
       expect(links).toHaveLength(1);
       expect(links[0].link).toBe('About.md');
       expect(links[0].displayText).toBe('About');
@@ -280,7 +280,7 @@ describe('MetadataService', () => {
 
     it('should get file backlinks', async () => {
       const backlinks = await metadataService.getFileBacklinks('About.md');
-      
+
       expect(backlinks).toHaveLength(1);
       expect(backlinks[0].link).toBe('Welcome.md');
       expect(backlinks[0].fileName).toBe('Welcome');
@@ -288,7 +288,7 @@ describe('MetadataService', () => {
 
     it('should get files linking to target', async () => {
       const linkingFiles = await metadataService.getFilesLinkingTo('About.md');
-      
+
       expect(linkingFiles).toHaveLength(1);
       expect(linkingFiles[0].relativePath).toBe('Welcome.md');
     });
@@ -297,9 +297,9 @@ describe('MetadataService', () => {
   describe('Vault Switching', () => {
     it('should switch vault', () => {
       expect(metadataService.getCurrentVault().id).toBe('Demo');
-      
+
       metadataService.switchVault('Publish');
-      
+
       expect(metadataService.getCurrentVault().id).toBe('Publish');
       expect(metadataService.getCurrentVault().path).toBe('/vaults/Publish');
     });
@@ -310,22 +310,22 @@ describe('MetadataService', () => {
         ok: true,
         json: async () => mockMetadata
       });
-      
+
       await metadataService.getMetadata();
       expect(global.fetch).toHaveBeenCalledTimes(1);
-      
+
       // Switch vault
       metadataService.switchVault('Publish');
-      
+
       // Mock new metadata for Publish vault
       const publishMetadata = { ...mockMetadata, timestamp: Date.now() + 1000 };
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         json: async () => publishMetadata
       });
-      
+
       // Should fetch new metadata
-      const newMetadata = await metadataService.getMetadata();
+      const _newMetadata = await metadataService.getMetadata();
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenLastCalledWith('/vaults/Publish/.obsidian/plugins/metadata-extractor/metadata.json');
     });
@@ -335,16 +335,16 @@ describe('MetadataService', () => {
     it('should create and get global instance', () => {
       const service1 = getMetadataService();
       const service2 = getMetadataService();
-      
+
       expect(service1).toBe(service2); // Same instance
       expect(service1.getCurrentVault().id).toBe('Demo');
     });
 
     it('should initialize global instance with vault', () => {
       const service = initializeMetadataService('Publish');
-      
+
       expect(service.getCurrentVault().id).toBe('Publish');
-      
+
       const globalService = getMetadataService();
       expect(globalService).toBe(service);
     });
@@ -352,9 +352,9 @@ describe('MetadataService', () => {
     it('should dispose global instance', () => {
       const service1 = getMetadataService();
       expect(service1).toBeDefined();
-      
+
       disposeMetadataService();
-      
+
       const service2 = getMetadataService();
       expect(service2).not.toBe(service1); // New instance
     });
@@ -370,7 +370,7 @@ describe('MetadataService', () => {
 
       const allFiles = await metadataService.getAllFiles();
       const allTags = await metadataService.getAllTags();
-      
+
       expect(allFiles).toHaveLength(0);
       expect(allTags).toHaveLength(0);
     });

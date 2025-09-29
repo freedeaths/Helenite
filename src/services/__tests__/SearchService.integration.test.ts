@@ -30,7 +30,7 @@ describe('SearchService Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error Setting global.fetch for testing with node-fetch in Node.js environment
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -44,9 +44,8 @@ describe('SearchService Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -62,7 +61,6 @@ describe('SearchService Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -85,7 +83,6 @@ describe('SearchService Integration Tests', () => {
 
     // 只有当我们启动了服务器时才关闭它
     if (viteProcess) {
-      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -113,7 +110,6 @@ describe('SearchService Integration Tests', () => {
     it('应该能够搜索真实文件内容', async () => {
       const results = await searchService.searchContent('Welcome');
 
-      // console.log(`🔍 内容搜索 "Welcome" 找到 ${results.length} 个结果`);
 
       expect(results.length).toBeGreaterThan(0);
 
@@ -124,13 +120,11 @@ describe('SearchService Integration Tests', () => {
       expect(firstResult.matches[0].content).toBeDefined();
       expect(firstResult.matches[0].highlighted).toContain('search-result-file-matched-text');
 
-      // console.log(`📄 第一个结果: ${firstResult.fileName} (${firstResult.matchCount} 匹配)`);
     });
 
     it('应该能够搜索标签', async () => {
       const results = await searchService.searchByTag('#helenite');
 
-      // console.log(`🏷️ 标签搜索 "#helenite" 找到 ${results.length} 个结果`);
 
       expect(results.length).toBeGreaterThan(0);
 
@@ -139,7 +133,6 @@ describe('SearchService Integration Tests', () => {
       expect(firstResult.fileName).toBeDefined();
       expect(firstResult.matches.length).toBeGreaterThan(0);
 
-      // console.log(`📄 标签结果: ${firstResult.fileName}`);
     });
 
     it('应该能够使用统一搜索入口', async () => {
@@ -151,7 +144,6 @@ describe('SearchService Integration Tests', () => {
       const tagResults = await searchService.search('#react');
       expect(tagResults.length).toBeGreaterThanOrEqual(0);
 
-      // console.log(`🔍 统一搜索: 内容搜索 ${contentResults.length} 结果, 标签搜索 ${tagResults.length} 结果`);
     });
 
     it('应该支持搜索选项', async () => {
@@ -165,7 +157,6 @@ describe('SearchService Integration Tests', () => {
         expect(result.matches.length).toBeLessThanOrEqual(1);
       });
 
-      // console.log(`⚙️ 搜索选项测试完成: 限制结果 ${limitedResults.length}, 限制匹配 ${matchLimitedResults.length}`);
     });
   });
 
@@ -184,7 +175,6 @@ describe('SearchService Integration Tests', () => {
       const results = await searchService.searchContent('Welcome');
       expect(results.some(r => r.filePath === testFile)).toBe(true);
 
-      // console.log(`🔗 StorageService 集成验证: 文件大小 ${content.length} 字符`);
     });
 
     it('应该能够与 MetadataService 正确集成', async () => {
@@ -196,7 +186,6 @@ describe('SearchService Integration Tests', () => {
       const results = await searchService.search('test-query-that-might-not-exist');
       expect(Array.isArray(results)).toBe(true);
 
-      // console.log(`🔗 MetadataService 集成验证: ${metadata.length} 个文件`);
     });
 
     it('应该能够获取搜索统计信息', async () => {
@@ -206,7 +195,6 @@ describe('SearchService Integration Tests', () => {
       expect(stats.searchTime).toBeGreaterThan(0);
       expect(Array.isArray(stats.topFolders)).toBe(true);
 
-      // console.log(`📊 搜索统计: ${stats.totalFiles} 文件, ${stats.matchedFiles} 匹配, ${stats.searchTime}ms`);
     });
   });
 
@@ -230,7 +218,6 @@ describe('SearchService Integration Tests', () => {
         expect(result.filePath.startsWith('Features/')).toBe(true);
       });
 
-      // console.log(`🗂️ 路径过滤: ${allResults.length} → ${filteredResults.length} 结果`);
     });
 
     it('应该支持高亮搜索结果', async () => {
@@ -239,7 +226,6 @@ describe('SearchService Integration Tests', () => {
 
       expect(highlighted).toContain('<span class="search-result-file-matched-text">React</span>');
 
-      // console.log('🎨 高亮功能验证通过');
     });
 
     it('应该验证搜索查询', () => {
@@ -247,7 +233,6 @@ describe('SearchService Integration Tests', () => {
       expect(searchService.validateSearchQuery('')).toBe(false);
       expect(searchService.validateSearchQuery('a'.repeat(101))).toBe(false);
 
-      // console.log('✅ 查询验证功能正常');
     });
   });
 
@@ -275,7 +260,6 @@ describe('SearchService Integration Tests', () => {
       // 第二次应该更快（缓存效果）
       expect(time2).toBeLessThan(time1);
 
-      // console.log(`⚡ 缓存性能: 第一次 ${time1}ms, 第二次 ${time2}ms`);
     });
 
     it('应该能够刷新缓存', async () => {
@@ -291,18 +275,16 @@ describe('SearchService Integration Tests', () => {
       const stats = await searchService.getCacheStats();
       expect(typeof stats.searchCacheSize).toBe('number');
 
-      // console.log('🔄 缓存刷新功能正常');
     });
 
     it('应该在合理时间内完成搜索', async () => {
       const startTime = Date.now();
-      const results = await searchService.searchContent('test');
+      const _results = await searchService.searchContent('test');
       const searchTime = Date.now() - startTime;
 
       // 搜索应该在 5 秒内完成
       expect(searchTime).toBeLessThan(5000);
 
-      // console.log(`⏱️ 搜索性能: ${results.length} 结果在 ${searchTime}ms 内完成`);
     });
   });
 
@@ -323,7 +305,6 @@ describe('SearchService Integration Tests', () => {
       // 恢复原始 vault
       searchService.switchVault(originalVault.id);
 
-      // console.log(`🔄 Vault 切换: ${originalVault.id} → TestVault → ${originalVault.id}`);
     });
 
     it('应该返回正确的 vault 信息', () => {
@@ -332,7 +313,6 @@ describe('SearchService Integration Tests', () => {
       expect(vaultInfo.id).toBe('Demo');
       expect(vaultInfo.path).toBe('/vaults/Demo');
 
-      // console.log(`📂 当前 Vault: ${vaultInfo.id} (${vaultInfo.path})`);
     });
   });
 
@@ -346,7 +326,6 @@ describe('SearchService Integration Tests', () => {
 
       expect(results).toEqual([]);
 
-      // console.log('❌ 不存在内容搜索处理正常');
     });
 
     it('应该处理不存在的标签搜索', async () => {
@@ -354,7 +333,6 @@ describe('SearchService Integration Tests', () => {
 
       expect(results).toEqual([]);
 
-      // console.log('🏷️ 不存在标签搜索处理正常');
     });
 
     it('应该处理特殊字符查询', async () => {
@@ -365,7 +343,6 @@ describe('SearchService Integration Tests', () => {
         expect(Array.isArray(results)).toBe(true);
       }
 
-      // console.log('🔤 特殊字符查询处理正常');
     });
 
     it('应该处理空查询', async () => {
@@ -376,7 +353,6 @@ describe('SearchService Integration Tests', () => {
         expect(results).toEqual([]);
       }
 
-      // console.log('⚪ 空查询处理正常');
     });
   });
 
@@ -386,19 +362,15 @@ describe('SearchService Integration Tests', () => {
 
   describe('业务场景集成', () => {
     it('应该支持复杂的搜索工作流', async () => {
-      // console.log('🔍 执行复杂搜索工作流...');
 
       // 1. 全文搜索找到相关文档
       const contentResults = await searchService.searchContent('React');
-      // console.log(`📄 内容搜索: ${contentResults.length} 个文档包含 "React"`);
 
       // 2. 标签搜索找到分类文档
       const tagResults = await searchService.searchByTag('#development');
-      // console.log(`🏷️ 标签搜索: ${tagResults.length} 个文档标记为 "development"`);
 
       // 3. 获取搜索统计
       const stats = await searchService.getSearchStatistics('React');
-      // console.log(`📊 搜索统计: ${stats.matchedFiles}/${stats.totalFiles} 文件匹配`);
 
       // 4. 测试高亮功能
       if (contentResults.length > 0) {
@@ -407,7 +379,6 @@ describe('SearchService Integration Tests', () => {
           'React'
         );
         expect(highlighted).toContain('<span class="search-result-file-matched-text">');
-        // console.log('🎨 高亮功能正常');
       }
 
       // 所有操作都应该成功
@@ -415,28 +386,20 @@ describe('SearchService Integration Tests', () => {
       expect(tagResults).toBeDefined();
       expect(stats).toBeDefined();
 
-      // console.log('✅ 复杂搜索工作流测试完成');
     });
 
     it('应该支持批量搜索操作', async () => {
       const queries = ['React', 'component', 'state', 'props'];
       const allResults = [];
 
-      // console.log('📦 执行批量搜索操作...');
 
       for (const query of queries) {
         const results = await searchService.searchContent(query);
         allResults.push({ query, count: results.length });
       }
 
-      // console.log('📊 批量搜索结果:');
-      allResults.forEach(({ query, count }) => {
-        // console.log(`   "${query}": ${count} 结果`);
-      });
-
       expect(allResults.every(r => typeof r.count === 'number')).toBe(true);
 
-      // console.log('✅ 批量搜索操作完成');
     });
   });
 });

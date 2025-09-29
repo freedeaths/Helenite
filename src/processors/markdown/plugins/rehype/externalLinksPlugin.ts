@@ -6,10 +6,6 @@
 import { visit } from 'unist-util-visit';
 import type { Root as HastRoot, Element as HastElement } from 'hast';
 
-export interface ExternalLinksOptions {
-  // 预留扩展选项
-}
-
 /**
  * 判断链接是否为外部链接
  */
@@ -42,7 +38,7 @@ function isExternalLink(url: string): boolean {
 /**
  * Rehype 插件：为外部链接添加 target="_blank" 和 rel="noopener noreferrer"
  */
-export function externalLinksPlugin(options: ExternalLinksOptions = {}) {
+export function externalLinksPlugin() {
   return function transformer(tree: HastRoot) {
     visit(tree, 'element', (node: HastElement) => {
       if (node.tagName === 'a' && node.properties && node.properties.href) {

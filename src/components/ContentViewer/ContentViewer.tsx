@@ -103,8 +103,8 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
           }
         });
 
-      } catch (err: any) {
-        console.error('NewContentViewer: 加载失败', err);
+      } catch (err: unknown) {
+        // console.error('NewContentViewer: 加载失败', err);
 
         // 检查是否是文件未找到错误
         if (err?.type === 'FILE_NOT_FOUND' || err?.message?.includes('File not found')) {
@@ -118,7 +118,7 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
     };
 
     loadContent();
-  }, [filePath, vaultService]);
+  }, [filePath, vaultService, setCurrentDocument]);
 
   if (!filePath) {
     return (

@@ -34,7 +34,7 @@ interface D3Link extends Omit<GraphEdge, 'from' | 'to'> {
  * 基于 VaultService 数据，使用 D3.js 力导向图可视化
  */
 export function LocalGraph() {
-  const { currentDocument, activeFile, navigateToFile } = useVaultStore();
+  const { activeFile, navigateToFile } = useVaultStore();
   const { vaultService } = useVaultService();
   const svgRef = useRef<SVGSVGElement>(null);
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[], edges: GraphEdge[] } | null>(null);
@@ -68,8 +68,8 @@ export function LocalGraph() {
           // console.log('📊 NewLocalGraph: 转换后的图谱数据:', transformedData);
           setGraphData(transformedData);
 
-        } catch (err) {
-          console.error('❌ NewLocalGraph: 通过 VaultService 获取局部图谱失败:', err);
+        } catch {
+          // console.error('❌ NewLocalGraph: 通过 VaultService 获取局部图谱失败:', err);
           setError('无法获取局部图谱数据');
         } finally {
           setLoading(false);
@@ -154,7 +154,7 @@ export function LocalGraph() {
     const chargeStrength = nodeCount <= 3 ? -1200 : -400;  // 节点少时增加排斥力
 
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(linkDistance).strength(0.6))
+      .force('link', d3.forceLink(links).id((d: D3Node) => d.id).distance(linkDistance).strength(0.6))
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: D3Node) => {
@@ -270,10 +270,10 @@ export function LocalGraph() {
       });
 
       link
-        .attr('x1', (d: any) => d.source.x)
-        .attr('y1', (d: any) => d.source.y)
-        .attr('x2', (d: any) => d.target.x)
-        .attr('y2', (d: any) => d.target.y);
+        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
+        .attr('y1', (d: D3Link) => (d.source as D3Node).y)
+        .attr('x2', (d: D3Link) => (d.target as D3Node).x)
+        .attr('y2', (d: D3Link) => (d.target as D3Node).y);
 
       node
         .attr('transform', (d: D3Node) => `translate(${d.x},${d.y})`);

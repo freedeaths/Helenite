@@ -59,12 +59,12 @@ export function createCachedService<T extends object>(
  * 创建单个方法的缓存代理
  */
 function createCachedMethod(
-  originalMethod: Function,
+  originalMethod: (...args: unknown[]) => Promise<unknown>,
   cache: ICacheService,
   methodName: string,
   config: CacheMethodConfig,
   context: unknown
-): Function {
+): (...args: unknown[]) => Promise<unknown> {
   return async function(...args: unknown[]) {
     // 检查缓存条件
     if (config.condition && !config.condition(...args)) {
@@ -236,12 +236,5 @@ export class CacheDebugger {
 
   disable(): void {
     this.enabled = false;
-  }
-
-  log(namespace: string, method: string, key: string, action: 'hit' | 'miss' | 'set'): void {
-    if (this.enabled) {
-      const timestamp = new Date().toISOString();
-      // console.log(`[Cache ${action.toUpperCase()}] ${timestamp} - ${namespace}.${method} - ${key}`);
-    }
   }
 }

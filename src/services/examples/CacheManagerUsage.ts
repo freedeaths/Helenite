@@ -41,7 +41,6 @@ export class ApplicationServices {
     // 2. 通过 CacheManager 创建缓存代理（零侵入）
     this.cachedStorageService = this.cacheManager.createCachedStorageService(rawStorageService);
 
-    // console.log('✅ StorageService with transparent caching created');
     return this.cachedStorageService;
   }
 
@@ -59,7 +58,6 @@ export class ApplicationServices {
     // 2. 通过 CacheManager 创建缓存代理（零侵入）
     this.cachedMetadataService = this.cacheManager.createCachedMetadataService(rawMetadataService);
 
-    // console.log('✅ MetadataService with transparent caching created');
     return this.cachedMetadataService;
   }
 
@@ -75,7 +73,6 @@ export class ApplicationServices {
    */
   async clearAllCaches() {
     await this.cacheManager.clearCache();
-    // console.log('🧹 All caches cleared');
   }
 
   /**
@@ -83,7 +80,6 @@ export class ApplicationServices {
    */
   async dispose() {
     this.cacheManager.dispose();
-    // console.log('🗑️ ApplicationServices disposed');
   }
 }
 
@@ -91,31 +87,24 @@ export class ApplicationServices {
  * 使用示例 1：基础使用
  */
 export async function basicUsage() {
-  // console.log('🚀 Basic CacheManager Usage Example');
 
   const appServices = new ApplicationServices();
 
   // 创建带缓存的服务
-  const storageService = await appServices.createStorageService({
+  const _storageService = await appServices.createStorageService({
     basePath: '/vaults/Demo'
   });
 
   const metadataService = await appServices.createMetadataService('Demo');
 
   // 使用服务 - 完全透明的缓存
-  console.time('First metadata call');
-  const metadata1 = await metadataService.getMetadata();
-  console.timeEnd('First metadata call');
+  const _metadata1 = await metadataService.getMetadata();
 
-  console.time('Second metadata call (cached)');
-  const metadata2 = await metadataService.getMetadata();
-  console.timeEnd('Second metadata call (cached)');
+  const _metadata2 = await metadataService.getMetadata();
 
-  // console.log(`✅ Both calls returned ${metadata1?.length === metadata2?.length ? 'identical' : 'different'} results`);
 
   // 查看缓存统计
-  const stats = await appServices.getCacheStats();
-  // console.log('📊 Cache stats:', stats);
+  const _stats = await appServices.getCacheStats();
 
   await appServices.dispose();
 }
@@ -124,7 +113,6 @@ export async function basicUsage() {
  * 使用示例 2：多服务透明缓存
  */
 export async function multiServiceCaching() {
-  // console.log('🔄 Multi-Service Transparent Caching Example');
 
   const appServices = new ApplicationServices();
 
@@ -135,27 +123,21 @@ export async function multiServiceCaching() {
   const metadataService = await appServices.createMetadataService('Demo');
 
   // 并发调用 - 都会自动享受缓存
-  const [metadata, fileContent, tags] = await Promise.all([
+  const [_metadata, _fileContent, _tags] = await Promise.all([
     metadataService.getMetadata(),
     storageService.readFile('Welcome.md').catch(() => 'File not found'),
     metadataService.getAllTags()
   ]);
 
-  // console.log(`📄 Loaded ${metadata?.length || 0} files`);
-  // console.log(`📝 File content: ${typeof fileContent === 'string' ? fileContent.slice(0, 50) + '...' : 'Binary'}`);
-  // console.log(`🏷️ Found ${tags.length} tags`);
 
   // 再次调用 - 全部来自缓存
-  console.time('Cached calls');
-  const [cachedMetadata, cachedContent, cachedTags] = await Promise.all([
+  const [_cachedMetadata, _cachedContent, _cachedTags] = await Promise.all([
     metadataService.getMetadata(),
     storageService.readFile('Welcome.md').catch(() => 'File not found'),
     metadataService.getAllTags()
   ]);
-  console.timeEnd('Cached calls');
 
-  const stats = await appServices.getCacheStats();
-  // console.log(`📊 Cache hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+  // const _stats = await appServices.getCacheStats();
 
   await appServices.dispose();
 }
@@ -164,7 +146,6 @@ export async function multiServiceCaching() {
  * 使用示例 3：服务间依赖的透明缓存
  */
 export async function serviceComposition() {
-  // console.log('🔗 Service Composition with Transparent Caching');
 
   const appServices = new ApplicationServices();
 
@@ -193,15 +174,11 @@ export async function serviceComposition() {
 
   const graphService = new GraphService(metadataService);
 
-  console.time('Graph building (with caching)');
-  const graph = await graphService.buildGraph();
-  console.timeEnd('Graph building (with caching)');
+  const _graph = await graphService.buildGraph();
 
-  // console.log('📊 Graph:', graph);
 
   // GraphService 完全不知道 MetadataService 使用了缓存
-  const stats = await appServices.getCacheStats();
-  // console.log(`🎯 Transparent caching: ${stats.cachedServicesCount} services, ${stats.totalEntries} cached entries`);
+  const _stats = await appServices.getCacheStats();
 
   await appServices.dispose();
 }
@@ -210,20 +187,16 @@ export async function serviceComposition() {
  * 完整演示
  */
 export async function fullDemo() {
-  // console.log('🎯 Full CacheManager Demo');
 
   try {
     await basicUsage();
-    // console.log('---');
 
     await multiServiceCaching();
-    // console.log('---');
 
     await serviceComposition();
 
-    // console.log('✅ All demos completed successfully');
-  } catch (error) {
-    console.error('❌ Demo failed:', error);
+  } catch {
+    // TODO: 处理错误
   }
 }
 

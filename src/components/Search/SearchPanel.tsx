@@ -8,7 +8,7 @@ import { useVaultService } from '../../hooks/useVaultService.js';
 export function SearchPanel() {
   const { vaultService } = useVaultService();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Record<string, unknown>[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<'content' | 'tags'>('content');
 
@@ -29,8 +29,8 @@ export function SearchPanel() {
           ]
         }
       ]);
-    } catch (error) {
-      console.error('NewSearchPanel: 搜索失败', error);
+    } catch {
+      // console.error('NewSearchPanel: 搜索失败', error);
     } finally {
       setIsSearching(false);
     }
@@ -102,7 +102,7 @@ export function SearchPanel() {
                 <div className="text-sm font-medium text-[var(--text-normal)] mb-1">
                   📄 {result.file}
                 </div>
-                {result.matches.map((match: any, matchIndex: number) => (
+                {result.matches.map((match: Record<string, unknown>, matchIndex: number) => (
                   <div key={matchIndex} className="text-xs text-[var(--text-muted)]">
                     <span className="mr-2">第 {match.line} 行:</span>
                     <span dangerouslySetInnerHTML={{ __html: match.highlighted }} />

@@ -116,7 +116,6 @@ describe('FileTreeService', () => {
       expect(rootFiles.length).toBeGreaterThan(0); // Welcome.md 在根级
       expect(rootFolders.length).toBeGreaterThan(0); // FolderA, docs 文件夹
 
-      // console.log(`📁 Built file tree with ${tree.length} root items`);
     });
 
     it('should handle empty metadata gracefully', async () => {
@@ -143,7 +142,6 @@ describe('FileTreeService', () => {
       const tree = await fileTreeService.getFileTree(options);
       expect(tree).toBeDefined();
 
-      // console.log(`📁 Applied custom sort to ${tree.length} items`);
     });
 
     it('should exclude empty folders when specified', async () => {
@@ -192,7 +190,6 @@ describe('FileTreeService', () => {
       const children = await fileTreeService.getChildren('/FolderA');
       expect(Array.isArray(children)).toBe(true);
 
-      // console.log(`📁 Folder /FolderA has ${children.length} children`);
     });
   });
 
@@ -204,7 +201,6 @@ describe('FileTreeService', () => {
       expect(files.length).toBeGreaterThan(0);
       expect(files.every(path => path.startsWith('/'))).toBe(true);
 
-      // console.log(`📄 Found ${files.length} files: ${files.join(', ')}`);
     });
 
     it('should get files by folder', async () => {
@@ -216,7 +212,6 @@ describe('FileTreeService', () => {
       const folderFiles = await fileTreeService.getFilesByFolder('/docs');
       expect(Array.isArray(folderFiles)).toBe(true);
 
-      // console.log(`📄 Root files: ${rootFiles.length}, Docs files: ${folderFiles.length}`);
     });
 
     it('should search files by name', async () => {
@@ -226,7 +221,6 @@ describe('FileTreeService', () => {
       expect(results.length).toBeGreaterThan(0);
       expect(results.some(file => file.name.includes('Welcome'))).toBe(true);
 
-      // console.log(`🔍 Search 'Welcome' found ${results.length} results`);
     });
 
     it('should search files by tag', async () => {
@@ -235,7 +229,6 @@ describe('FileTreeService', () => {
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBeGreaterThan(0);
 
-      // console.log(`🔍 Search 'welcome' found ${results.length} results`);
     });
 
     it('should search case-insensitively', async () => {
@@ -253,7 +246,6 @@ describe('FileTreeService', () => {
       expect(Array.isArray(folders)).toBe(true);
       expect(folders.every(path => path.startsWith('/'))).toBe(true);
 
-      // console.log(`📁 Found ${folders.length} folders: ${folders.join(', ')}`);
     });
 
     it('should get root folders', async () => {
@@ -262,7 +254,6 @@ describe('FileTreeService', () => {
       expect(Array.isArray(rootFolders)).toBe(true);
       expect(rootFolders.every(folder => folder.type === 'folder')).toBe(true);
 
-      // console.log(`📁 Found ${rootFolders.length} root folders`);
     });
 
     it('should get folder stats', async () => {
@@ -273,7 +264,6 @@ describe('FileTreeService', () => {
       expect(typeof stats.totalFolders).toBe('number');
       expect(stats.totalFiles).toBeGreaterThan(0);
 
-      // console.log(`📊 Folder stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
     });
 
     it('should get specific folder stats', async () => {
@@ -283,7 +273,6 @@ describe('FileTreeService', () => {
       expect(typeof stats.totalFiles).toBe('number');
       expect(typeof stats.totalFolders).toBe('number');
 
-      // console.log(`📊 FolderA stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
     });
   });
 
@@ -336,7 +325,6 @@ describe('FileTreeService', () => {
       expect(stats.totalFolders).toBeDefined();
       expect(stats.metadataStats).toBeDefined();
 
-      // console.log('📊 Cache stats:', stats);
     });
   });
 

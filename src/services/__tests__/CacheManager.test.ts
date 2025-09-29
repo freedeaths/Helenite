@@ -5,11 +5,8 @@
 // 设置 IndexedDB 模拟
 import 'fake-indexeddb/auto';
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CacheManager, initializeCacheManager, disposeCacheManager } from '../CacheManager.js';
-import { StorageService } from '../infra/StorageService.js';
-import { IStorageService } from '../interfaces/IStorageService.js';
-import type { StorageConfig } from '../types/StorageTypes.js';
 
 // Mock StorageService 用于测试
 class MockStorageService implements IStorageService {

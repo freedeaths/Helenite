@@ -21,9 +21,6 @@ import type { TagData } from '../interfaces/ITagService.js';
 // Mock console methods to avoid test output noise
 const originalConsole = { ...console };
 beforeEach(() => {
-  // console.log = vi.fn();
-  console.warn = vi.fn();
-  console.error = vi.fn();
 });
 
 afterEach(() => {

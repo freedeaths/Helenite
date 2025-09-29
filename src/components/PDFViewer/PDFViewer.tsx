@@ -24,14 +24,12 @@ const isMobileOrTablet = () => {
   return isMobileUA || (isTouchDevice && window.innerWidth < 1024);
 };
 
-export const PDFViewer: React.FC<PDFViewerProps> = ({ url, style }) => {
+export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
   const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1);
   const [isDesktop, setIsDesktop] = useState(!isMobileOrTablet());
   const [containerWidth, setContainerWidth] = useState(window.innerWidth);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const pdfContainerRef = React.useRef<HTMLDivElement>(null);
@@ -167,30 +165,12 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, style }) => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // 桌面端：使用 iframe 以获得更好的体验
-  if (isDesktop) {
-    return (
-      <iframe
-        src={url}
-        style={{
-          width: '100%',
-          height: '800px',
-          border: '1px solid var(--background-modifier-border)',
-          borderRadius: '4px'
-        }}
-        title="PDF Viewer"
-        loading="lazy"
-      />
-    );
-  }
-
-  // 添加 Visual Viewport API 支持来修复横屏高度问题
+  // 添加 Visual Viewport API 支持来修复横屏高度问题（仅移动端）
   useEffect(() => {
+    if (isDesktop) return;
+
     const updateHeight = () => {
       const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-      setViewportHeight(vh);
-
 
       if (containerRef.current) {
         containerRef.current.style.height = isFullscreen ? `${vh}px` : 'auto';
@@ -212,7 +192,24 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url, style }) => {
       window.removeEventListener('resize', updateHeight);
       window.removeEventListener('orientationchange', updateHeight);
     };
-  }, [isFullscreen]);
+  }, [isFullscreen, isDesktop]);
+
+  // 桌面端：使用 iframe 以获得更好的体验
+  if (isDesktop) {
+    return (
+      <iframe
+        src={url}
+        style={{
+          width: '100%',
+          height: '800px',
+          border: '1px solid var(--background-modifier-border)',
+          borderRadius: '4px'
+        }}
+        title="PDF Viewer"
+        loading="lazy"
+      />
+    );
+  }
 
   // 移动端：使用 react-pdf
   return (

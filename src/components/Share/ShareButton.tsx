@@ -20,8 +20,8 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
   const getDecodedUrl = () => {
     try {
       return decodeURIComponent(currentUrl);
-    } catch (error) {
-      console.warn('Failed to decode URL:', error);
+    } catch {
+      // console.warn('Failed to decode URL:', error);
       return currentUrl;
     }
   };
@@ -106,7 +106,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
         });
 
         if (error instanceof Error && error.name !== 'AbortError') {
-          console.warn('Native share failed:', error);
+          // console.warn('Native share failed:', error);
           // 降级到复制链接
           handleCopyLink();
         }

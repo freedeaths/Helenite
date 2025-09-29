@@ -647,6 +647,10 @@
       {
         "link": "Usages",
         "relativePath": "Usages.md"
+      },
+      {
+        "link": "Abilities",
+        "relativePath": "FolderA/SubFolder/Abilities.md"
       }
     ],
     "backlinks": [
@@ -980,6 +984,13 @@
       },
       {
         "link": "Welcome",
+        "relativePath": "Welcome.md"
+      }
+    ],
+    "backlinks": [
+      {
+        "fileName": "Welcome",
+        "link": "Abilities",
         "relativePath": "Welcome.md"
       }
     ]

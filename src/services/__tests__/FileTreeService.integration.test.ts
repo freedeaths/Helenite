@@ -13,7 +13,6 @@ import { FileTreeService } from '../FileTreeService';
 import { MetadataService } from '../MetadataService';
 import { CacheManager } from '../CacheManager';
 import type { IFileTreeService } from '../interfaces/IFileTreeService';
-import type { IMetadataService } from '../interfaces/IMetadataService';
 import fetch from 'node-fetch';
 
 const sleep = promisify(setTimeout);
@@ -28,7 +27,7 @@ describe('FileTreeService Integration Tests', () => {
 
   beforeAll(async () => {
     // 设置全局 fetch 为 node-fetch，确保真实的网络请求
-    // @ts-ignore
+    // @ts-expect-error Setting global.fetch for testing with node-fetch in Node.js environment
     global.fetch = fetch;
 
     // 检查服务器是否已经在运行
@@ -42,9 +41,8 @@ describe('FileTreeService Integration Tests', () => {
     };
 
     if (await isServerRunning()) {
-      // console.log('✅ 检测到开发服务器已运行在', serverUrl);
+      // SKIP
     } else {
-      // console.log('🚀 启动临时开发服务器...');
 
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
@@ -60,7 +58,6 @@ describe('FileTreeService Integration Tests', () => {
       while (attempts < maxAttempts) {
         await sleep(1000);
         if (await isServerRunning()) {
-          // console.log('✅ 开发服务器启动成功');
           break;
         }
         attempts++;
@@ -79,7 +76,6 @@ describe('FileTreeService Integration Tests', () => {
   afterAll(async () => {
     // 如果我们启动了临时服务器，现在关闭它
     if (viteProcess) {
-      // console.log('🔄 关闭临时开发服务器...');
       viteProcess.kill();
       viteProcess = null;
     }
@@ -107,8 +103,6 @@ describe('FileTreeService Integration Tests', () => {
 
       expect(hasFiles || hasFolders).toBe(true);
 
-      // console.log(`📁 Built file tree with ${tree.length} root items`);
-      // console.log(`📄 Files: ${tree.filter(n => n.type === 'file').length}, Folders: ${tree.filter(n => n.type === 'folder').length}`);
     });
 
     it('should find specific files from real data', async () => {
@@ -122,14 +116,12 @@ describe('FileTreeService Integration Tests', () => {
         expect(welcomeNode.name).toBe('Welcome');
         expect(welcomeNode.type).toBe('file');
         expect(welcomeNode.metadata).toBeTruthy();
-        // console.log('✅ Found Welcome.md in real data');
       }
 
       if (abilitiesNode) {
         expect(abilitiesNode.name).toBe('Abilities');
         expect(abilitiesNode.type).toBe('file');
         expect(abilitiesNode.metadata).toBeTruthy();
-        // console.log('✅ Found Abilities.md in real data');
       }
     });
 
@@ -139,7 +131,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(allFolders)).toBe(true);
       expect(allFolders.length).toBeGreaterThanOrEqual(0);
 
-      // console.log(`📁 Found ${allFolders.length} folders in real data: ${allFolders.join(', ')}`);
     });
 
     it('should have correct file structure', async () => {
@@ -153,7 +144,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(filePath.startsWith('/')).toBe(true);
       });
 
-      // console.log(`📄 Found ${allFiles.length} files in real data`);
     });
   });
 
@@ -171,7 +161,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(searchResults.length).toBeGreaterThan(0);
         expect(searchResults.some(result => result.name.includes(firstFileName))).toBe(true);
 
-        // console.log(`🔍 Search '${firstFileName}' found ${searchResults.length} results`);
       }
     });
 
@@ -183,7 +172,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(typeof stats.totalFolders).toBe('number');
       expect(stats.totalFiles).toBeGreaterThan(0);
 
-      // console.log(`📊 Real data stats: ${stats.totalFiles} files, ${stats.totalFolders} folders`);
     });
 
     it('should get files by folder from real data', async () => {
@@ -192,7 +180,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(rootFiles)).toBe(true);
       expect(rootFiles.every(file => file.type === 'file')).toBe(true);
 
-      // console.log(`📄 Found ${rootFiles.length} files in root folder`);
 
       // 如果有子文件夹，测试子文件夹的文件
       const allFolders = await fileTreeService.getAllFolders();
@@ -203,7 +190,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(Array.isArray(folderFiles)).toBe(true);
         expect(folderFiles.every(file => file.type === 'file')).toBe(true);
 
-        // console.log(`📄 Found ${folderFiles.length} files in folder ${firstFolder}`);
       }
     });
 
@@ -215,7 +201,6 @@ describe('FileTreeService Integration Tests', () => {
         const exists = await fileTreeService.pathExists(firstFile);
 
         expect(exists).toBe(true);
-        // console.log(`✅ Confirmed existence of ${firstFile}`);
       }
 
       // 测试不存在的路径
@@ -235,7 +220,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(filteredTree)).toBe(true);
       expect(Array.isArray(unfilteredTree)).toBe(true);
 
-      // console.log(`📁 Filtered tree: ${filteredTree.length} items, Unfiltered: ${unfilteredTree.length} items`);
     });
 
     it('should handle empty folders option with real data', async () => {
@@ -245,7 +229,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(treeWithEmpty)).toBe(true);
       expect(Array.isArray(treeWithoutEmpty)).toBe(true);
 
-      // console.log(`📁 With empty folders: ${treeWithEmpty.length} items, Without: ${treeWithoutEmpty.length} items`);
     });
 
     it('should apply custom sort to real data', async () => {
@@ -259,13 +242,11 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(reverseSortTree)).toBe(true);
       expect(defaultTree.length).toBe(reverseSortTree.length);
 
-      // console.log(`📁 Applied custom sort to ${reverseSortTree.length} items`);
     });
   });
 
   describe('Caching Integration with Real Data', () => {
     it('should demonstrate caching performance with real data', async () => {
-      // console.log('🔄 Testing caching performance with real data...');
 
       const start1 = performance.now();
       const firstCall = await cachedFileTreeService.getFileTree();
@@ -279,15 +260,12 @@ describe('FileTreeService Integration Tests', () => {
       expect(secondCall).toBeTruthy();
       expect(firstCall.length).toBe(secondCall.length);
 
-      // console.log(`First call (network): ${time1.toFixed(3)}ms`);
-      // console.log(`Second call (cached): ${time2.toFixed(3)}ms`);
 
       // 缓存应该显著提高性能（至少快一些）
       expect(time2).toBeLessThanOrEqual(time1);
 
       // 获取缓存统计
-      const stats = await cacheManager.getStatistics();
-      // console.log(`📊 Cache stats: ${stats.totalEntries} entries, hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+      const _stats = await cacheManager.getStatistics();
     });
 
     it('should cache individual file operations', async () => {
@@ -308,8 +286,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(secondFind).toBeTruthy();
         expect(firstFind?.path).toBe(secondFind?.path);
 
-        // console.log(`First find: ${time1.toFixed(3)}ms`);
-        // console.log(`Second find (cached): ${time2.toFixed(3)}ms`);
 
         expect(time2).toBeLessThanOrEqual(time1);
       }
@@ -330,9 +306,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(secondSearch)).toBe(true);
       expect(firstSearch.length).toBe(secondSearch.length);
 
-      // console.log(`First search: ${time1.toFixed(3)}ms`);
-      // console.log(`Second search (cached): ${time2.toFixed(3)}ms`);
-      // console.log(`✅ Search results caching works correctly (${firstSearch.length} results)`);
 
       expect(time2).toBeLessThanOrEqual(time1);
     });
@@ -349,12 +322,11 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(tree)).toBe(true);
       expect(tree.length).toBeGreaterThan(0);
 
-      // console.log(`📁 File tree built with cached MetadataService: ${tree.length} items`);
     });
 
     it('should maintain consistency with MetadataService', async () => {
       const metadata = await metadataService.getMetadata();
-      const tree = await fileTreeService.getFileTree();
+      const _tree = await fileTreeService.getFileTree();
 
       if (metadata && metadata.length > 0) {
         // 文件树中的文件数量应该与 metadata 中的条目数量相关
@@ -363,7 +335,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(treeFiles.length).toBeGreaterThan(0);
         expect(treeFiles.length).toBeLessThanOrEqual(metadata.length);
 
-        // console.log(`📊 Metadata entries: ${metadata.length}, Tree files: ${treeFiles.length}`);
       }
     });
   });
@@ -407,7 +378,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(fileTreeService.isFilePath(folderPath)).toBe(false);
       });
 
-      // console.log(`✅ Path identification: ${allFiles.length} files, ${allFolders.length} folders`);
     });
 
     it('should correctly extract node names and parent paths', async () => {
@@ -428,7 +398,6 @@ describe('FileTreeService Integration Tests', () => {
           expect(parentPath).toBeNull();
         }
 
-        // console.log(`📄 File: ${testFile} -> Name: ${nodeName}, Parent: ${parentPath}`);
       }
     });
   });

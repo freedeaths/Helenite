@@ -68,10 +68,10 @@ export function LeftRibbon() {
   }, [theme, setTheme]);
 
   // 从文件树中收集所有 markdown 文件
-  const collectMarkdownFiles = (fileNodes: any[]): string[] => {
+  const collectMarkdownFiles = (fileNodes: Record<string, unknown>[]): string[] => {
     const mdFiles: string[] = [];
 
-    const traverse = (nodes: any[]) => {
+    const traverse = (nodes: Record<string, unknown>[]) => {
       for (const node of nodes) {
         if (node.type === 'file' && node.path.endsWith('.md')) {
           mdFiles.push(node.path);
@@ -91,7 +91,7 @@ export function LeftRibbon() {
     const allMarkdownFiles = collectMarkdownFiles(fileTree);
 
     if (allMarkdownFiles.length === 0) {
-      console.warn('No markdown files found in vault');
+      // console.warn('No markdown files found in vault');
       return;
     }
 

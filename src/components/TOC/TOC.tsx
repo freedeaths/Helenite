@@ -7,7 +7,7 @@ import { useUIStore } from '../../stores/uiStore.js';
  * 基于 VaultService 的数据访问，但保持和老版本一致的 UI 和交互
  */
 export function TOC() {
-  const { currentDocument, activeFile } = useVaultStore();
+  const { currentDocument } = useVaultStore();
   const [activeHeadingId, setActiveHeadingId] = useState<string>('');
 
   // 复制老版本的完整跳转逻辑
@@ -65,13 +65,13 @@ export function TOC() {
           setTimeout(() => executeScroll(retryCount + 1, true), 100);
           return;
         }
-        console.warn(`🎯 NewTOC: Element with id "${id}" not found after ${retryCount} retries`);
+        // console.warn(`🎯 NewTOC: Element with id "${id}" not found after ${retryCount} retries`);
         return;
       }
 
       const scrollContainer = findScrollContainer(element);
       if (!scrollContainer) {
-        console.warn(`🎯 NewTOC: No scroll container found for element "${id}"`);
+        // console.warn(`🎯 NewTOC: No scroll container found for element "${id}"`);
         return;
       }
 
@@ -98,7 +98,7 @@ export function TOC() {
           const scrollDiff = Math.abs(afterInstantScroll - targetScrollTop);
 
           if (scrollDiff > 5) {
-            console.warn(`🎯 NewTOC: Scroll position mismatch! Expected: ${targetScrollTop}px, Got: ${afterInstantScroll}px`);
+            // console.warn(`🎯 NewTOC: Scroll position mismatch! Expected: ${targetScrollTop}px, Got: ${afterInstantScroll}px`);
 
             if (!isRetry && retryCount === 0) {
               // console.log('🎯 NewTOC: Retrying scroll due to position mismatch...');
@@ -174,11 +174,11 @@ export function TOC() {
       if (!scrollContainer) return;
 
       const headings = currentDocument.metadata.headings
-        .map((heading: any) => ({
+        .map((heading: Record<string, unknown>) => ({
           ...heading,
           element: document.getElementById(heading.id)
         }))
-        .filter((heading: any) => heading.element);
+        .filter((heading: Record<string, unknown>) => heading.element);
 
       let currentHeading = '';
       const scrollOffset = 30;
@@ -232,7 +232,7 @@ export function TOC() {
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="space-y-1 text-sm">
-          {currentDocument.metadata.headings.map((heading: any, index: number) => {
+          {currentDocument.metadata.headings.map((heading: Record<string, unknown>, index: number) => {
           const indent = (heading.level - 1) * 12; // 12px per level for cleaner look
           const isActive = activeHeadingId === heading.id;
 

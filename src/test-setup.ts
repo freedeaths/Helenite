@@ -9,9 +9,9 @@ import 'fake-indexeddb/auto';
 
 // 确保全局环境有 indexedDB
 if (!globalThis.indexedDB) {
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   globalThis.indexedDB = require('fake-indexeddb').default;
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   globalThis.IDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange').default;
 }
 

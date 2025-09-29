@@ -70,7 +70,7 @@ const getInitialTheme = (): 'light' | 'dark' => {
   return 'light';
 };
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>((set) => ({
   // Initial state - 复制老版本默认值
   leftSidebarOpen: true,
   rightSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,

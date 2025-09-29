@@ -18,7 +18,7 @@ import type {
   GraphOptions,
   LocalGraphOptions
 } from './interfaces/IGraphService.js';
-import type { IMetadataService, MetadataArray, Metadata } from './interfaces/IMetadataService.js';
+import type { IMetadataService, MetadataArray } from './interfaces/IMetadataService.js';
 
 // ===============================
 // GraphService 实现
@@ -43,7 +43,6 @@ export class GraphService implements IGraphService {
    */
   async getGlobalGraph(options: GraphOptions = {}): Promise<GraphData> {
     try {
-      // console.log('🔄 Loading global graph data from metadata...');
       const metadata = await this.metadataService.getMetadata();
 
       if (!metadata || metadata.length === 0) {
@@ -51,8 +50,7 @@ export class GraphService implements IGraphService {
       }
 
       return this.buildGraphFromMetadata(metadata, options);
-    } catch (error) {
-      console.error('❌ Failed to build global graph:', error);
+    } catch {
       return { nodes: [], edges: [] };
     }
   }
@@ -70,7 +68,6 @@ export class GraphService implements IGraphService {
     const normalizedPath = this.removeExtension(decodedFilePath);
     const fileName = normalizedPath.split('/').pop() || normalizedPath;
 
-    // console.log('🔍 Looking for center node:', { filePath, decodedFilePath, normalizedPath, fileName });
 
     // Find the center node - try multiple matching strategies
     const centerNode = globalGraph.nodes.find(node =>
@@ -82,11 +79,9 @@ export class GraphService implements IGraphService {
     );
 
     if (!centerNode) {
-      console.warn('❌ Center node not found for:', filePath);
       return { nodes: [], edges: [] };
     }
 
-    // console.log('✅ Found center node:', centerNode);
 
     // Collect connected nodes within specified depth using BFS
     const connectedNodeIds = new Set<string>([centerNode.id]);
@@ -124,7 +119,6 @@ export class GraphService implements IGraphService {
     // Filter nodes and edges
     const localNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
 
-    // console.log(`📊 Local graph: ${localNodes.length} nodes, ${relevantEdges.length} edges`);
     return { nodes: localNodes, edges: relevantEdges };
   }
 
@@ -139,7 +133,6 @@ export class GraphService implements IGraphService {
     // Find the tag node
     const tagNode = globalGraph.nodes.find(node => node.label === tagLabel);
     if (!tagNode) {
-      console.warn('❌ Tag node not found:', tagLabel);
       return { nodes: [], edges: [] };
     }
 
@@ -178,7 +171,6 @@ export class GraphService implements IGraphService {
 
     const filteredNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
 
-    // console.log(`📊 Tag filtered graph: ${filteredNodes.length} nodes, ${relevantEdges.length} edges`);
     return { nodes: filteredNodes, edges: relevantEdges };
   }
 
@@ -439,7 +431,6 @@ export class GraphService implements IGraphService {
   async refreshCache(): Promise<void> {
     // 通过 MetadataService 刷新底层缓存
     await this.metadataService.refreshCache();
-    // console.log('🔄 Graph cache refreshed');
   }
 
   /**
@@ -466,7 +457,6 @@ export class GraphService implements IGraphService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.metadataService.switchVault(vaultId);
-    // console.log(`🔄 GraphService switched to vault: ${vaultId}`);
   }
 
   /**
@@ -492,7 +482,6 @@ export class GraphService implements IGraphService {
     const graphEdges: GraphEdge[] = [];
     let nodeID = 0;
 
-    // console.log(`🔄 Building graph from ${metadata.length} metadata entries...`);
 
     // Step 1: Create file nodes and tag nodes (复刻 PHP 逻辑第一部分)
     for (const node of metadata) {
@@ -641,7 +630,6 @@ export class GraphService implements IGraphService {
       );
     }
 
-    // console.log(`✅ Generated graph with ${filteredNodes.length} nodes and ${filteredEdges.length} edges`);
     return { nodes: filteredNodes, edges: filteredEdges };
   }
 
@@ -715,7 +703,6 @@ export function getGraphService(): GraphService | null {
  */
 export function initializeGraphService(metadataService: IMetadataService, vaultId?: string): GraphService {
   _globalGraphService = new GraphService(metadataService, vaultId);
-  // console.log(`✅ GraphService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalGraphService;
 }
 
@@ -724,5 +711,4 @@ export function initializeGraphService(metadataService: IMetadataService, vaultI
  */
 export function disposeGraphService(): void {
   _globalGraphService = null;
-  // console.log('🗑️ GraphService disposed');
 }

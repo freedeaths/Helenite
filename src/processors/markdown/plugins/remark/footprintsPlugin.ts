@@ -10,13 +10,13 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root as MdastRoot, Code } from 'mdast';
+import type { Root as MdastRoot, Code, Node as MdastNode } from 'mdast';
 import * as YAML from 'yaml';
 
 export interface FootprintsPluginOptions {
   baseUrl?: string;
   currentFilePath?: string;
-  footprintsService?: any; // FootprintsService 实例
+  footprintsService?: unknown; // FootprintsService 实例
 }
 
 /**
@@ -86,8 +86,8 @@ export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
       
       try {
         config = YAML.parse(node.value) || {};
-      } catch (error) {
-        console.warn('Failed to parse footprints config:', error);
+      } catch {
+        // console.warn('Failed to parse footprints config:', error);
         return;
       }
 
@@ -101,7 +101,7 @@ export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
       };
 
       // 替换为自定义 footprints 节点
-      (parent.children as any[])[index] = {
+      (parent.children as MdastNode[])[index] = {
         type: 'footprintsMap',
         data: {
           hName: 'div',
@@ -125,11 +125,11 @@ export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
  */
 async function estimateFootprintsData(
   config: FootprintsConfig, 
-  footprintsService?: any
+  footprintsService?: unknown
 ): Promise<FootprintsData['estimatedData']> {
   let tracksCount = 0;
   let locationsCount = 0;
-  let photosCount = 0;
+  const photosCount = 0;
   let dateRange: { start: Date; end: Date } | undefined;
 
   try {
@@ -144,8 +144,8 @@ async function estimateFootprintsData(
         try {
           const trackFiles = await footprintsService.scanTrackFiles(config.attachmentsPath);
           tracksCount = trackFiles?.length || 0;
-        } catch (error) {
-          console.warn('Failed to scan track files:', error);
+        } catch {
+          // console.warn('Failed to scan track files:', error);
         }
       }
 
@@ -154,8 +154,9 @@ async function estimateFootprintsData(
           // TODO: 扫描照片文件
           // const photoFiles = await footprintsService.scanPhotoFiles(config.attachmentsPath);
           // photosCount = photoFiles?.length || 0;
-        } catch (error) {
-          console.warn('Failed to scan photo files:', error);
+        } catch {
+          // console.warn('Failed to scan photo files:', error);
+          
         }
       }
     }
@@ -167,13 +168,15 @@ async function estimateFootprintsData(
           start: new Date(config.timeFilter.start),
           end: new Date(config.timeFilter.end)
         };
-      } catch (error) {
-        console.warn('Invalid time filter format:', error);
+      } catch {
+        // console.warn('Invalid time filter format:', error);
+        
       }
     }
 
-  } catch (error) {
-    console.warn('Failed to estimate footprints data:', error);
+  } catch {
+    // console.warn('Failed to estimate footprints data:', error);
+    
   }
 
   return {

@@ -36,26 +36,26 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             const container = containerRef.current;
             const containerWidth = Math.max(300, container.clientWidth - 32);
             const containerHeight = Math.max(200, window.innerHeight - 160);
-            
+
             // Maintain aspect ratio while fitting new container size
             const viewBox = svgElement.getAttribute('viewBox');
             if (viewBox) {
               const [, , vbWidth, vbHeight] = viewBox.split(' ').map(Number);
               if (vbWidth > 0 && vbHeight > 0) {
                 const aspectRatio = vbWidth / vbHeight;
-                
+
                 let targetWidth = Math.min(Math.max(vbWidth, 300), containerWidth);
                 let targetHeight = targetWidth / aspectRatio;
-                
+
                 if (targetHeight > containerHeight) {
                   targetHeight = Math.min(containerHeight, Math.max(targetHeight, 200));
                   targetWidth = targetHeight * aspectRatio;
                 }
-                
+
                 // Ensure positive dimensions
                 targetWidth = Math.max(targetWidth, 300);
                 targetHeight = Math.max(targetHeight, 200);
-                
+
                 svgElement.setAttribute('width', targetWidth.toString());
                 svgElement.setAttribute('height', targetHeight.toString());
               }
@@ -130,7 +130,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       );
       setDragStart({ x: distance, y: 0 }); // 复用 dragStart 存储初始距离
@@ -151,7 +151,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       );
       const initialDistance = dragStart.x;
@@ -198,7 +198,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
   useEffect(() => {
     let isMounted = true; // 防止组件卸载后继续执行
-    
+
     const renderMermaid = async () => {
       if (!containerRef.current || !isMounted) {
         return;
@@ -210,20 +210,20 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
         // Determine mermaid theme based on UI theme
         const mermaidTheme = theme === 'dark' ? 'dark' : 'default';
-        
+
         // Check if theme is changing
         const themeChanged = currentTheme !== null && currentTheme !== mermaidTheme;
-        
+
         // 只有首次渲染时显示 loading，主题切换时不显示
         if (currentTheme === null) {
           setIsLoading(true);
         }
-        
+
         // 主题切换时只显示简短的切换状态
         if (themeChanged && !isThemeChanging) {
           setIsThemeChanging(true);
         }
-        
+
         // 只在第一次初始化或主题真正变化时重新初始化
         if (!mermaidInitialized || (currentTheme !== null && currentTheme !== mermaidTheme)) {
           // 避免频繁重新初始化导致闪烁
@@ -231,7 +231,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             // 主题变化时，快速静默切换
             setIsThemeChanging(true);
           }
-          
+
           mermaid.initialize({
             startOnLoad: false,
             theme: 'base',  // 使用 base 主题以便更好地控制样式
@@ -287,17 +287,17 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
         // 渲染新的 SVG 内容到临时 div（双缓冲策略）
         if (!isMounted) return;
         const { svg } = await mermaid.render(diagramId, code);
-        
+
         // Check if component is still mounted before updating DOM
         if (!isMounted || !containerRef.current) {
           return;
         }
-        
+
         // 创建临时容器进行预处理
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = svg;
         const newSvgElement = tempDiv.querySelector('svg');
-        
+
         if (newSvgElement && isMounted) {
           // 如果是主题切换，先隐藏旧内容
           if (themeChanged && containerRef.current.firstChild) {
@@ -310,18 +310,18 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           try {
             // 保持SVG的原始尺寸和viewBox
             const bbox = newSvgElement.getBBox();
-            
+
             if (bbox.width > 0 && bbox.height > 0) {
               // 保持原始viewBox，让SVG自然渲染
               if (!newSvgElement.getAttribute('viewBox')) {
                 newSvgElement.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`);
               }
-              
+
               // 移除固定的width和height，让SVG自适应
               newSvgElement.removeAttribute('width');
               newSvgElement.removeAttribute('height');
             }
-            
+
             // 设置CSS样式让SVG自适应容器
             newSvgElement.style.maxWidth = '100%';
             newSvgElement.style.height = 'auto';
@@ -329,9 +329,9 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             newSvgElement.style.margin = '0';
             newSvgElement.style.cursor = 'grab';
             newSvgElement.style.userSelect = 'none';
-            
-          } catch (e) {
-            console.warn('Could not process SVG, using as-is:', e);
+
+          } catch {
+            // console.warn('Could not process SVG, using as-is:', e);
             // 出错时也保持简单样式
             newSvgElement.style.maxWidth = '100%';
             newSvgElement.style.height = 'auto';
@@ -340,14 +340,14 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             newSvgElement.style.cursor = 'grab';
             newSvgElement.style.userSelect = 'none';
           }
-          
+
           // 平滑替换内容
           if (themeChanged && containerRef.current.firstChild) {
             // 主题切换时先准备新 SVG
             newSvgElement.style.opacity = '0';
             containerRef.current.innerHTML = '';
             containerRef.current.appendChild(newSvgElement);
-            
+
             // 使用 requestAnimationFrame 确保 DOM 更新后再显示
             requestAnimationFrame(() => {
               if (newSvgElement) {
@@ -360,7 +360,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             containerRef.current.innerHTML = '';
             containerRef.current.appendChild(newSvgElement);
           }
-          
+
           // 添加拖拽事件监听
           newSvgElement.addEventListener('mousedown', (e) => {
             if (e.button === 0) {
@@ -370,15 +370,15 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               newSvgElement.style.cursor = 'grabbing';
             }
           });
-          
+
           // 添加触摸事件监听
           newSvgElement.addEventListener('touchstart', handleTouchStart, { passive: false });
-          
+
           // 保存SVG引用并应用当前变换
           svgRef.current = newSvgElement;
           updateSVGTransform();
         }
-        
+
         // 延迟清除主题变化状态，确保动画完成
         if (isThemeChanging) {
           setTimeout(() => {
@@ -388,11 +388,10 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           }, themeChanged ? 200 : 0); // 主题切换时延迟200ms
         }
       } catch (err) {
-        console.error('Mermaid rendering error:', err);
         if (!isMounted) return;
-        
+
         setError(err instanceof Error ? err.message : 'Failed to render diagram');
-        
+
         if (containerRef.current) {
           containerRef.current.innerHTML = `
             <div style="
@@ -434,17 +433,17 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
     // Add a small delay to prevent race conditions
     const timeoutId = setTimeout(renderMermaid, 50);
-    
+
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [code, diagramId, theme, isThemeChanging]);
+  }, [code, diagramId, theme, isThemeChanging, handleTouchStart, position.x, position.y, updateSVGTransform]);
 
   return (
-    <div 
+    <div
       className={`mermaid-container ${className}`}
-      style={{ 
+      style={{
         position: 'relative',
         margin: '1rem auto',
         width: isExpanded ? '100%' : '80%',
@@ -503,8 +502,8 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           🎨
         </div>
       )}
-      <div 
-        ref={containerRef} 
+      <div
+        ref={containerRef}
         style={{
           position: 'relative',
           width: '100%',
@@ -521,7 +520,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           transition: isThemeChanging ? 'none' : 'background-color 0.2s ease, border-color 0.2s ease'
         }}
       />
-      
+
       {/* 浮动工具栏 */}
       {!isLoading && !error && (
         <div style={{
@@ -547,11 +546,11 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
               borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
-              background: zoomLevel <= 0.5 
-                ? (theme === 'dark' ? '#333' : '#f0f0f0') 
+              background: zoomLevel <= 0.5
+                ? (theme === 'dark' ? '#333' : '#f0f0f0')
                 : (theme === 'dark' ? '#404040' : '#ffffff'),
-              color: zoomLevel <= 0.5 
-                ? (theme === 'dark' ? '#666' : '#ccc') 
+              color: zoomLevel <= 0.5
+                ? (theme === 'dark' ? '#666' : '#ccc')
                 : (theme === 'dark' ? '#e0e0e0' : '#333'),
               cursor: zoomLevel <= 0.5 ? 'not-allowed' : 'pointer',
               fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
@@ -565,7 +564,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           >
             −
           </button>
-          
+
           <div style={{
             minWidth: window.innerWidth <= 768 ? '32px' : '42px', // 移动端更小
             textAlign: 'center',
@@ -576,7 +575,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           }}>
             {Math.round(zoomLevel * 100)}%
           </div>
-          
+
           <button
             onClick={handleZoomIn}
             disabled={zoomLevel >= 3}
@@ -585,11 +584,11 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
               borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
-              background: zoomLevel >= 3 
-                ? (theme === 'dark' ? '#333' : '#f0f0f0') 
+              background: zoomLevel >= 3
+                ? (theme === 'dark' ? '#333' : '#f0f0f0')
                 : (theme === 'dark' ? '#404040' : '#ffffff'),
-              color: zoomLevel >= 3 
-                ? (theme === 'dark' ? '#666' : '#ccc') 
+              color: zoomLevel >= 3
+                ? (theme === 'dark' ? '#666' : '#ccc')
                 : (theme === 'dark' ? '#e0e0e0' : '#333'),
               cursor: zoomLevel >= 3 ? 'not-allowed' : 'pointer',
               fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
@@ -603,14 +602,14 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           >
             +
           </button>
-          
+
           <div style={{
             width: '1px',
             height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
             backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
             margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
           }} />
-          
+
           <button
             onClick={handleResetZoom}
             style={{
@@ -639,7 +638,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
             margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
           }} />
-          
+
           <button
             onClick={toggleExpanded}
             style={{
@@ -663,7 +662,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           </button>
         </div>
       )}
-      
+
       {/* 拖拽提示 */}
       {!isLoading && !error && zoomLevel > 1 && (
         <div style={{

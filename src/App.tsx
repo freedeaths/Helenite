@@ -13,7 +13,7 @@ const DevToolsPanel = import.meta.env.DEV
 
 function App() {
   // 初始化 VaultService 集成
-  const { isReady, loading, error, config } = useVaultService();
+  const { loading, error } = useVaultService();
 
   // 初始化新的路由系统
   useHashRouter();

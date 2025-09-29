@@ -3,7 +3,7 @@
  * 用于在测试页面显示轨迹数据处理结果
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useVaultService } from '../../hooks/useVaultService.js';
 
 interface TestTrackMapProps {
@@ -18,8 +18,8 @@ interface TestTrackMapProps {
     format: string;
     filePath: string;
   }>;
-  config?: any;
-  [key: string]: any;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export const TestTrackMap: React.FC<TestTrackMapProps> = ({

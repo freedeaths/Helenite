@@ -65,10 +65,19 @@ export interface RouteState {
   anchor?: string;
 }
 
+interface DocumentMetadata {
+  title?: string;
+  tags?: string[];
+  aliases?: string[];
+  created?: string;
+  modified?: string;
+  frontmatter?: Record<string, unknown>;
+}
+
 // VaultService 状态容器
 export interface VaultState {
   // 服务实例
-  vaultService: any; // 将在实现时指定具体类型
+  vaultService: unknown; // 抽象服务实例，避免循环依赖
 
   // 基础数据
   vaultInfo: VaultInfo | null;
@@ -79,7 +88,7 @@ export interface VaultState {
   currentDocument: {
     path: string;
     content: string;
-    metadata: any;
+    metadata: DocumentMetadata;
   } | null;
 
   // 搜索结果

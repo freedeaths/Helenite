@@ -160,7 +160,7 @@ export class StorageService implements IStorageService {
     }
   }
 
-  async listFiles(dirPath: string, recursive = false): Promise<string[]> {
+  async listFiles(): Promise<string[]> {
     if (this._storageType !== StorageType.LOCAL_STATIC) {
       throw new StorageError('Directory listing only supported for local static storage', StorageErrorType.PERMISSION_DENIED);
     }
@@ -207,6 +207,7 @@ export class StorageService implements IStorageService {
     if (!path || path.length === 0) return false;
 
     // 检查危险字符
+    // eslint-disable-next-line no-control-regex
     const dangerousChars = /[<>:"|?*\x00-\x1f]/;
     if (dangerousChars.test(path)) return false;
 
@@ -282,8 +283,7 @@ export class StorageService implements IStorageService {
 
   async preloadFiles(paths: string[]): Promise<void> {
     const promises = paths.map(path =>
-      this.readFile(path).catch(error => {
-        console.warn(`Failed to preload file ${path}:`, error);
+      this.readFile(path).catch(() => {
       })
     );
 
@@ -341,7 +341,6 @@ export class StorageService implements IStorageService {
 
   private async _readRemoteFile(path: string, options: ReadOptions): Promise<FileContent> {
     const url = this.resolvePath(path);
-    // console.log('🔍 StorageService._readRemoteFile: Fetching URL:', url, 'from path:', path, 'basePath:', this._config.basePath);
 
     // Force bypass cache for debugging
     const response = await fetch(url, {

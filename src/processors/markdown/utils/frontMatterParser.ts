@@ -4,7 +4,7 @@
  */
 
 export interface FrontMatterData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ParsedContent {
@@ -38,8 +38,8 @@ export function parseFrontMatter(rawContent: string): ParsedContent {
       frontMatter,
       content: markdownContent
     };
-  } catch (error) {
-    console.warn('Front Matter 解析失败:', error);
+  } catch {
+    // console.warn('Front Matter 解析失败:', error);
     return {
       frontMatter: {},
       content: rawContent
@@ -55,7 +55,7 @@ function parseSimpleYaml(yamlContent: string): FrontMatterData {
   const lines = yamlContent.split('\n');
 
   let currentKey: string | null = null;
-  let currentArray: any[] = [];
+  let currentArray: unknown[] = [];
   let isInArray = false;
 
   for (const line of lines) {
@@ -107,7 +107,7 @@ function parseSimpleYaml(yamlContent: string): FrontMatterData {
 /**
  * 解析 YAML 值的类型
  */
-function parseValue(value: string): any {
+function parseValue(value: string): unknown {
   // 移除引号
   if ((value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))) {

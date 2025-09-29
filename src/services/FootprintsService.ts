@@ -434,14 +434,10 @@ class YamapGPXParser extends BaseGPXParser {
       throw new Error(`GPX parser returned null or undefined. Last error: ${(parseError as Error)?.message || 'Unknown error'}`);
     }
 
-    // console.log('🔍 YamapGPXParser - GPX Object keys:', Object.keys(gpxObject));
-    // console.log('🔍 YamapGPXParser - GPX Object structure:', JSON.stringify(gpxObject, null, 2).substring(0, 1000));
 
     const trackPoints = this.parseGPXContent(gpxObject);
     const waypoints = this.parseWaypoints(gpxObject);
 
-    // console.log('🔍 YamapGPXParser - Parsed track points:', trackPoints.length);
-    // console.log('🔍 YamapGPXParser - Parsed waypoints:', waypoints.length);
 
     return {
       name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
@@ -724,7 +720,7 @@ class TwobuluKMLParser extends BaseKMLParser {
 
 // 通用 KML 解析器
 class GenericKMLParser extends BaseKMLParser {
-  getProviderInfo(content: string): { provider: string; confidence: number } {
+  getProviderInfo(): { provider: string; confidence: number } {
     return { provider: 'unknown', confidence: 0.1 }; // 低置信度兜底
   }
 
@@ -871,7 +867,7 @@ class GenericKMLParser extends BaseKMLParser {
 
 // 通用 GPX 解析器
 class GenericGPXParser extends BaseGPXParser {
-  getProviderInfo(content: string): { provider: string; confidence: number } {
+  getProviderInfo(_content: string): { provider: string; confidence: number } {
     return { provider: 'unknown', confidence: 0.1 }; // 低置信度兜底
   }
 
@@ -971,8 +967,8 @@ class TrackDataParserFactory {
     }
 
     // 检查是否是 KML 文件
-    const isKML = content.includes('<kml');
-    const isGPX = content.includes('<gpx');
+    const _isKML = content.includes('<kml');
+    const _isGPX = content.includes('<gpx');
 
     // 找到最匹配的解析器
     let bestParser: TrackDataParser | null = null;
@@ -980,7 +976,7 @@ class TrackDataParserFactory {
 
     for (const parser of this.parsers) {
       if (parser.canParse(content)) {
-        const { provider, confidence } = parser.getProviderInfo(content);
+        const { provider: _provider, confidence } = parser.getProviderInfo(content);
         if (confidence > bestConfidence) {
           bestParser = parser;
           bestConfidence = confidence;
@@ -1148,7 +1144,7 @@ export class FootprintsService implements IFootprintsService {
   async aggregateFootprints(config: FootprintsConfig): Promise<FootprintsData> {
     const startTime = Date.now();
     let tracks: TrackData[] = [];
-    let locations: LocationData[] = [];
+    const locations: LocationData[] = [];
     const errors: Array<{ filePath: string; error: string }> = [];
 
     // 处理轨迹文件
@@ -1221,7 +1217,7 @@ export class FootprintsService implements IFootprintsService {
     try {
       const content = await this.fetchFileContent(filePath);
       return this.parserFactory.detectProvider(content);
-    } catch (error) {
+    } catch {
       return { provider: 'unknown', confidence: 0 };
     }
   }
@@ -1230,7 +1226,7 @@ export class FootprintsService implements IFootprintsService {
     try {
       const content = await this.fetchFileContent(filePath);
       return this.parserFactory.canParse(content);
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -1239,17 +1235,17 @@ export class FootprintsService implements IFootprintsService {
   // 地理位置数据处理（暂时返回空实现）
   // ===============================
 
-  async processUserInputs(userInputs: string[]): Promise<LocationData[]> {
+  async processUserInputs(_userInputs: string[]): Promise<LocationData[]> {
     // TODO: 实现用户输入位置处理
     return [];
   }
 
-  async processPhotoExif(photosPath: string): Promise<LocationData[]> {
+  async processPhotoExif(_photosPath: string): Promise<LocationData[]> {
     // TODO: 实现照片 EXIF 处理
     return [];
   }
 
-  async geocodeLocation(locationName: string): Promise<{
+  async geocodeLocation(_locationName: string): Promise<{
     coordinates: [number, number];
     type: 'country' | 'state' | 'city';
     displayName: string;
@@ -1308,7 +1304,7 @@ export class FootprintsService implements IFootprintsService {
     };
   }
 
-  getTrackStatistics(track: TrackData): {
+  getTrackStatistics(_track: TrackData): {
     totalDistance: number;
     totalTime: number;
     averageSpeed: number;
@@ -1346,7 +1342,7 @@ export class FootprintsService implements IFootprintsService {
   // Vault 管理
   // ===============================
 
-  switchVault(vaultId: string): void {
+  switchVault(_vaultId: string): void {
     // TODO: 实现 vault 切换
   }
 
@@ -1360,25 +1356,21 @@ export class FootprintsService implements IFootprintsService {
   // ===============================
 
   private async fetchFileContent(filePath: string): Promise<string> {
-    try {
-      // 检查 storageService 是否正确初始化
-      if (!this.storageService || typeof this.storageService.readFile !== 'function') {
-        throw new Error('StorageService not properly initialized');
-      }
-
-      // 使用 StorageService 读取文件，它会处理路径配置
-      const content = await this.storageService.readFile(filePath);
-
-      // StorageService 可能返回 string 或 Uint8Array
-      if (content instanceof Uint8Array) {
-        const decoded = new TextDecoder('utf-8').decode(content);
-        return decoded;
-      }
-
-      return content as string;
-    } catch (error) {
-      throw error;
+    // 检查 storageService 是否正确初始化
+    if (!this.storageService || typeof this.storageService.readFile !== 'function') {
+      throw new Error('StorageService not properly initialized');
     }
+
+    // 使用 StorageService 读取文件，它会处理路径配置
+    const content = await this.storageService.readFile(filePath);
+
+    // StorageService 可能返回 string 或 Uint8Array
+    if (content instanceof Uint8Array) {
+      const decoded = new TextDecoder('utf-8').decode(content);
+      return decoded;
+    }
+
+    return content as string;
   }
 
   private transformToTrackData(unifiedTrack: UnifiedTrackData, filePath: string): TrackData {

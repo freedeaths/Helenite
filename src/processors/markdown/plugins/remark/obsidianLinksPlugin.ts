@@ -4,14 +4,20 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root, Text, Link, Image } from 'mdast';
+import type { Root, Text, Link, Image, Node, Parent } from 'mdast';
 import { parseObsidianLink } from '../../utils/obsidianLinkUtils.js';
 import { VAULT_PATH } from '../../../../config/vaultConfig.js';
 
 export interface ObsidianLinksPluginOptions {
   baseUrl?: string;
   currentFilePath?: string;
-  metadata?: any[]; // Array of file metadata for path resolution
+  metadata?: unknown[]; // Array of file metadata for path resolution
+}
+
+interface ParsedLink {
+  type: 'file' | 'image' | 'embed';
+  filePath: string;
+  displayText?: string;
 }
 
 /**
@@ -25,8 +31,8 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       if (!parent || typeof index !== 'number') return;
 
       const children = node.children;
-      const newNodes: any[] = [];
-      let currentParagraphChildren: any[] = [];
+      const newNodes: Node[] = [];
+      let currentParagraphChildren: Node[] = [];
 
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
@@ -123,8 +129,26 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
         });
       }
 
-      // 如果生成了多个节点，替换原段落
-      if (newNodes.length > 1 || (newNodes.length === 1 && newNodes[0].type !== 'paragraph')) {
+      // 检查是否需要替换段落
+      let shouldReplace = false;
+      let _reason = '';
+
+      if (newNodes.length > 1) {
+        shouldReplace = true;
+        _reason = 'multiple nodes';
+      } else if (newNodes.length === 1 && newNodes[0].type !== 'paragraph') {
+        shouldReplace = true;
+        _reason = 'non-paragraph node';
+      } else if (newNodes.length === 1 && newNodes[0].type === 'paragraph') {
+        // 检查段落是否包含图片节点，如果包含则需要替换以正确渲染
+        const hasImages = hasImageNodes(newNodes[0]);
+        if (hasImages) {
+          shouldReplace = true;
+          _reason = 'paragraph contains images';
+        }
+      }
+
+      if (shouldReplace) {
         parent.children.splice(index, 1, ...newNodes);
         return index + newNodes.length; // 跳过新插入的节点
       }
@@ -133,16 +157,16 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
     // 第二遍：处理其他链接（保持原有逻辑）
     const replacements: Array<{
       node: Text;
-      parent: any;
+      parent: Parent;
       index: number;
-      newNodes: any[];
+      newNodes: Node[];
     }> = [];
 
     visit(tree, 'text', (node: Text, index, parent) => {
       if (!parent || index === undefined) return;
 
       // 跳过段落中的文本节点，因为已经在第一遍处理过了
-      if (parent.type === 'paragraph') return;
+      // if (parent.type === 'paragraph') return; // 注释掉：允许处理段落中的内联链接如 [[Welcome]], [[Usages]]
 
       const text = node.value;
       const linkRegex = /(!?\[\[[^\]]+\]\])/g;
@@ -151,7 +175,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       if (matches.length === 0) return;
 
       // 处理非段落中的链接（标题、列表项等）
-      const newNodes: any[] = [];
+      const newNodes: Node[] = [];
       let lastIndex = 0;
 
       matches.forEach(match => {
@@ -216,9 +240,22 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 }
 
 /**
+ * 检查节点是否包含图片
+ */
+function hasImageNodes(node: Node & {type: string; children?: Node[]}): boolean {
+  if (node.type === 'image') {
+    return true;
+  }
+  if (node.children) {
+    return node.children.some((child: Node & {type: string; children?: Node[]}) => hasImageNodes(child));
+  }
+  return false;
+}
+
+/**
  * 根据解析结果创建对应的 AST 节点
  */
-function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
+function createLinkNode(parsedLink: ParsedLink, options: ObsidianLinksPluginOptions) {
   const { baseUrl = VAULT_PATH, currentFilePath, metadata } = options;
 
   // 智能路径解析：优先使用 metadata.json，降级到直接构造路径
@@ -243,7 +280,7 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
       }
       // PDF 文件
       else if (fileExt === 'pdf') {
-        result = createPdfEmbed(parsedLink, resolvedPath, baseUrl);
+        result = createPdfEmbed(resolvedPath, baseUrl);
       }
       // 视频文件
       else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt || '')) {
@@ -274,7 +311,7 @@ function createLinkNode(parsedLink: any, options: ObsidianLinksPluginOptions) {
  * 智能的路径构造函数
  * 优先使用 metadata.json 查找文件，降级到直接路径构造，支持相对路径解析
  */
-function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: any[]): string {
+function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: unknown[]): string {
   let filePath = linkPath.trim();
 
   // 第一步：尝试使用 metadata.json 查找文件
@@ -347,7 +384,7 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
 /**
  * 创建文件链接节点
  */
-function createFileLink(parsedLink: any, resolvedPath: string): Link {
+function createFileLink(parsedLink: ParsedLink, resolvedPath: string): Link {
   const displayText = parsedLink.displayText ||
     parsedLink.filePath.split('/').pop()?.replace(/\.md$/, '') ||
     parsedLink.filePath;
@@ -375,7 +412,7 @@ function createFileLink(parsedLink: any, resolvedPath: string): Link {
 /**
  * 创建图片嵌入节点
  */
-function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string): Image {
+function createImageEmbed(parsedLink: ParsedLink, resolvedPath: string, _baseUrl: string): Image {
   // 处理图片路径
   let imagePath = resolvedPath;
 
@@ -407,7 +444,7 @@ function createImageEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 /**
  * 创建轨迹文件嵌入节点
  */
-function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+function createTrackEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl: string) {
   // 对于轨迹文件，确保路径正确
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
 
@@ -427,7 +464,7 @@ function createTrackEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 /**
  * 创建 PDF 嵌入节点
  */
-function createPdfEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+function createPdfEmbed(resolvedPath: string, baseUrl: string) {
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
   const fullPdfUrl = normalizedPath.startsWith('http')
     ? normalizedPath
@@ -450,7 +487,7 @@ function createPdfEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) 
 /**
  * 创建视频嵌入节点
  */
-function createVideoEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+function createVideoEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl: string) {
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
   const fullVideoUrl = normalizedPath.startsWith('http')
     ? normalizedPath
@@ -476,7 +513,7 @@ function createVideoEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 /**
  * 创建音频嵌入节点
  */
-function createAudioEmbed(parsedLink: any, resolvedPath: string, baseUrl: string) {
+function createAudioEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl: string) {
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
   const fullAudioUrl = normalizedPath.startsWith('http')
     ? normalizedPath
@@ -502,7 +539,7 @@ function createAudioEmbed(parsedLink: any, resolvedPath: string, baseUrl: string
 /**
  * 创建通用嵌入节点
  */
-function createGenericEmbed(parsedLink: any, _resolvedPath: string) {
+function createGenericEmbed(parsedLink: ParsedLink, _resolvedPath: string) {
   return {
     type: 'text',
     value: `![[${parsedLink.filePath}]]`

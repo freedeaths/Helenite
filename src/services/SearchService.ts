@@ -103,8 +103,7 @@ export class SearchService {
       // 缓存结果
       this.searchCache.set(cacheKey, results);
       return results;
-    } catch (error) {
-      console.error(`❌ Search failed for query "${query}":`, error);
+    } catch {
       return [];
     }
   }
@@ -115,7 +114,7 @@ export class SearchService {
    */
   async searchContent(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
-      const startTime = Date.now();
+      const _startTime = Date.now();
 
       // 检查缓存
       const cacheKey = this.getCacheKey('content', query, options);
@@ -157,8 +156,8 @@ export class SearchService {
               matchCount: matches.length
             });
           }
-        } catch (error) {
-          console.warn(`Error searching file ${fileInfo.relativePath}:`, error);
+        } catch {
+          // 忽略单个文件搜索失败，继续处理其他文件
         }
       }
 
@@ -171,12 +170,8 @@ export class SearchService {
       // 缓存结果
       this.searchCache.set(cacheKey, sortedResults);
 
-      const searchTime = Date.now() - startTime;
-      // console.log(`🔍 Content search completed: "${query}" found ${sortedResults.length} results in ${searchTime}ms`);
-
       return sortedResults;
-    } catch (error) {
-      console.error(`❌ Content search failed for query "${query}":`, error);
+    } catch {
       return [];
     }
   }
@@ -187,7 +182,7 @@ export class SearchService {
    */
   async searchByTag(tag: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
-      const startTime = Date.now();
+      const _startTime = Date.now();
 
       // 检查缓存
       const cacheKey = this.getCacheKey('tag', tag, options);
@@ -246,8 +241,8 @@ export class SearchService {
               matchCount: matches.length
             });
           }
-        } catch (error) {
-          console.warn(`Error searching tags in file ${fileInfo.relativePath}:`, error);
+        } catch {
+          // 忽略单个文件搜索失败，继续处理其他文件
         }
       }
 
@@ -258,12 +253,8 @@ export class SearchService {
       // 缓存结果
       this.searchCache.set(cacheKey, limitedResults);
 
-      const searchTime = Date.now() - startTime;
-      // console.log(`🏷️ Tag search completed: "${tagName}" found ${limitedResults.length} results in ${searchTime}ms`);
-
       return limitedResults;
-    } catch (error) {
-      console.error(`❌ Tag search failed for tag "${tag}":`, error);
+    } catch {
       return [];
     }
   }
@@ -302,8 +293,7 @@ export class SearchService {
         searchTime,
         topFolders
       };
-    } catch (error) {
-      console.error('❌ Failed to calculate search statistics:', error);
+    } catch {
       return {
         totalFiles: 0,
         matchedFiles: 0,
@@ -408,8 +398,7 @@ export class SearchService {
       const content = await this.storageService.readFile(filePath);
       this.contentCache.set(filePath, content);
       return content;
-    } catch (error) {
-      console.warn(`Failed to read file content: ${filePath}`, error);
+    } catch {
       return '';
     }
   }
@@ -440,8 +429,7 @@ export class SearchService {
       }
 
       return matches;
-    } catch (error) {
-      console.error('Search execution failed:', error);
+    } catch {
       return [];
     }
   }

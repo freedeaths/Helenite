@@ -79,7 +79,7 @@ export function obsidianHighlightsPlugin(options: ObsidianHighlightsOptions = {}
           }
         });
 
-        (parent.children as any[]).splice(index, 1, ...newNodes);
+        (parent.children as MdastNode[]).splice(index, 1, ...newNodes);
       }
     });
   };

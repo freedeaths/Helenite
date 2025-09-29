@@ -1,12 +1,11 @@
 /**
  * IVaultService - Vault 统一协调器接口
- * 
+ *
  * 作为整个 Vault 系统的统一入口，协调所有底层服务
  * 提供高层次的业务接口，隐藏底层服务的复杂性
  */
 
 import type { FileTree } from './IFileTreeService.js';
-import type { SearchResult } from './ISearchAPI.js';
 import type { GraphNode, GraphEdge } from './IGraphService.js';
 import type { TagData } from './ITagService.js';
 import type { FootprintsData } from './IFootprintsService.js';

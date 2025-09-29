@@ -28,54 +28,13 @@ describe('ExifService Real Data Tests', () => {
       const result = await exifService.parseExif('Attachments/inversed mt fuji.png');
 
       // Assert - 检查结果结构
-      // console.log('🔍 Real EXIF data for inversed mt fuji.png:', JSON.stringify(result, null, 2));
 
       expect(result).not.toBeNull();
-
-      // 根据实际结果调整期望值
-      if (result!.hasExif) {
-        // console.log('✅ Image has EXIF data');
-
-        if (result!.gps) {
-          // console.log('📍 GPS coordinates found:', result!.gps);
-        } else {
-          // console.log('📍 No GPS coordinates found');
-        }
-
-        if (result!.camera) {
-          // console.log('📷 Camera info found:', result!.camera);
-        } else {
-          // console.log('📷 No camera info found');
-        }
-
-        if (result!.shooting) {
-          // console.log('⚙️ Shooting params found:', result!.shooting);
-        } else {
-          // console.log('⚙️ No shooting params found');
-        }
-
-      } else {
-        // console.log('❌ Image has no EXIF data');
-      }
     });
 
     it('应该扫描 Attachments 目录中的真实图片', async () => {
       // Act - 扫描真实目录
       const results = await exifService.scanDirectoryForExif('Attachments');
-
-      // Assert
-      // console.log(`📁 Found ${results.length} images in Attachments directory`);
-
-      results.forEach((result, index) => {
-        // console.log(`\n📸 Image ${index + 1}: ${result.filePath}`);
-        // console.log(`   Has EXIF: ${result.hasExif}`);
-        if (result.gps) {
-          // console.log(`   GPS: ${result.gps.latitude}, ${result.gps.longitude}`);
-        }
-        if (result.camera) {
-          // console.log(`   Camera: ${result.camera.make} ${result.camera.model}`);
-        }
-      });
 
       // Note: HTTP StorageService 不支持目录列举，所以返回空数组是正常的
       // 这个测试验证了 scanDirectoryForExif 在无法列举目录时的降级行为
@@ -87,12 +46,10 @@ describe('ExifService Real Data Tests', () => {
       const stats = await exifService.getExifStatistics();
 
       // Assert
-      // console.log('📊 Real EXIF statistics:', JSON.stringify(stats, null, 2));
 
       expect(stats.totalImages).toBeGreaterThanOrEqual(0);
       if (stats.imagesWithGps > 0) {
         expect(stats.gpsBounds).toBeDefined();
-        // console.log('🗺️ GPS bounds found:', stats.gpsBounds);
       }
     });
   });

@@ -139,7 +139,6 @@ describe('GraphService', () => {
       expect(linkEdges.length).toBeGreaterThan(0);
       expect(tagEdges.length).toBeGreaterThan(0);
 
-      // console.log(`📊 Global graph: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
     });
 
     it('should handle empty metadata gracefully', async () => {
@@ -221,7 +220,6 @@ describe('GraphService', () => {
       expect(centerNode).toBeDefined();
       expect(centerNode?.type).toBe('file');
 
-      // console.log(`📊 Local graph for Welcome: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
     });
 
     it('should handle URL-encoded file paths', async () => {
@@ -276,7 +274,6 @@ describe('GraphService', () => {
       );
       expect(welcomeFileNode).toBeDefined();
 
-      // console.log(`📊 Tag filtered graph for 'welcome': ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
     });
 
     it('should handle tag with # prefix', async () => {
@@ -312,7 +309,6 @@ describe('GraphService', () => {
       expect(stats.totalTags).toBeGreaterThan(0);
       expect(stats.averageConnections).toBeGreaterThan(0);
 
-      // console.log('📊 Graph statistics:', stats);
     });
 
     it('should handle empty graph statistics', async () => {
@@ -359,7 +355,6 @@ describe('GraphService', () => {
       expect(Array.isArray(neighbors)).toBe(true);
       expect(neighbors.length).toBeGreaterThan(0);
 
-      // console.log(`🔗 Welcome has ${neighbors.length} neighbors`);
     });
 
     it('should respect depth in neighbor search', async () => {
@@ -386,7 +381,6 @@ describe('GraphService', () => {
       expect(path[0].id).toBe(node1!.id);
       expect(path[path.length - 1].id).toBe(node2!.id);
 
-      // console.log(`🛤️ Path from Welcome to Abilities: ${path.length} nodes`);
     });
 
     it('should return direct path for same node', async () => {
@@ -438,9 +432,6 @@ describe('GraphService', () => {
         const previous = hubs[i - 1] as GraphNode & { connectionCount: number };
         expect(current.connectionCount).toBeLessThanOrEqual(previous.connectionCount);
       }
-
-      console.log(`🌟 Top ${hubs.length} most connected nodes:`,
-        hubs.map(n => `${n.label} (${(n as GraphNode & { connectionCount: number }).connectionCount} connections)`));
     });
   });
 
@@ -453,7 +444,6 @@ describe('GraphService', () => {
       expect(tagNodes.every(node => node.type === 'tag')).toBe(true);
       expect(tagNodes.every(node => node.label.startsWith('#'))).toBe(true);
 
-      // console.log(`🏷️ Found ${tagNodes.length} tag nodes:`, tagNodes.map(n => n.label));
     });
 
     it('should get all file nodes', async () => {
@@ -463,19 +453,12 @@ describe('GraphService', () => {
       expect(fileNodes.length).toBeGreaterThan(0);
       expect(fileNodes.every(node => node.type === 'file')).toBe(true);
 
-      // console.log(`📄 Found ${fileNodes.length} file nodes:`, fileNodes.map(n => n.label));
     });
 
     it('should get orphaned nodes', async () => {
       const orphanedNodes = await graphService.getOrphanedNodes();
 
       expect(Array.isArray(orphanedNodes)).toBe(true);
-
-      if (orphanedNodes.length > 0) {
-        // console.log(`🏝️ Found ${orphanedNodes.length} orphaned nodes:`, orphanedNodes.map(n => n.label));
-      } else {
-        // console.log('✅ No orphaned nodes found');
-      }
     });
 
     it('should analyze node connectivity', async () => {
@@ -494,7 +477,6 @@ describe('GraphService', () => {
       expect(connectivity.totalDegree).toBe(connectivity.inDegree + connectivity.outDegree);
       expect(connectivity.totalDegree).toBeGreaterThan(0);
 
-      // console.log(`🔗 Welcome connectivity:`, connectivity);
     });
   });
 
@@ -520,7 +502,6 @@ describe('GraphService', () => {
       expect(stats.totalTags).toBeDefined();
       expect(stats.metadataStats).toBeDefined();
 
-      // console.log('📊 Cache stats:', stats);
     });
   });
 

@@ -16,7 +16,7 @@ import type {
   TagSearchOptions,
   TagFilterOptions,
 } from './interfaces/ITagService.js';
-import type { IMetadataService, MetadataArray } from './interfaces/IMetadataService.js';
+import type { IMetadataService } from './interfaces/IMetadataService.js';
 import type { IStorageService } from './interfaces/IStorageService.js';
 
 // ===============================
@@ -58,11 +58,9 @@ export class TagService implements ITagService {
    */
   async getAllTags(options: TagSearchOptions = {}): Promise<TagData[]> {
     try {
-      // console.log('🔄 Loading global tags from tags.json...');
       const tagsJson = await this.getTagsFromJson();
 
       if (!tagsJson || tagsJson.length === 0) {
-        console.warn('⚠️ tags.json is empty, falling back to metadata calculation');
         return this.calculateTagsFromMetadata(options);
       }
 
@@ -76,11 +74,8 @@ export class TagService implements ITagService {
       // 应用排序和限制
       tags = this.applySortingAndLimit(tags, options);
 
-      // console.log(`✅ Loaded ${tags.length} global tags from tags.json`);
       return tags;
-    } catch (error) {
-      console.error('❌ Failed to load tags from tags.json:', error);
-      // console.log('🔄 Falling back to metadata calculation...');
+    } catch {
       return this.calculateTagsFromMetadata(options);
     }
   }
@@ -96,7 +91,6 @@ export class TagService implements ITagService {
 
       const fileMetadata = await this.metadataService.getFileMetadata(normalizedPath);
       if (!fileMetadata) {
-        console.warn(`❌ File not found in metadata: ${filePath}`);
         return [];
       }
 
@@ -105,10 +99,8 @@ export class TagService implements ITagService {
       // 添加 # 前缀并排序
       const formattedTags = tags.map(tag => `#${tag}`).sort();
 
-      // console.log(`📄 File ${normalizedPath} has ${formattedTags.length} tags`);
       return formattedTags;
-    } catch (error) {
-      console.error(`❌ Failed to get tags for file ${filePath}:`, error);
+    } catch {
       return [];
     }
   }
@@ -126,20 +118,16 @@ export class TagService implements ITagService {
       if (tagsJson && tagsJson.length > 0) {
         const tagEntry = tagsJson.find(entry => entry.tag === normalizedTag);
         if (tagEntry) {
-          // console.log(`📄 Found ${tagEntry.relativePaths.length} files for tag '${tag}' from tags.json`);
           return tagEntry.relativePaths;
         }
       }
 
       // 降级到从 metadata 计算
-      // console.log(`🔄 Tag '${tag}' not found in tags.json, calculating from metadata...`);
       const files = await this.metadataService.getFilesByTag(normalizedTag);
       const filePaths = files.map(file => file.relativePath);
 
-      // console.log(`📄 Found ${filePaths.length} files for tag '${tag}' from metadata`);
       return filePaths;
-    } catch (error) {
-      console.error(`❌ Failed to get files for tag ${tag}:`, error);
+    } catch {
       return [];
     }
   }
@@ -180,10 +168,8 @@ export class TagService implements ITagService {
         frequencyDistribution
       };
 
-      // console.log(`📊 Tag statistics: ${totalTags} tags, ${totalFiles} files`);
       return stats;
-    } catch (error) {
-      console.error('❌ Failed to calculate tag stats:', error);
+    } catch {
       return this.getEmptyTagStats();
     }
   }
@@ -213,10 +199,8 @@ export class TagService implements ITagService {
       // 应用排序和限制
       matchedTags = this.applySortingAndLimit(matchedTags, options);
 
-      // console.log(`🔍 Search '${query}' found ${matchedTags.length} tags`);
       return matchedTags;
-    } catch (error) {
-      console.error(`❌ Failed to search tags with query '${query}':`, error);
+    } catch {
       return [];
     }
   }
@@ -229,7 +213,7 @@ export class TagService implements ITagService {
       const allTags = await this.getAllTags();
       const { minCount, maxCount, pathPrefix, excludeTags = [] } = options;
 
-      let filteredTags = allTags.filter(tag => {
+      const filteredTags = allTags.filter(tag => {
         // 使用次数过滤
         if (minCount !== undefined && tag.count < minCount) return false;
         if (maxCount !== undefined && tag.count > maxCount) return false;
@@ -246,10 +230,8 @@ export class TagService implements ITagService {
         return true;
       });
 
-      // console.log(`🔍 Filter applied: ${filteredTags.length} tags match criteria`);
       return filteredTags;
-    } catch (error) {
-      console.error('❌ Failed to filter tags:', error);
+    } catch {
       return [];
     }
   }
@@ -264,15 +246,8 @@ export class TagService implements ITagService {
 
       const tagData = allTags.find(t => t.name === normalizedTag);
 
-      if (tagData) {
-        // console.log(`📋 Tag '${tag}' details: ${tagData.count} files`);
-      } else {
-        console.warn(`❌ Tag '${tag}' not found`);
-      }
-
       return tagData || null;
-    } catch (error) {
-      console.error(`❌ Failed to get tag details for '${tag}':`, error);
+    } catch {
       return null;
     }
   }
@@ -284,8 +259,7 @@ export class TagService implements ITagService {
     try {
       const tagData = await this.getTagDetails(tag);
       return tagData !== null;
-    } catch (error) {
-      console.error(`❌ Failed to check tag existence '${tag}':`, error);
+    } catch {
       return false;
     }
   }
@@ -300,10 +274,8 @@ export class TagService implements ITagService {
   async getMostUsedTags(limit: number = 10): Promise<TagData[]> {
     try {
       const allTags = await this.getAllTags({ sortBy: 'count', sortOrder: 'desc', limit });
-      // console.log(`🔝 Top ${allTags.length} most used tags`);
       return allTags;
-    } catch (error) {
-      console.error('❌ Failed to get most used tags:', error);
+    } catch {
       return [];
     }
   }
@@ -314,10 +286,8 @@ export class TagService implements ITagService {
   async getLeastUsedTags(limit: number = 10): Promise<TagData[]> {
     try {
       const allTags = await this.getAllTags({ sortBy: 'count', sortOrder: 'asc', limit });
-      // console.log(`🔻 Bottom ${allTags.length} least used tags`);
       return allTags;
-    } catch (error) {
-      console.error('❌ Failed to get least used tags:', error);
+    } catch {
       return [];
     }
   }
@@ -328,10 +298,8 @@ export class TagService implements ITagService {
   async getOrphanTags(): Promise<TagData[]> {
     try {
       const orphanTags = await this.filterTags({ minCount: 1, maxCount: 1 });
-      // console.log(`🏝️ Found ${orphanTags.length} orphan tags`);
       return orphanTags;
-    } catch (error) {
-      console.error('❌ Failed to get orphan tags:', error);
+    } catch {
       return [];
     }
   }
@@ -371,14 +339,12 @@ export class TagService implements ITagService {
         .sort((a, b) => b!.cooccurrenceCount - a!.cooccurrenceCount)
         .slice(0, limit)
         .map(tagData => {
-          const { cooccurrenceCount, ...rest } = tagData!;
+          const { cooccurrenceCount: _cooccurrenceCount, ...rest } = tagData!;
           return rest;
         });
 
-      // console.log(`🔗 Found ${relatedTags.length} related tags for '${tag}'`);
       return relatedTags;
-    } catch (error) {
-      console.error(`❌ Failed to get related tags for '${tag}':`, error);
+    } catch {
       return [];
     }
   }
@@ -422,10 +388,8 @@ export class TagService implements ITagService {
         rareTags
       };
 
-      // console.log(`📊 File '${filePath}' tag pattern: ${result.totalTags} total, ${commonTags.length} common, ${rareTags.length} rare`);
       return result;
-    } catch (error) {
-      console.error(`❌ Failed to analyze tag pattern for '${filePath}':`, error);
+    } catch {
       return {
         totalTags: 0,
         uniqueTags: [],
@@ -485,10 +449,8 @@ export class TagService implements ITagService {
         cooccurredTags
       };
 
-      // console.log(`🔗 Tag '${tag}' co-occurs with ${cooccurredTags.length} other tags`);
       return result;
-    } catch (error) {
-      console.error(`❌ Failed to get tag co-occurrence for '${tag}':`, error);
+    } catch {
       return { tag: tag.startsWith('#') ? tag : `#${tag}`, cooccurredTags: [] };
     }
   }
@@ -544,10 +506,8 @@ export class TagService implements ITagService {
         tagDistribution
       };
 
-      // console.log(`📁 Folder '${folderPath || 'root'}' has ${tagDistribution.length} unique tags across ${folderFiles.length} files`);
       return result;
-    } catch (error) {
-      console.error(`❌ Failed to get folder tag distribution for '${folderPath}':`, error);
+    } catch {
       return { folder: folderPath, totalFiles: 0, tagDistribution: [] };
     }
   }
@@ -571,10 +531,8 @@ export class TagService implements ITagService {
         .slice(0, limit)
         .map(tagData => tagData.name);
 
-      // console.log(`💡 Suggested ${suggestions.length} tags for '${filePath}'`);
       return suggestions;
-    } catch (error) {
-      console.error(`❌ Failed to suggest tags for '${filePath}':`, error);
+    } catch {
       return [];
     }
   }
@@ -589,7 +547,6 @@ export class TagService implements ITagService {
   async refreshCache(): Promise<void> {
     // 通过底层服务刷新缓存
     await this.metadataService.refreshCache();
-    // console.log('🔄 Tag cache refreshed');
   }
 
   /**
@@ -616,7 +573,6 @@ export class TagService implements ITagService {
   switchVault(vaultId: string): void {
     this.vaultConfig = createVaultConfig(vaultId);
     this.metadataService.switchVault(vaultId);
-    // console.log(`🔄 TagService switched to vault: ${vaultId}`);
   }
 
   /**
@@ -642,14 +598,12 @@ export class TagService implements ITagService {
       const content = await this.storageService.readFile(tagsJsonPath);
 
       if (typeof content !== 'string') {
-        console.warn('⚠️ tags.json content is not string');
         return null;
       }
 
       const tagsJson: TagsJsonEntry[] = JSON.parse(content);
       return Array.isArray(tagsJson) ? tagsJson : null;
-    } catch (error) {
-      console.warn('⚠️ Failed to read tags.json:', error);
+    } catch {
       return null;
     }
   }
@@ -693,10 +647,8 @@ export class TagService implements ITagService {
       let tags = Array.from(tagMap.values());
       tags = this.applySortingAndLimit(tags, options);
 
-      // console.log(`✅ Calculated ${tags.length} tags from metadata`);
       return tags;
-    } catch (error) {
-      console.error('❌ Failed to calculate tags from metadata:', error);
+    } catch {
       return [];
     }
   }
@@ -804,7 +756,6 @@ export function initializeTagService(
   vaultId?: string
 ): TagService {
   _globalTagService = new TagService(metadataService, storageService, vaultId);
-  // console.log(`✅ TagService initialized for vault: ${vaultId || 'Demo'}`);
   return _globalTagService;
 }
 
@@ -813,5 +764,4 @@ export function initializeTagService(
  */
 export function disposeTagService(): void {
   _globalTagService = null;
-  // console.log('🗑️ TagService disposed');
 }

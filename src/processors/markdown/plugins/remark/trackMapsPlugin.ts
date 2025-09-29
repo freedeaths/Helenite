@@ -48,14 +48,14 @@ interface SingleTrack {
  */
 interface LeafletConfig {
   gpx?: string | string[]; // 可以是单个文件或文件列表
-  [key: string]: any; // 其他 leaflet 配置
+  [key: string]: unknown; // 其他 leaflet 配置
 }
 
 
 /**
  * Track Maps 插件
  */
-export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
+export function trackMapsPlugin() {
   let trackId = 0;
 
   return (tree: MdastRoot) => {
@@ -73,8 +73,9 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
           // Fix for leaflet blocks without quotes - parse as YAML
           // The YAML parser should handle both quoted and unquoted strings
           leafletConfig = YAML.parse(node.value) || {};
-        } catch (error) {
-          console.warn('Failed to parse leaflet config:', error);
+        } catch {
+          // console.warn('Failed to parse leaflet config:', error);
+          
           return;
         }
 
@@ -99,13 +100,13 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
 
       if (isInParagraph && matches.length > 0) {
         // 如果在段落内且有匹配，需要将段落分解
-        const grandParent = (tree as any).children.find((child: any) =>
+        const grandParent = (tree as MdastRoot).children.find((child: unknown) =>
           child.children && child.children.includes(parent)
         );
 
         if (grandParent) {
           const parentIndex = grandParent.children.indexOf(parent);
-          const newNodes: any[] = [];
+          const newNodes: Node[] = [];
           let lastIndex = 0;
 
           matches.forEach(match => {
@@ -158,7 +159,7 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
       // 如果不在段落内但父节点是段落，我们需要打破段落
       if (parent.type === 'paragraph') {
         // 需要找到段落的父节点
-        const findParentOfNode = (tree: any, targetNode: any): any => {
+        const findParentOfNode = (tree: Node, targetNode: Node): Node | undefined => {
           if (tree.children) {
             for (const child of tree.children) {
               if (child === targetNode) return tree;
@@ -172,7 +173,7 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
         const grandParent = findParentOfNode(tree, parent);
         if (grandParent && grandParent.children) {
           const parentIndex = grandParent.children.indexOf(parent);
-          const newNodes: any[] = [];
+          const newNodes: Node[] = [];
           let lastIndex = 0;
 
           matches.forEach(match => {
@@ -223,7 +224,7 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
       }
 
       // 如果真的不在段落内（比如在列表项内），使用原来的逻辑
-      const newNodes: any[] = [];
+      const newNodes: Node[] = [];
       let lastIndex = 0;
 
       matches.forEach(match => {
@@ -269,7 +270,7 @@ export function trackMapsPlugin(options: TrackMapsPluginOptions = {}) {
 
       // 替换节点
       if (newNodes.length > 0) {
-        (parent.children as any[]).splice(index, 1, ...newNodes);
+        (parent.children as Node[]).splice(index, 1, ...newNodes);
       }
     });
   };
@@ -294,11 +295,11 @@ function processLeafletConfig(config: LeafletConfig, id: number): TrackData {
     } else if (Array.isArray(config.gpx)) {
       // GPX 文件列表：gpx: ["[[track1.gpx]]", "[[track2.gpx]]"]
       // GPX 文件列表
-      config.gpx.forEach((gpxRef, index) => {
+      (config.gpx as unknown[]).forEach((gpxRef: unknown, _index) => {
         // console.log(`[processLeafletConfig] Processing item ${index}:`, gpxRef);
 
         // 处理 YAML 解析 [[file]] 为嵌套数组的情况
-        let actualRef = gpxRef;
+        let actualRef: unknown = gpxRef;
         if (Array.isArray(gpxRef) && gpxRef.length === 1 && Array.isArray(gpxRef[0])) {
           // 处理 [['file']] 的情况
           actualRef = gpxRef[0];
@@ -327,7 +328,7 @@ function processLeafletConfig(config: LeafletConfig, id: number): TrackData {
 /**
  * 解析 GPX 文件引用，支持 [[file.gpx]] 和 file.gpx 格式
  */
-function parseGpxReference(gpxRef: any, id: string): SingleTrack | null {
+function parseGpxReference(gpxRef: unknown, id: string): SingleTrack | null {
   // YAML 会将 [[Attachments/yamap.gpx]] 解析为一个数组，因为 [[ 开头被视为数组
   // 但实际上这是 Obsidian 的链接语法，需要特殊处理
 
@@ -411,8 +412,8 @@ function createTrackMapNode(trackData: TrackData, displayType: string) {
 /**
  * 替换节点为轨迹地图节点的通用函数
  */
-function replaceWithTrackNode(parent: any, index: number, trackData: TrackData, displayType: string) {
-  (parent.children as any[])[index] = createTrackMapNode(trackData, displayType);
+function replaceWithTrackNode(parent: Parent, index: number, trackData: TrackData, displayType: string) {
+  (parent.children as Node[])[index] = createTrackMapNode(trackData, displayType);
 }
 
 // 导出类型

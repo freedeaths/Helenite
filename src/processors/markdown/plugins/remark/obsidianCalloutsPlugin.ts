@@ -46,7 +46,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
       const contentText = fullText.replace(titleLine, '').trim();
 
       // 转换 blockquote 为自定义元素
-      (node as any).type = 'element';
+      (node as { type: string; data?: unknown }).type = 'element';
       node.data = {
         hName: 'div',
         hProperties: {
@@ -57,7 +57,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
 
       // 创建 callout 结构
       const titleElement = {
-        type: 'element' as any,
+        type: 'element' as const,
         data: {
           hName: 'div',
           hProperties: {
@@ -73,7 +73,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
       // 添加剩余内容
       if (contentText) {
         contentChildren.push({
-          type: 'paragraph' as any,
+          type: 'paragraph' as const,
           children: [{ type: 'text', value: contentText }]
         });
       }
@@ -84,7 +84,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
       }
 
       const contentElement = {
-        type: 'element' as any,
+        type: 'element' as const,
         data: {
           hName: 'div',
           hProperties: {

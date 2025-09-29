@@ -33,8 +33,8 @@ export function GlobalGraph() {
         const data = await vaultService?.getGlobalGraph();
         // console.log('📊 Loaded global graph data:', data);
         setGraphData(data || null);
-      } catch (err) {
-        console.error('❌ Failed to load global graph data:', err);
+      } catch {
+        // console.error('❌ Failed to load global graph data:', err);
         setError('无法加载全局图谱数据');
       } finally {
         setLoading(false);
@@ -91,10 +91,10 @@ export function GlobalGraph() {
 
     // 创建力仿真 - 完全复制老版本参数
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(100).strength(0.6))
+      .force('link', d3.forceLink(links).id((d: D3Node) => d.id).distance(100).strength(0.6))
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: any) => {
+      .force('collision', d3.forceCollide().radius((d: D3Node) => {
         if (d.type === 'tag') return 15;
         return 20;
       }));
@@ -108,7 +108,7 @@ export function GlobalGraph() {
       .attr('stroke', 'var(--text-muted)')
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 1)
-      .attr('stroke-dasharray', (d: any) => {
+      .attr('stroke-dasharray', (d: D3Link) => {
         // 检查连线的两端是否有标签节点
         const sourceNode = nodes.find(n => n.id === d.source.id || n.id === d.source);
         const targetNode = nodes.find(n => n.id === d.target.id || n.id === d.target);
@@ -187,10 +187,10 @@ export function GlobalGraph() {
       });
 
       link
-        .attr('x1', (d: any) => d.source.x)
-        .attr('y1', (d: any) => d.source.y)
-        .attr('x2', (d: any) => d.target.x)
-        .attr('y2', (d: any) => d.target.y);
+        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
+        .attr('y1', (d: D3Link) => (d.source as D3Node).y)
+        .attr('x2', (d: D3Link) => (d.target as D3Node).x)
+        .attr('y2', (d: D3Link) => (d.target as D3Node).y);
 
       node
         .attr('transform', (d: D3Node) => `translate(${d.x},${d.y})`);

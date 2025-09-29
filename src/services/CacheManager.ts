@@ -872,7 +872,6 @@ export class CacheManager {
   ): Promise<void> {
     const cachedStorage = this.createCachedStorageService(storageService);
 
-    // console.log(`🔥 Warming up cache with ${commonFiles.length} files...`);
 
     // 为每个文件创建独立的预热任务
     const warmupTasks = commonFiles.map((filePath) => {
@@ -881,9 +880,6 @@ export class CacheManager {
 
     // 使用 Promise.allSettled 确保所有错误都被捕获
     await Promise.allSettled(warmupTasks);
-
-    const stats = await this.getStatistics();
-    // console.log(`✅ Cache warmup completed. Total entries: ${stats.totalEntries}`);
   }
 
   /**
@@ -893,18 +889,18 @@ export class CacheManager {
     try {
       // 并行预热所有相关操作
       await Promise.allSettled([
-        cachedStorage.readFile(filePath).catch(error => {
-          console.warn(`Failed to cache readFile for ${filePath}:`, error);
+        cachedStorage.readFile(filePath).catch(_error => {
+          // 忽略预热错误，继续其他操作
         }),
-        cachedStorage.getFileInfo(filePath).catch(error => {
-          console.warn(`Failed to cache getFileInfo for ${filePath}:`, error);
+        cachedStorage.getFileInfo(filePath).catch(_error => {
+          // 忽略预热错误，继续其他操作
         }),
-        cachedStorage.exists(filePath).catch(error => {
-          console.warn(`Failed to cache exists for ${filePath}:`, error);
+        cachedStorage.exists(filePath).catch(_error => {
+          // 忽略预热错误，继续其他操作
         })
       ]);
-    } catch (error) {
-      console.warn(`Failed to warmup cache for ${filePath}:`, error);
+    } catch {
+      // 忽略预热过程中的错误
     }
   }
 
@@ -1070,7 +1066,6 @@ export function initializeCacheManager(config?: CacheManagerConfig): CacheManage
   }
 
   _globalCacheManager = new CacheManager(config);
-  // console.log('✅ CacheManager initialized');
   return _globalCacheManager;
 }
 
@@ -1081,6 +1076,5 @@ export function disposeCacheManager(): void {
   if (_globalCacheManager) {
     _globalCacheManager.dispose();
     _globalCacheManager = null;
-    // console.log('🗑️ CacheManager disposed');
   }
 }

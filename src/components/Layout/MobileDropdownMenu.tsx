@@ -57,7 +57,7 @@ export function MobileDropdownMenu() {
   const openRandomNote = useCallback(() => {
     const allMarkdownFiles = collectMarkdownFiles(fileTree);
     if (allMarkdownFiles.length === 0) {
-      console.warn('No markdown files found in vault');
+      // console.warn('No markdown files found in vault');
       return;
     }
     const availableFiles = allMarkdownFiles.filter(file => file !== activeFile);

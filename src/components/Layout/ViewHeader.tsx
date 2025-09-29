@@ -17,22 +17,10 @@ export function ViewHeader() {
     isTablet,
     leftSidebarOpen,
     rightSidebarOpen,
-    setMobileLeftDrawerOpen,
-    setMobileRightDrawerOpen,
     mobileDropdownOpen,
     setMobileDropdownOpen
   } = useUIStore();
   const { activeFile } = useVaultStore();
-
-  // 获取文件显示名称
-  const getFileDisplayName = (filePath: string | null): string => {
-    if (!filePath) return 'Welcome to Helenite';
-    return decodeURIComponent(filePath)
-      .replace(/^\//, '') // 移除开头的斜杠
-      .replace(/\.md$/, '') // 移除 .md 扩展名
-      .split('/')
-      .pop() || 'Unknown'; // 只显示文件名，不显示路径
-  };
 
   return (
     <div className="relative">

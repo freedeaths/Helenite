@@ -10,25 +10,59 @@ import type {
   VaultInfo,
   FileTree,
   TagData,
-  UnifiedSearchResult,
   GraphData
 } from '../types/vaultTypes.js';
 import { navigateToFile as routeNavigateToFile, navigateToWelcome as routeNavigateToWelcome, navigateToGlobalGraph as routeNavigateToGlobalGraph } from '../hooks/routeUtils';
 
+interface VaultStatistics {
+  fileCount: number;
+  totalSize: number;
+  lastModified: Date;
+}
+
+interface HealthCheckResult {
+  status: 'healthy' | 'unhealthy';
+  message?: string;
+}
+
+interface DocumentInfo {
+  path: string;
+  size: number;
+  lastModified: Date;
+  metadata?: Record<string, unknown>;
+}
+
+interface SearchOptions {
+  limit?: number;
+  fuzzy?: boolean;
+  caseSensitive?: boolean;
+}
+
+interface SearchResult {
+  path: string;
+  content: string;
+  score?: number;
+}
+
+interface LocalGraphOptions {
+  depth?: number;
+  includeAttachments?: boolean;
+}
+
 // 通用的 Vault 服务接口（兼容旧的 VaultService 和新的 VaultAPI）
 interface IVaultService {
   getVaultInfo(): Promise<VaultInfo>;
-  getVaultStatistics(): Promise<any>;
-  healthCheck(): Promise<any>;
+  getVaultStatistics(): Promise<VaultStatistics>;
+  healthCheck(): Promise<HealthCheckResult>;
   getDocumentContent(path: string): Promise<string>;
-  getDocumentInfo(path: string): Promise<any>;
+  getDocumentInfo(path: string): Promise<DocumentInfo>;
   getFileTree(): Promise<FileTree[]>;
-  search(query: string, options?: any): Promise<any[]>;
-  searchByTag(tagName: string): Promise<any[]>;
+  search(query: string, options?: SearchOptions): Promise<SearchResult[]>;
+  searchByTag(tagName: string): Promise<SearchResult[]>;
   getAllTags(): Promise<TagData[]>;
   getFilesByTag(tag: string): Promise<string[]>;
   getGlobalGraph(): Promise<GraphData>;
-  getLocalGraph(centerPath: string, options?: any): Promise<GraphData>;
+  getLocalGraph(centerPath: string, options?: LocalGraphOptions): Promise<GraphData>;
 }
 
 // 组合的应用状态
@@ -45,7 +79,7 @@ interface AppState extends VaultState, UIState, RouteState {
   loadDocument: (filePath: string) => Promise<void>;
   getRawDocumentContent: (filePath: string) => Promise<string>;
   setActiveFile: (filePath: string | null) => void;
-  setCurrentDocument: (document: any) => void;
+  setCurrentDocument: (document: VaultState['currentDocument']) => void;
 
   // 搜索操作
   performSearch: (query: string) => Promise<void>;
@@ -113,9 +147,7 @@ export const useVaultStore = create<AppState>((set, get) => ({
         get().loadAllTags()
       ]);
 
-      // console.log('🚀 新架构 VaultService 初始化完成');
     } catch (error) {
-      console.error('VaultService 初始化失败:', error);
       set({ error: error instanceof Error ? error.message : '初始化失败' });
     } finally {
       set({ loading: false });
@@ -130,8 +162,8 @@ export const useVaultStore = create<AppState>((set, get) => ({
     try {
       const vaultInfo = await vaultService.getVaultInfo();
       set({ vaultInfo });
-    } catch (error) {
-      console.error('加载 Vault 信息失败:', error);
+    } catch {
+      // TODO: 处理错误
     }
   },
 
@@ -143,8 +175,8 @@ export const useVaultStore = create<AppState>((set, get) => ({
     try {
       const fileTree = await vaultService.getFileTree();
       set({ fileTree });
-    } catch (error) {
-      console.error('加载文件树失败:', error);
+    } catch {
+      // TODO: 处理错误
     } finally {
       set({ isLoadingFileTree: false });
     }
@@ -157,8 +189,8 @@ export const useVaultStore = create<AppState>((set, get) => ({
     try {
       const allTags = await vaultService.getAllTags();
       set({ allTags });
-    } catch (error) {
-      console.error('加载标签失败:', error);
+    } catch {
+      // TODO: 处理错误
     }
   },
 
@@ -183,7 +215,6 @@ export const useVaultStore = create<AppState>((set, get) => ({
         activeFile: filePath
       });
     } catch (error) {
-      console.error('加载文档失败:', error);
       set({ error: error instanceof Error ? error.message : '加载文档失败' });
     } finally {
       set({ loading: false });
@@ -202,7 +233,7 @@ export const useVaultStore = create<AppState>((set, get) => ({
     set({ activeFile: filePath });
   },
 
-  setCurrentDocument: (document: any) => {
+  setCurrentDocument: (document: VaultState['currentDocument']) => {
     set({ currentDocument: document });
   },
 
@@ -216,7 +247,6 @@ export const useVaultStore = create<AppState>((set, get) => ({
       const searchResults = await vaultService.search(query);
       set({ searchResults, activeView: 'search' });
     } catch (error) {
-      console.error('搜索失败:', error);
       set({ error: error instanceof Error ? error.message : '搜索失败' });
     } finally {
       set({ loading: false });
@@ -232,7 +262,6 @@ export const useVaultStore = create<AppState>((set, get) => ({
       const searchResults = await vaultService.searchByTag(tagName);
       set({ searchResults, activeView: 'search' });
     } catch (error) {
-      console.error('标签搜索失败:', error);
       set({ error: error instanceof Error ? error.message : '标签搜索失败' });
     } finally {
       set({ loading: false });
@@ -253,7 +282,6 @@ export const useVaultStore = create<AppState>((set, get) => ({
       const globalGraph = await vaultService.getGlobalGraph();
       set({ globalGraph, activeView: 'graph' });
     } catch (error) {
-      console.error('加载全局图谱失败:', error);
       set({ error: error instanceof Error ? error.message : '加载图谱失败' });
     } finally {
       set({ loading: false });
@@ -269,7 +297,6 @@ export const useVaultStore = create<AppState>((set, get) => ({
       const localGraph = await vaultService.getLocalGraph({ centerPath, depth });
       set({ localGraph });
     } catch (error) {
-      console.error('加载局部图谱失败:', error);
       set({ error: error instanceof Error ? error.message : '加载局部图谱失败' });
     } finally {
       set({ loading: false });
