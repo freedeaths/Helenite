@@ -110,8 +110,8 @@ export const getVaultConfig = (): VaultConfigInterface => {
     baseUrl: VAULT_CONFIG.VAULT_PATH,
     vaultsRoot: VAULT_CONFIG.VAULTS_ROOT,
     indexFile: VAULT_CONFIG.indexFile,
-    excludedFolders: VAULT_CONFIG.excludedFolders,
-    excludedExtensions: VAULT_CONFIG.excludedExtensions,
+    excludedFolders: [...VAULT_CONFIG.excludedFolders],
+    excludedExtensions: [...VAULT_CONFIG.excludedExtensions],
     search: VAULT_CONFIG.search
   };
 };
@@ -120,7 +120,7 @@ export const getVaultConfig = (): VaultConfigInterface => {
  * 检查文件夹是否应该被过滤
  */
 export const isFolderExcluded = (folderName: string): boolean => {
-  return VAULT_CONFIG.excludedFolders.includes(folderName);
+  return (VAULT_CONFIG.excludedFolders as readonly string[]).includes(folderName);
 };
 
 /**

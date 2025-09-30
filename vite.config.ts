@@ -16,11 +16,5 @@ export default defineConfig({
     rollupOptions: {
       external: ['/vaults/**']
     }
-  },
-  // 测试配置
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test-setup.ts'],
-    globals: true
   }
 })

@@ -37,12 +37,12 @@ export function createCachedService<T extends object>(
 
   return new Proxy(service, {
     get(target, prop: string | symbol) {
-      const originalMethod = (target as Record<string, unknown>)[prop];
+      const originalMethod = (target as Record<string | symbol, unknown>)[prop];
 
       // 只代理配置了缓存的方法
       if (typeof originalMethod === 'function' && config[prop as keyof T]) {
         return createCachedMethod(
-          originalMethod,
+          originalMethod as (...args: unknown[]) => Promise<unknown>,
           namespacedCache,
           prop as string,
           config[prop as keyof T]!,
@@ -115,10 +115,16 @@ export class CacheConfigBuilder<T> {
  * 方法配置构建器
  */
 export class MethodConfigBuilder<T, K extends keyof T> {
+  private parent: CacheConfigBuilder<T>;
+  private methodName: K;
+
   constructor(
-    private parent: CacheConfigBuilder<T>,
-    private methodName: K
-  ) {}
+    parent: CacheConfigBuilder<T>,
+    methodName: K
+  ) {
+    this.parent = parent;
+    this.methodName = methodName;
+  }
 
   ttl(milliseconds: number): this {
     this.ensureConfig().ttl = milliseconds;
@@ -228,13 +234,15 @@ export class CacheMonitor {
  * 缓存调试辅助类
  */
 export class CacheDebugger {
-  constructor(private enabled = false) {}
+  constructor(_enabled = false) {
+    // 调试器功能暂未实现
+  }
 
   enable(): void {
-    this.enabled = true;
+    // 调试器功能暂未实现
   }
 
   disable(): void {
-    this.enabled = false;
+    // 调试器功能暂未实现
   }
 }

@@ -334,10 +334,6 @@ export class StorageService implements IStorageService {
     }
   }
 
-  private async _readLocalFile(path: string, options: ReadOptions): Promise<string | Buffer> {
-    // 在浏览器环境中，本地文件读取实际上还是通过 HTTP
-    return this._readRemoteFile(path, options);
-  }
 
   private async _readRemoteFile(path: string, options: ReadOptions): Promise<FileContent> {
     const url = this.resolvePath(path);

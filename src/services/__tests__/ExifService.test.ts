@@ -9,7 +9,8 @@
  * - 统计分析功能
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { ExifService } from '../ExifService.js';
 import type { IStorageService } from '../interfaces/IStorageService.js';
 import type { GpsCoordinates } from '../interfaces/IExifService.js';
@@ -17,7 +18,21 @@ import type { GpsCoordinates } from '../interfaces/IExifService.js';
 // Mock exifr library
 vi.mock('exifr', () => ({
   default: {
-    parse: vi.fn()
+    parse: vi.fn(),
+    gps: vi.fn(),
+    orientation: vi.fn(),
+    thumbnail: vi.fn(),
+    ifd0: vi.fn(),
+    ifd1: vi.fn(),
+    exif: vi.fn(),
+    iptc: vi.fn(),
+    xmp: vi.fn(),
+    icc: vi.fn(),
+    jfif: vi.fn(),
+    ihdr: vi.fn(),
+    makerNote: vi.fn(),
+    userComment: vi.fn(),
+    Exifr: vi.fn()
   }
 }));
 
@@ -27,15 +42,23 @@ vi.mock('exifr', () => ({
 
 const createMockStorageService = (): IStorageService => ({
   readFile: vi.fn(),
-  writeFile: vi.fn(),
   exists: vi.fn(),
   getFileInfo: vi.fn(),
   listFiles: vi.fn(),
   readFileWithInfo: vi.fn(),
-  deleteFile: vi.fn(),
-  createDirectory: vi.fn(),
-  watchFile: vi.fn(),
-  getDirectoryInfo: vi.fn()
+  normalizePath: vi.fn(),
+  resolvePath: vi.fn(),
+  isValidPath: vi.fn(),
+  getMimeType: vi.fn(),
+  isImageFile: vi.fn(),
+  isTrackFile: vi.fn(),
+  isMarkdownFile: vi.fn(),
+  clearCache: vi.fn(),
+  preloadFiles: vi.fn(),
+  initialize: vi.fn(),
+  dispose: vi.fn(),
+  healthCheck: vi.fn(),
+  config: { basePath: '/test' }
 });
 
 // ===============================
@@ -91,14 +114,15 @@ const mockBinaryImageData = 'fake-binary-image-data';
 describe('ExifService', () => {
   let exifService: ExifService;
   let mockStorageService: IStorageService;
-  let mockExifr: { parse: Mock };
+  let mockExifr: Record<string, Mock>;
 
   beforeEach(async () => {
     mockStorageService = createMockStorageService();
     exifService = new ExifService(mockStorageService, 'TestVault');
     
     // Reset exifr mock
-    mockExifr = vi.mocked(await import('exifr')).default;
+    const exifrModule = await import('exifr');
+    mockExifr = vi.mocked(exifrModule.default) as unknown as Record<string, Mock>;
     vi.clearAllMocks();
   });
 

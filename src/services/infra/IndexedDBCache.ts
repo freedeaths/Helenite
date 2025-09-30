@@ -69,6 +69,7 @@ interface StoredCacheEntry extends CacheEntry {
 
 export class IndexedDBCache implements ICacheService {
   private db?: IDBPDatabase;
+  private options: Required<IndexedDBCacheOptions>;
   private stats = {
     hits: 0,
     misses: 0,
@@ -76,7 +77,6 @@ export class IndexedDBCache implements ICacheService {
   };
   private cleanupTimer?: NodeJS.Timeout;
   private pollingTimer?: NodeJS.Timeout;
-  private accessCounter = 0;
   private initialized = false;
   private initPromise?: Promise<void>;
 
@@ -107,7 +107,7 @@ export class IndexedDBCache implements ICacheService {
     }
   };
 
-  constructor(private options: IndexedDBCacheOptions = {}) {
+  constructor(options: IndexedDBCacheOptions = {}) {
     // 合并用户配置与默认配置
     this.options = this.mergeOptions(options);
 
@@ -510,7 +510,17 @@ export class IndexedDBCache implements ICacheService {
   }
 
   setDefaultTTL(ttl: number): void {
-    this.options.defaultTTL = ttl;
+    // Update default TTL for LRU tier
+    if (this.options.tiers?.lru) {
+      this.options.tiers.lru.defaultTTL = ttl;
+    }
+  }
+
+  setMaxSize(maxSize: number): void {
+    // Update LRU tier max size (in MB)
+    if (this.options.tiers?.lru) {
+      this.options.tiers.lru.maxSizeMB = maxSize / (1024 * 1024); // Convert bytes to MB
+    }
   }
 
   /**
@@ -846,24 +856,6 @@ export class IndexedDBCache implements ICacheService {
   }
 
   // 私有方法
-  private async evictLRU(): Promise<void> {
-    await this.ensureInitialized();
-
-    try {
-      const tx = this.db!.transaction('cache', 'readwrite');
-      const store = tx.objectStore('cache');
-      const index = store.index('lastAccessed');
-
-      // 获取最久未访问的条目
-      const cursor = await index.openCursor();
-      if (cursor) {
-        await cursor.delete();
-        this.stats.evictions++;
-      }
-    } catch {
-      // TODO: 处理错误
-    }
-  }
 
   private patternToRegex(pattern: string): RegExp {
     // 将通配符模式转换为正则表达式
@@ -894,13 +886,19 @@ export class IndexedDBCache implements ICacheService {
  * 命名空间缓存代理
  */
 class NamespacedCache implements ICacheService {
+  private cache: ICacheService;
+  private namespaceName: string;
+
   constructor(
-    private cache: ICacheService,
-    private namespace: string
-  ) {}
+    cache: ICacheService,
+    namespaceName: string
+  ) {
+    this.cache = cache;
+    this.namespaceName = namespaceName;
+  }
 
   private getNamespacedKey(key: string): string {
-    return `${this.namespace}:${key}`;
+    return `${this.namespaceName}:${key}`;
   }
 
   async get<T = unknown>(key: string): Promise<T | null> {
@@ -969,7 +967,7 @@ class NamespacedCache implements ICacheService {
   }
 
   async clear(): Promise<void> {
-    return this.cache.clearByPrefix(`${this.namespace}:`);
+    await this.cache.clearByPrefix(`${this.namespaceName}:`);
   }
 
   async getStatistics(): Promise<CacheStatistics> {
@@ -989,16 +987,19 @@ class NamespacedCache implements ICacheService {
     this.cache.setDefaultTTL(ttl);
   }
 
+  setMaxSize(maxSize: number): void {
+    this.cache.setMaxSize(maxSize);
+  }
+
   async cleanup(): Promise<number> {
     return this.cache.cleanup();
   }
 
-  updateTierConfig(tier: CacheTier, config: Partial<TierConfig>): void {
-    this.cache.updateTierConfig(tier, config);
-  }
+  // Note: updateTierConfig is specific to IndexedDBCache implementation
+  // Not available in namespaced cache as it's not part of ICacheService interface
 
   namespace(name: string): ICacheService {
-    return this.cache.namespace(`${this.namespace}:${name}`);
+    return this.cache.namespace(`${this.namespaceName}:${name}`);
   }
 
   async getNamespaces(): Promise<string[]> {

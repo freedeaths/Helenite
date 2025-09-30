@@ -8,6 +8,8 @@
  * - 边界计算和统计分析
  */
 
+// Adding basic type safety for gpx-parser-builder imports
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FootprintsService } from '../FootprintsService';
 import type {
@@ -17,7 +19,7 @@ import type {
   GeoBounds
 } from '../interfaces/IFootprintsService';
 import type { IStorageService } from '../interfaces/IStorageService';
-import type { ICacheManager } from '../interfaces/ICacheManager';
+
 
 // Mock gpx-parser-builder
 vi.mock('gpx-parser-builder', () => ({
@@ -56,36 +58,13 @@ const createMockStorageService = (): IStorageService => {
   } as IStorageService;
 };
 
-// Mock CacheManager for unit tests
-const createMockCacheManager = (): ICacheManager => {
-  return {
-    createCachedStorageService: (service: unknown) => service,
-    createCachedMetadataService: (service: unknown) => service,
-    createCachedFileTreeService: (service: unknown) => service,
-    createCachedSearchService: (service: unknown) => service,
-    createCachedGraphService: (service: unknown) => service,
-    createCachedTagService: (service: unknown) => service,
-    createCachedFootprintsService: (service: unknown) => service,
-    createCachedFrontMatterService: (service: unknown) => service,
-    createCachedExifService: (service: unknown) => service,
-    clearAll: vi.fn(),
-    getStatistics: vi.fn().mockResolvedValue({
-      totalEntries: 0,
-      totalSize: 0,
-      hitRate: 0
-    })
-  } as ICacheManager;
-};
 
 describe('FootprintsService', () => {
   let service: FootprintsService;
   let mockStorageService: IStorageService;
-  let mockCacheManager: ICacheManager;
-
   beforeEach(() => {
     mockStorageService = createMockStorageService();
-    mockCacheManager = createMockCacheManager();
-    service = new FootprintsService(mockStorageService, mockCacheManager);
+    service = new FootprintsService(mockStorageService);
     vi.clearAllMocks();
   });
 
@@ -181,7 +160,7 @@ describe('FootprintsService', () => {
 
       // Mock xml2js parser
       const { parseString } = await import('xml2js');
-      (parseString as ReturnType<typeof vi.fn>).mockImplementation((xml, callback) => {
+      (parseString as ReturnType<typeof vi.fn>).mockImplementation((_xml, callback) => {
         callback(null, {
           kml: {
             Document: {
@@ -707,7 +686,7 @@ describe('FootprintsService', () => {
       (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(`<?xml version="1.0"?><kml>invalid xml`);
 
       const { parseString } = await import('xml2js');
-      (parseString as ReturnType<typeof vi.fn>).mockImplementation((xml, callback) => {
+      (parseString as ReturnType<typeof vi.fn>).mockImplementation((_xml, callback) => {
         callback(new Error('XML parsing error'), null);
       });
 

@@ -29,13 +29,14 @@ export function tableWrapperPlugin(options: TableWrapperOptions = {}) {
           type: 'element',
           tagName: 'div',
           properties: {
-            className: [opts.wrapperClassName]
+            className: [opts.wrapperClassName || 'table-container']
           },
           children: [node]
         };
 
         // 替换表格为包装后的表格
-        parent.children[index] = wrapper;
+        const parentWithChildren = parent as HastElement & { children: HastElement[] };
+        parentWithChildren.children[index] = wrapper;
       }
     });
   };

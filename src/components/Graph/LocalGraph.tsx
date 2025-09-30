@@ -1,21 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import { useVaultStore } from '../../stores/vaultStore.js';
 import { useVaultService } from '../../hooks/useVaultService.js';
-
-interface GraphNode {
-  id: string;
-  title: string;
-  label: string;
-  type: 'file' | 'tag';
-  path?: string;
-}
-
-interface GraphEdge {
-  from: string;
-  to: string;
-  type: 'link' | 'tag';
-}
+import { useUIStore } from '../../stores/uiStore.js';
+import type { GraphNode, GraphEdge } from '../../types/vaultTypes';
 
 interface D3Node extends GraphNode {
   x?: number;
@@ -52,9 +40,9 @@ export function LocalGraph() {
           // console.log('📊 NewLocalGraph: 开始通过 VaultService 获取局部图谱数据:', activeFile);
 
           // 使用 VaultService 的 getLocalGraph 方法
-          const localGraphData = await vaultService.getLocalGraph(activeFile, {
-            depth: 2,
-            includeOrphans: false
+          const localGraphData = await vaultService.getLocalGraph({
+            centerPath: activeFile,
+            depth: 2
           });
 
           // console.log('📊 NewLocalGraph: VaultService 返回的图谱数据:', localGraphData);
@@ -153,13 +141,14 @@ export function LocalGraph() {
     const linkDistance = nodeCount <= 3 ? 200 : 80;  // 节点少时增加距离
     const chargeStrength = nodeCount <= 3 ? -1200 : -400;  // 节点少时增加排斥力
 
-    const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: D3Node) => d.id).distance(linkDistance).strength(0.6))
+    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
+      .force('link', d3.forceLink(links).id((d: d3.SimulationNodeDatum) => (d as D3Node).id).distance(linkDistance).strength(0.6))
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: D3Node) => {
-        if (d.type === 'tag') return 20;  // 增加碰撞半径
-        if (currentFileNode && d.id === currentFileNode.id) return 40;  // 当前节点更大的碰撞半径
+      .force('collision', d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
+        const node = d as D3Node;
+        if (node.type === 'tag') return 20;  // 增加碰撞半径
+        if (currentFileNode && node.id === currentFileNode.id) return 40;  // 当前节点更大的碰撞半径
         return 25;  // 其他节点也增加碰撞半径
       }));
 
@@ -237,6 +226,11 @@ export function LocalGraph() {
         // 只有文件节点（非标签节点）才能跳转，且不是当前文件
         if (d.type !== 'tag' && d.path && (!currentFileNode || d.id !== currentFileNode.id)) {
           // console.log(`📊 Navigating to file from new local graph: ${d.path}`);
+          // 复制其他组件的移动端处理逻辑 - 点击节点后关闭下拉菜单
+          const { isMobile, setMobileDropdownOpen } = useUIStore.getState();
+          if (isMobile) {
+            setMobileDropdownOpen(false);
+          }
           navigateToFile(d.path);
         }
       });
@@ -270,13 +264,13 @@ export function LocalGraph() {
       });
 
       link
-        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
-        .attr('y1', (d: D3Link) => (d.source as D3Node).y)
-        .attr('x2', (d: D3Link) => (d.target as D3Node).x)
-        .attr('y2', (d: D3Link) => (d.target as D3Node).y);
+        .attr('x1', (d: D3Link) => (d.source as D3Node).x || 0)
+        .attr('y1', (d: D3Link) => (d.source as D3Node).y || 0)
+        .attr('x2', (d: D3Link) => (d.target as D3Node).x || 0)
+        .attr('y2', (d: D3Link) => (d.target as D3Node).y || 0);
 
       node
-        .attr('transform', (d: D3Node) => `translate(${d.x},${d.y})`);
+        .attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
     });
 
     // 拖拽功能

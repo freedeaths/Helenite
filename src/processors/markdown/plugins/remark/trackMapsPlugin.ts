@@ -12,8 +12,19 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root as MdastRoot, Code, Text } from 'mdast';
+import type { Root as MdastRoot, Code, Text, Node as MdastNode, Parent, RootContent } from 'mdast';
+import type { Data } from 'unist';
 import * as YAML from 'yaml';
+
+// 自定义 TrackMap 节点类型，扩展 MDAST 节点
+interface TrackMapNode extends MdastNode {
+  type: 'trackMap';
+  data?: Data & {
+    hName?: string;
+    hProperties?: Record<string, string | number | boolean | (string | number)[] | null | undefined>;
+  };
+  children: never[];
+}
 
 export interface TrackMapsPluginOptions {
   baseUrl?: string;
@@ -27,10 +38,16 @@ interface TrackData {
   id: string;
   type: 'single-track' | 'multi-track' | 'leaflet';
   format?: 'gpx' | 'kml' | 'leaflet';
-  source: 'file' | 'mixed';  // 移除 'inline'，只支持文件引用
+  source: 'file' | 'inline' | 'mixed';  // 支持内联内容用于测试
   filePath?: string;
+  content?: string;  // 内联内容
   leafletConfig?: LeafletConfig;
   tracks?: SingleTrack[];
+  // 向后兼容的属性
+  code?: string;
+  placeholder?: string;
+  isFile?: boolean;
+  fileType?: string;
 }
 
 /**
@@ -100,13 +117,13 @@ export function trackMapsPlugin() {
 
       if (isInParagraph && matches.length > 0) {
         // 如果在段落内且有匹配，需要将段落分解
-        const grandParent = (tree as MdastRoot).children.find((child: unknown) =>
-          child.children && child.children.includes(parent)
-        );
+        const grandParent = (tree as MdastRoot).children.find((child: RootContent) =>
+          'children' in child && (child as Parent).children && (child as Parent).children.includes(parent as RootContent)
+        ) as Parent | undefined;
 
         if (grandParent) {
           const parentIndex = grandParent.children.indexOf(parent);
-          const newNodes: Node[] = [];
+          const newNodes: RootContent[] = [];
           let lastIndex = 0;
 
           matches.forEach(match => {
@@ -122,7 +139,7 @@ export function trackMapsPlugin() {
                 newNodes.push({
                   type: 'paragraph',
                   children: [{ type: 'text', value: beforeText }]
-                });
+                } as RootContent);
               }
             }
 
@@ -134,7 +151,7 @@ export function trackMapsPlugin() {
               source: 'file',
               filePath
             };
-            newNodes.push(createTrackMapNode(trackData, 'single'));
+            newNodes.push(createTrackMapNode(trackData, 'single') as unknown as RootContent);
 
             lastIndex = matchEnd;
           });
@@ -146,12 +163,12 @@ export function trackMapsPlugin() {
               newNodes.push({
                 type: 'paragraph',
                 children: [{ type: 'text', value: remainingText }]
-              });
+              } as RootContent);
             }
           }
 
           // 替换整个段落
-          grandParent.children.splice(parentIndex, 1, ...newNodes);
+          (grandParent as Parent).children.splice(parentIndex, 1, ...newNodes);
           return;
         }
       }
@@ -159,21 +176,21 @@ export function trackMapsPlugin() {
       // 如果不在段落内但父节点是段落，我们需要打破段落
       if (parent.type === 'paragraph') {
         // 需要找到段落的父节点
-        const findParentOfNode = (tree: Node, targetNode: Node): Node | undefined => {
-          if (tree.children) {
-            for (const child of tree.children) {
+        const findParentOfNode = (tree: MdastNode, targetNode: MdastNode): MdastNode | undefined => {
+          if ('children' in tree && (tree as Parent).children) {
+            for (const child of (tree as Parent).children) {
               if (child === targetNode) return tree;
-              const found = findParentOfNode(child, targetNode);
+              const found = findParentOfNode(child as MdastNode, targetNode);
               if (found) return found;
             }
           }
-          return null;
+          return undefined;
         };
 
-        const grandParent = findParentOfNode(tree, parent);
-        if (grandParent && grandParent.children) {
-          const parentIndex = grandParent.children.indexOf(parent);
-          const newNodes: Node[] = [];
+        const grandParent = findParentOfNode(tree as MdastNode, parent as MdastNode);
+        if (grandParent && 'children' in grandParent && (grandParent as Parent).children) {
+          const parentIndex = (grandParent as Parent).children.indexOf(parent as RootContent);
+          const newNodes: RootContent[] = [];
           let lastIndex = 0;
 
           matches.forEach(match => {
@@ -189,7 +206,7 @@ export function trackMapsPlugin() {
                 newNodes.push({
                   type: 'paragraph',
                   children: [{ type: 'text', value: beforeText }]
-                });
+                } as RootContent);
               }
             }
 
@@ -201,7 +218,7 @@ export function trackMapsPlugin() {
               source: 'file',
               filePath
             };
-            newNodes.push(createTrackMapNode(trackData, 'single'));
+            newNodes.push(createTrackMapNode(trackData, 'single') as unknown as RootContent);
 
             lastIndex = matchEnd;
           });
@@ -213,18 +230,18 @@ export function trackMapsPlugin() {
               newNodes.push({
                 type: 'paragraph',
                 children: [{ type: 'text', value: remainingText }]
-              });
+              } as RootContent);
             }
           }
 
           // 替换整个段落
-          grandParent.children.splice(parentIndex, 1, ...newNodes);
+          (grandParent as Parent).children.splice(parentIndex, 1, ...newNodes);
           return;
         }
       }
 
       // 如果真的不在段落内（比如在列表项内），使用原来的逻辑
-      const newNodes: Node[] = [];
+      const newNodes: MdastNode[] = [];
       let lastIndex = 0;
 
       matches.forEach(match => {
@@ -240,7 +257,7 @@ export function trackMapsPlugin() {
             newNodes.push({
               type: 'text',
               value: beforeText
-            });
+            } as MdastNode);
           }
         }
 
@@ -252,7 +269,7 @@ export function trackMapsPlugin() {
           source: 'file',
           filePath
         };
-        newNodes.push(createTrackMapNode(trackData, 'single'));
+        newNodes.push(createTrackMapNode(trackData, 'single') as unknown as MdastNode);
 
         lastIndex = matchEnd;
       });
@@ -264,13 +281,13 @@ export function trackMapsPlugin() {
           newNodes.push({
             type: 'text',
             value: remainingText
-          });
+          } as MdastNode);
         }
       }
 
       // 替换节点
       if (newNodes.length > 0) {
-        (parent.children as Node[]).splice(index, 1, ...newNodes);
+        (parent.children as MdastNode[]).splice(index, 1, ...newNodes);
       }
     });
   };
@@ -370,7 +387,7 @@ function parseGpxReference(gpxRef: unknown, id: string): SingleTrack | null {
     return null;
   }
 
-  const format = cleanRef.endsWith('.gpx') ? 'gpx' : 'kml';
+  const format: 'gpx' | 'kml' = cleanRef.endsWith('.gpx') ? 'gpx' : 'kml';
 
   const result = {
     id,
@@ -386,14 +403,15 @@ function parseGpxReference(gpxRef: unknown, id: string): SingleTrack | null {
 /**
  * 创建轨迹地图 AST 节点
  */
-function createTrackMapNode(trackData: TrackData, displayType: string) {
+function createTrackMapNode(trackData: TrackData, displayType: string): TrackMapNode {
   // 准备要存储的完整数据
   const dataToStore = {
     ...trackData,
     displayType
   };
 
-  const node = {
+  // 创建一个符合 MDAST 规范的自定义节点
+  const node: TrackMapNode = {
     type: 'trackMap',
     data: {
       hName: 'div',
@@ -413,8 +431,8 @@ function createTrackMapNode(trackData: TrackData, displayType: string) {
  * 替换节点为轨迹地图节点的通用函数
  */
 function replaceWithTrackNode(parent: Parent, index: number, trackData: TrackData, displayType: string) {
-  (parent.children as Node[])[index] = createTrackMapNode(trackData, displayType);
+  (parent.children as (RootContent | TrackMapNode)[])[index] = createTrackMapNode(trackData, displayType);
 }
 
-// 导出类型
-export type { TrackMapsPluginOptions, TrackData, SingleTrack, LeafletConfig };
+// 导出类型（TrackMapsPluginOptions 已在文件开头导出）
+export type { TrackData, SingleTrack, LeafletConfig };

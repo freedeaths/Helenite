@@ -48,7 +48,7 @@ export class FileTreeService implements IFileTreeService {
 
       return this.buildTreeFromMetadata(metadata, options);
     } catch {
-      
+
       return [];
     }
   }
@@ -291,11 +291,11 @@ export class FileTreeService implements IFileTreeService {
 
         // 应用过滤规则（如果启用）
         if (options.applyFolderFilters !== false) {
-          if (isPathInExcludedFolder(path, config)) {
+          if (isPathInExcludedFolder(path)) {
             return; // 跳过被排除文件夹中的文件
           }
 
-          if (isFileExcluded(item.fileName || '', config)) {
+          if (isFileExcluded(item.fileName || '')) {
             return; // 跳过被排除的文件
           }
         }
@@ -397,7 +397,7 @@ export class FileTreeService implements IFileTreeService {
   private addParentPaths(
     path: string,
     pathSet: Set<string>,
-    config = getVaultConfig(),
+    _config = getVaultConfig(),
     options: FileTreeOptions = {}
   ): void {
     const parts = path.split('/');
@@ -407,7 +407,7 @@ export class FileTreeService implements IFileTreeService {
         // 应用过滤规则（如果启用）
         if (options.applyFolderFilters !== false) {
           const folderName = parts[i - 1];
-          if (isFolderExcluded(folderName, config)) {
+          if (isFolderExcluded(folderName)) {
             continue; // 跳过被排除的文件夹
           }
         }

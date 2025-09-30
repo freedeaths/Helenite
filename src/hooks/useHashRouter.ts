@@ -21,7 +21,7 @@ export function useHashRouter() {
       setMainContentView('globalGraph');
     } else if (route.type === 'file' && route.filePath) {
       // console.log('📍 New Setting activeFile to:', route.filePath);
-      setActiveFile(route.filePath, route.anchor);
+      setActiveFile(route.filePath);
       setMainContentView('file');
 
       // 如果有锚点，延迟滚动到对应位置 - 复制原版滚动逻辑

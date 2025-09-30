@@ -10,10 +10,11 @@
  * - 工具方法
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { SearchService } from '../SearchService.js';
 import type { IStorageService } from '../interfaces/IStorageService.js';
-import type { IMetadataService, FileMetadata } from '../interfaces/IMetadataService.js';
+import type { IMetadataService } from '../interfaces/IMetadataService.js';
 
 // ===============================
 // Mock 依赖服务
@@ -21,23 +22,40 @@ import type { IMetadataService, FileMetadata } from '../interfaces/IMetadataServ
 
 const createMockStorageService = (): IStorageService => ({
   readFile: vi.fn(),
-  writeFile: vi.fn(),
   exists: vi.fn(),
   getFileInfo: vi.fn(),
   listFiles: vi.fn(),
   readFileWithInfo: vi.fn(),
-  deleteFile: vi.fn(),
-  createDirectory: vi.fn(),
-  watchFile: vi.fn(),
-  getDirectoryInfo: vi.fn()
+  normalizePath: vi.fn(),
+  resolvePath: vi.fn(),
+  isValidPath: vi.fn(),
+  getMimeType: vi.fn(),
+  isImageFile: vi.fn(),
+  isTrackFile: vi.fn(),
+  isMarkdownFile: vi.fn(),
+  clearCache: vi.fn(),
+  preloadFiles: vi.fn(),
+  config: { basePath: '', timeout: 5000 },
+  initialize: vi.fn(),
+  dispose: vi.fn(),
+  healthCheck: vi.fn()
 });
 
 const createMockMetadataService = (): IMetadataService => ({
   getMetadata: vi.fn(),
   getFileMetadata: vi.fn(),
-  getAllTags: vi.fn(),
-  searchInMetadata: vi.fn(),
+  getAllFiles: vi.fn(),
+  getFileByName: vi.fn(),
   getFilesByTag: vi.fn(),
+  getAllTags: vi.fn(),
+  getFileLinks: vi.fn(),
+  getFileBacklinks: vi.fn(),
+  getFileHeadings: vi.fn(),
+  getFileAliases: vi.fn(),
+  getFileFrontMatter: vi.fn(),
+  hasFile: vi.fn(),
+  getFilesLinkingTo: vi.fn(),
+  searchInMetadata: vi.fn(),
   refreshCache: vi.fn(),
   getCacheStats: vi.fn(),
   switchVault: vi.fn(),
@@ -97,6 +115,11 @@ tags: [react, development]
 
 Learn how to build React applications effectively.`
 };
+
+interface FileMetadata {
+  tags: string[];
+  frontmatter: Record<string, unknown>;
+}
 
 const mockFileMetadata: Record<string, FileMetadata> = {
   'Welcome.md': {

@@ -265,7 +265,7 @@ describe('FileTreeService Integration Tests', () => {
       expect(time2).toBeLessThanOrEqual(time1);
 
       // 获取缓存统计
-      const _stats = await cacheManager.getStatistics();
+      await cacheManager.getStatistics();
     });
 
     it('should cache individual file operations', async () => {
@@ -326,7 +326,7 @@ describe('FileTreeService Integration Tests', () => {
 
     it('should maintain consistency with MetadataService', async () => {
       const metadata = await metadataService.getMetadata();
-      const _tree = await fileTreeService.getFileTree();
+      await fileTreeService.getFileTree();
 
       if (metadata && metadata.length > 0) {
         // 文件树中的文件数量应该与 metadata 中的条目数量相关

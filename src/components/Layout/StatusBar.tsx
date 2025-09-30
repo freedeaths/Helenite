@@ -22,7 +22,10 @@ export function StatusBar() {
       }
 
       try {
-        const localGraph = await vaultService.getLocalGraph(activeFile);
+        const localGraph = await vaultService.getLocalGraph({
+          centerPath: activeFile,
+          depth: 2
+        });
 
         // 找到当前文件节点 - 复制老版本逻辑
         const decodedActiveFile = decodeURIComponent(activeFile);

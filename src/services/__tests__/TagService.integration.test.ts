@@ -36,7 +36,7 @@ describe('TagService Integration Tests', () => {
   beforeEach(() => {
     // 创建真实的服务实例
     storageService = new StorageService({ basePath: '/vaults/Demo' });
-    metadataService = new MetadataService(storageService, 'Demo');
+    metadataService = new MetadataService('Demo');
     cacheManager = new CacheManager();
 
     // 创建 TagService 实例
@@ -91,8 +91,8 @@ describe('TagService Integration Tests', () => {
     it('应该能够通过 MetadataService 处理降级查询', async () => {
       // Arrange
       const mockMetadataFiles = [
-        { relativePath: 'file1.md' },
-        { relativePath: 'file2.md' }
+        { relativePath: 'file1.md', fileName: 'file1' },
+        { relativePath: 'file2.md', fileName: 'file2' }
       ];
 
       // Mock StorageService 读取失败，触发降级
@@ -306,8 +306,8 @@ describe('TagService Integration Tests', () => {
       vi.spyOn(metadataService, 'getFileMetadata')
         .mockImplementation((path: string) => {
           const mockData = {
-            'js-basics.md': { relativePath: 'js-basics.md', tags: ['javascript', 'beginner', 'web'] },
-            'advanced-js.md': { relativePath: 'advanced-js.md', tags: ['javascript', 'advanced', 'patterns'] }
+            'js-basics.md': { relativePath: 'js-basics.md', fileName: 'js-basics', tags: ['javascript', 'beginner', 'web'] },
+            'advanced-js.md': { relativePath: 'advanced-js.md', fileName: 'advanced-js', tags: ['javascript', 'advanced', 'patterns'] }
           };
           return Promise.resolve(mockData[path as keyof typeof mockData] || null);
         });

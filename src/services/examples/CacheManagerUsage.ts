@@ -21,8 +21,12 @@ export class ApplicationServices {
 
   constructor() {
     this.cacheManager = new CacheManager({
-      maxSize: 2000,
-      defaultTTL: 600000 // 10分钟
+      tiers: {
+        lru: {
+          maxCount: 2000,
+          defaultTTL: 600000 // 10分钟
+        }
+      }
     });
   }
 
@@ -91,20 +95,20 @@ export async function basicUsage() {
   const appServices = new ApplicationServices();
 
   // 创建带缓存的服务
-  const _storageService = await appServices.createStorageService({
+  await appServices.createStorageService({
     basePath: '/vaults/Demo'
   });
 
   const metadataService = await appServices.createMetadataService('Demo');
 
   // 使用服务 - 完全透明的缓存
-  const _metadata1 = await metadataService.getMetadata();
+  await metadataService.getMetadata();
 
-  const _metadata2 = await metadataService.getMetadata();
+  await metadataService.getMetadata();
 
 
   // 查看缓存统计
-  const _stats = await appServices.getCacheStats();
+  await appServices.getCacheStats();
 
   await appServices.dispose();
 }
@@ -154,7 +158,11 @@ export async function serviceComposition() {
 
   // 模拟一个 GraphService 依赖 MetadataService
   class GraphService {
-    constructor(private metadataService: IMetadataService) {}
+    private metadataService: IMetadataService;
+
+    constructor(metadataService: IMetadataService) {
+      this.metadataService = metadataService;
+    }
 
     async buildGraph() {
       // 这里调用的 metadataService 自动享受缓存，完全透明
@@ -174,11 +182,11 @@ export async function serviceComposition() {
 
   const graphService = new GraphService(metadataService);
 
-  const _graph = await graphService.buildGraph();
+  await graphService.buildGraph();
 
 
   // GraphService 完全不知道 MetadataService 使用了缓存
-  const _stats = await appServices.getCacheStats();
+  await appServices.getCacheStats();
 
   await appServices.dispose();
 }

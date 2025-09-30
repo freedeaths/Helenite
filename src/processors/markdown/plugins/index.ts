@@ -26,10 +26,10 @@ export type { ObsidianHighlightsOptions } from './remark/obsidianHighlightsPlugi
 export type { ObsidianCalloutsOptions } from './remark/obsidianCalloutsPlugin.js';
 export type { TableWrapperOptions } from './rehype/tableWrapperPlugin.js';
 export type { TrackMapsPluginOptions, TrackData, SingleTrack, LeafletConfig } from './remark/trackMapsPlugin.js';
-export type { FootprintsPluginOptions, FootprintsData } from './remark/footprintsPlugin.js';
 export type { TrackMapRendererOptions } from './rehype/trackMapRenderer.js';
-export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';
-export type { MermaidPluginOptions, MermaidData } from './remark/mermaidPlugin.js';
+// export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';
+// export type { MermaidPluginOptions, MermaidData } from './remark/mermaidPlugin.js';
 export type { ObsidianLinksPluginOptions } from './remark/obsidianLinksPlugin.js';
-export type { ExternalLinksOptions } from './rehype/externalLinksPlugin.js';
+// export type { ExternalLinksOptions } from './rehype/externalLinksPlugin.js';
 export type { MediaEmbedRendererOptions } from './rehype/mediaEmbedRenderer.js';
+export type { FootprintsPluginOptions, FootprintsConfig } from './remark/footprintsPlugin.js';

@@ -169,7 +169,7 @@ describe('SearchService Integration Tests', () => {
       // 验证能够读取文件内容
       const testFile = 'Welcome.md';
       const content = await storageService.readFile(testFile);
-      expect(content.length).toBeGreaterThan(0);
+      expect(typeof content === 'string' ? content.length : content.byteLength).toBeGreaterThan(0);
 
       // 验证搜索服务能使用该内容
       const results = await searchService.searchContent('Welcome');
@@ -180,7 +180,7 @@ describe('SearchService Integration Tests', () => {
     it('应该能够与 MetadataService 正确集成', async () => {
       // 验证能够获取元数据
       const metadata = await metadataService.getMetadata();
-      expect(metadata.length).toBeGreaterThan(0);
+      expect(metadata?.length ?? 0).toBeGreaterThan(0);
 
       // 验证搜索服务能使用元数据
       const results = await searchService.search('test-query-that-might-not-exist');
@@ -279,7 +279,7 @@ describe('SearchService Integration Tests', () => {
 
     it('应该在合理时间内完成搜索', async () => {
       const startTime = Date.now();
-      const _results = await searchService.searchContent('test');
+      await searchService.searchContent('test');
       const searchTime = Date.now() - startTime;
 
       // 搜索应该在 5 秒内完成

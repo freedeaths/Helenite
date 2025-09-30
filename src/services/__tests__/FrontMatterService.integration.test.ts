@@ -437,7 +437,7 @@ describe('FrontMatterService Integration Tests', () => {
       }
 
       // 4. 自定义字段分析
-      const _customFields = await frontMatterService.getAllCustomFields();
+      await frontMatterService.getAllCustomFields();
 
     });
   });

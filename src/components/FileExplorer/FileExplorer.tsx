@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { IconFolder, IconFile, IconChevronRight, IconChevronDown, IconSearch, IconX, IconHash } from '@tabler/icons-react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
-import type { FileTree } from '../../services/interfaces/IFileTreeService';
-import type { SearchResult } from '../../services/interfaces/ISearchAPI';
+import type { FileTree, UnifiedSearchResult } from '../../types/vaultTypes';
 
 interface FileTreeItemProps {
   node: FileTree;
@@ -58,7 +57,7 @@ function FileTreeItem({ node, level, onFileSelect, expandedFolders, onToggleExpa
 
       {isFolder && isExpanded && hasChildren && (
         <div>
-          {node.children!.map((child) => (
+          {node.children!.map((child: FileTree) => (
             <FileTreeItem
               key={child.path}
               node={child}
@@ -104,7 +103,7 @@ export function FileExplorer() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<UnifiedSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   // Initialize expanded folders when fileTree loads
@@ -314,13 +313,13 @@ export function FileExplorer() {
               </div>
               {searchResults.map((result, index) => (
                 <div
-                  key={`${result.filePath || 'unknown'}-${index}`}
+                  key={`${result.document?.path || 'unknown'}-${index}`}
                   className="mb-4 border border-[var(--background-modifier-border)] rounded-lg overflow-hidden hover:border-[var(--interactive-accent)] transition-colors"
                 >
                   {/* File Header */}
                   <div
                     className="p-3 bg-[var(--background-secondary)] border-b border-[var(--background-modifier-border)] cursor-pointer hover:bg-[var(--background-modifier-hover)] transition-colors"
-                    onClick={() => handleSearchResultClick(result.filePath || '')}
+                    onClick={() => handleSearchResultClick(result.document?.path || '')}
                   >
                     <div className="flex items-center gap-2">
                       {isTagSearch ? (
@@ -329,14 +328,14 @@ export function FileExplorer() {
                         <IconFile size={14} className="text-[var(--text-muted)]" />
                       )}
                       <span className="text-sm font-medium text-[var(--text-normal)]">
-                        {result.fileName || result.filePath?.split('/').pop() || 'Unknown'}
+                        {result.document?.title || result.document?.path?.split('/').pop() || 'Unknown'}
                       </span>
                       <span className="text-xs text-[var(--text-muted)] ml-auto">
-                        {result.matchCount || result.matches?.length || 0} match{(result.matchCount || result.matches?.length || 0) !== 1 ? 'es' : ''}
+                        {result.matches?.length || 0} match{(result.matches?.length || 0) !== 1 ? 'es' : ''}
                       </span>
                     </div>
                     <div className="text-xs text-[var(--text-muted)] mt-1">
-                      {result.filePath || 'Unknown path'}
+                      {result.document?.path || 'Unknown path'}
                     </div>
                   </div>
 
@@ -346,20 +345,20 @@ export function FileExplorer() {
                       <div
                         key={matchIndex}
                         className="p-3 border-b border-[var(--background-modifier-border)] last:border-b-0 hover:bg-[var(--background-modifier-hover)] transition-colors cursor-pointer"
-                        onClick={() => handleSearchResultClick(result.filePath || '')}
+                        onClick={() => handleSearchResultClick(result.document?.path || '')}
                       >
                         <div className="text-xs text-[var(--text-muted)] mb-1">
-                          {match.lineNumber && `Line ${match.lineNumber}`}
+                          {match.line && `Line ${match.line}`}
                         </div>
                         <div
                           className="text-sm text-[var(--text-normal)] leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: match.highlighted || match.content || '' }}
+                          dangerouslySetInnerHTML={{ __html: match.context || match.value || '' }}
                         />
                       </div>
                     ))}
-                    {(result.matchCount || result.matches?.length || 0) > 5 && (
+                    {(result.matches?.length || 0) > 5 && (
                       <div className="p-2 text-center text-xs text-[var(--text-muted)]">
-                        +{(result.matchCount || result.matches?.length || 0) - 5} more matches
+                        +{(result.matches?.length || 0) - 5} more matches
                       </div>
                     )}
                   </div>

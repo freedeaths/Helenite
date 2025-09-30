@@ -87,7 +87,7 @@ describe('StorageService Real Integration Tests', () => {
       const content = await storageService.readFile('/Welcome.md');
 
       expect(typeof content).toBe('string');
-      expect(content.length).toBeGreaterThan(0);
+      expect(typeof content === 'string' ? content.length : content.byteLength).toBeGreaterThan(0);
       expect(content).toContain('vault');
     });
 
@@ -154,7 +154,7 @@ describe('StorageService Real Integration Tests', () => {
 
       // 验证内容
       expect(typeof result.content).toBe('string');
-      expect(result.content.length).toBeGreaterThan(0);
+      expect(typeof result.content === 'string' ? result.content.length : result.content.byteLength).toBeGreaterThan(0);
       expect(result.content).toContain('vault');
 
       // 验证文件信息

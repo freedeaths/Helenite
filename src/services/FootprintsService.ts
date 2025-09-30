@@ -18,7 +18,6 @@ import type {
   FootprintsData
 } from './interfaces/IFootprintsService';
 import type { IStorageService } from './interfaces/IStorageService';
-import type { ICacheManager } from './interfaces/ICacheManager';
 
 // 重用现有的解析器基础架构，但转换数据结构
 interface TrackDataParser {
@@ -89,10 +88,10 @@ abstract class BaseGPXParser implements TrackDataParser {
 
     // 处理轨迹点 - 多种可能的结构 (复制TrackMap.tsx逻辑)
     const trackSources = [
-      gpx.trk,
-      gpx.gpx?.trk,
-      gpx.tracks,
-      gpx.gpx?.tracks
+      (gpx as Record<string, unknown>).trk,
+      (gpx as Record<string, Record<string, unknown>>).gpx?.trk,
+      (gpx as Record<string, unknown>).tracks,
+      (gpx as Record<string, Record<string, unknown>>).gpx?.tracks
     ].filter(Boolean);
 
     for (const trackArray of trackSources) {
@@ -116,8 +115,8 @@ abstract class BaseGPXParser implements TrackDataParser {
                 for (const pointArray of pointSources) {
                   if (Array.isArray(pointArray)) {
                     pointArray.forEach((point: Record<string, unknown>) => {
-                      const lat = point.$.lat || point.lat || point['@_lat'] || point.latitude;
-                      const lon = point.$.lon || point.lon || point['@_lon'] || point.longitude;
+                      const lat = (point.$ as Record<string, unknown>)?.lat || point.lat || point['@_lat'] || point.latitude;
+                      const lon = (point.$ as Record<string, unknown>)?.lon || point.lon || point['@_lon'] || point.longitude;
 
                       if (lat && lon) {
                         const trackPoint: {
@@ -185,12 +184,16 @@ abstract class BaseGPXParser implements TrackDataParser {
     const gpx = gpxObject as Record<string, unknown>;
 
     // 处理航点 - 使用TrackMap.tsx的方法
-    const waypointSources = [gpx.wpt, gpx.gpx?.wpt, gpx.waypoints].filter(Boolean);
+    const waypointSources = [
+      (gpx as Record<string, unknown>).wpt,
+      (gpx as Record<string, Record<string, unknown>>).gpx?.wpt,
+      (gpx as Record<string, unknown>).waypoints
+    ].filter(Boolean);
     waypointSources.forEach(wptArray => {
       if (Array.isArray(wptArray)) {
         wptArray.forEach((waypoint: Record<string, unknown>) => {
-          const lat = waypoint['@_lat'] || waypoint.$.lat || waypoint.lat || waypoint.latitude;
-          const lon = waypoint['@_lon'] || waypoint.$.lon || waypoint.lon || waypoint.longitude;
+          const lat = waypoint['@_lat'] || (waypoint.$ as Record<string, unknown>)?.lat || waypoint.lat || waypoint.latitude;
+          const lon = waypoint['@_lon'] || (waypoint.$ as Record<string, unknown>)?.lon || waypoint.lon || waypoint.longitude;
 
           if (lat && lon) {
             waypoints.push({
@@ -440,10 +443,10 @@ class YamapGPXParser extends BaseGPXParser {
 
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
-            (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'YAMAP Track',
-      description: (gpxObject as Record<string, unknown>).metadata?.desc?.[0] ||
-                   (gpxObject as Record<string, unknown>).trk?.[0]?.desc,
+      name: ((gpxObject as Record<string, Record<string, unknown[]>>).metadata?.name?.[0] as string) ||
+            ((gpxObject as Record<string, unknown[]>).trk?.[0] as Record<string, unknown>)?.name as string || 'YAMAP Track',
+      description: ((gpxObject as Record<string, Record<string, unknown[]>>).metadata?.desc?.[0] as string) ||
+                   ((gpxObject as Record<string, unknown[]>).trk?.[0] as Record<string, unknown>)?.desc as string,
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
       metadata: {
@@ -556,8 +559,8 @@ class GarminGPXParser extends BaseGPXParser {
     const waypoints = this.parseWaypoints(gpxObject);
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
-            (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'Garmin Track',
+      name: ((gpxObject as Record<string, Record<string, unknown[]>>).metadata?.name?.[0] as string) ||
+            ((gpxObject as Record<string, unknown[]>).trk?.[0] as Record<string, unknown>)?.name as string || 'Garmin Track',
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
       metadata: {
@@ -693,12 +696,12 @@ class TwobuluKMLParser extends BaseKMLParser {
               const photos = this.parseKMLPhotos(kml);
 
               const document = Array.isArray((kml as Record<string, unknown>).Document)
-                ? (kml as Record<string, unknown>).Document[0]
-                : (kml as Record<string, unknown>).Document;
+                ? ((kml as Record<string, unknown[]>).Document[0] as Record<string, unknown[]>)
+                : ((kml as Record<string, unknown>).Document as Record<string, unknown[]>);
 
               resolve({
-                name: document?.name?.[0] || '2bulu Track',
-                description: document?.description?.[0],
+                name: (document?.name?.[0] as string) || '2bulu Track',
+                description: (document?.description?.[0] as string) || undefined,
                 trackPoints,
                 photos,
                 metadata: {
@@ -840,12 +843,12 @@ class GenericKMLParser extends BaseKMLParser {
               const photos = this.parseKMLPhotos(kml);
 
               const document = Array.isArray((kml as Record<string, unknown>).Document)
-                ? (kml as Record<string, unknown>).Document[0]
-                : (kml as Record<string, unknown>).Document;
+                ? ((kml as Record<string, unknown[]>).Document[0] as Record<string, unknown[]>)
+                : ((kml as Record<string, unknown>).Document as Record<string, unknown[]>);
 
               resolve({
-                name: document?.name?.[0] || 'KML Track',
-                description: document?.description?.[0],
+                name: (document?.name?.[0] as string) || 'KML Track',
+                description: (document?.description?.[0] as string) || undefined,
                 trackPoints,
                 photos,
                 metadata: {
@@ -920,8 +923,8 @@ class GenericGPXParser extends BaseGPXParser {
     const waypoints = this.parseWaypoints(gpxObject);
 
     return {
-      name: (gpxObject as Record<string, unknown>).metadata?.name?.[0] ||
-            (gpxObject as Record<string, unknown>).trk?.[0]?.name || 'Unknown Track',
+      name: ((gpxObject as Record<string, Record<string, unknown[]>>).metadata?.name?.[0] as string) ||
+            ((gpxObject as Record<string, unknown[]>).trk?.[0] as Record<string, unknown>)?.name as string || 'Unknown Track',
       trackPoints: [...trackPoints, ...waypoints],
       photos: [],
       metadata: {
@@ -966,9 +969,9 @@ class TrackDataParserFactory {
       throw new Error('Content must be a string');
     }
 
-    // 检查是否是 KML 文件
-    const _isKML = content.includes('<kml');
-    const _isGPX = content.includes('<gpx');
+    // 检查是否是 KML 或 GPX 文件
+    content.includes('<kml');
+    content.includes('<gpx');
 
     // 找到最匹配的解析器
     let bestParser: TrackDataParser | null = null;
@@ -1013,11 +1016,8 @@ class TrackDataParserFactory {
 export class FootprintsService implements IFootprintsService {
   private parserFactory = new TrackDataParserFactory();
   private storageService: IStorageService;
-  private cacheManager: ICacheManager;
-
-  constructor(storageService: IStorageService, cacheManager: ICacheManager) {
+  constructor(storageService: IStorageService) {
     this.storageService = storageService;
-    this.cacheManager = cacheManager;
   }
 
   // ===============================

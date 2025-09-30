@@ -72,7 +72,7 @@ export function obsidianHighlightsPlugin(options: ObsidianHighlightsOptions = {}
               children: [{ type: 'text', value: part.value }],
               data: {
                 hProperties: {
-                  className: [opts.className]
+                  className: [opts.className || 'highlight']
                 }
               }
             };

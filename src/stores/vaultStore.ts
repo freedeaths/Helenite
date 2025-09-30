@@ -6,64 +6,11 @@ import { create } from 'zustand';
 import type {
   VaultState,
   UIState,
-  RouteState,
-  VaultInfo,
-  FileTree,
-  TagData,
-  GraphData
+  RouteState
 } from '../types/vaultTypes.js';
-import { navigateToFile as routeNavigateToFile, navigateToWelcome as routeNavigateToWelcome, navigateToGlobalGraph as routeNavigateToGlobalGraph } from '../hooks/routeUtils';
-
-interface VaultStatistics {
-  fileCount: number;
-  totalSize: number;
-  lastModified: Date;
-}
-
-interface HealthCheckResult {
-  status: 'healthy' | 'unhealthy';
-  message?: string;
-}
-
-interface DocumentInfo {
-  path: string;
-  size: number;
-  lastModified: Date;
-  metadata?: Record<string, unknown>;
-}
-
-interface SearchOptions {
-  limit?: number;
-  fuzzy?: boolean;
-  caseSensitive?: boolean;
-}
-
-interface SearchResult {
-  path: string;
-  content: string;
-  score?: number;
-}
-
-interface LocalGraphOptions {
-  depth?: number;
-  includeAttachments?: boolean;
-}
-
-// 通用的 Vault 服务接口（兼容旧的 VaultService 和新的 VaultAPI）
-interface IVaultService {
-  getVaultInfo(): Promise<VaultInfo>;
-  getVaultStatistics(): Promise<VaultStatistics>;
-  healthCheck(): Promise<HealthCheckResult>;
-  getDocumentContent(path: string): Promise<string>;
-  getDocumentInfo(path: string): Promise<DocumentInfo>;
-  getFileTree(): Promise<FileTree[]>;
-  search(query: string, options?: SearchOptions): Promise<SearchResult[]>;
-  searchByTag(tagName: string): Promise<SearchResult[]>;
-  getAllTags(): Promise<TagData[]>;
-  getFilesByTag(tag: string): Promise<string[]>;
-  getGlobalGraph(): Promise<GraphData>;
-  getLocalGraph(centerPath: string, options?: LocalGraphOptions): Promise<GraphData>;
-}
+import type { IVaultService } from '../services/interfaces/IVaultService.js';
+import { navigateToFile as routeNavigateToFile, navigateToGlobalGraph as routeNavigateToGlobalGraph } from '../hooks/routeUtils';
+import { getVaultConfig } from '../config/vaultConfig.js';
 
 // 组合的应用状态
 interface AppState extends VaultState, UIState, RouteState {
@@ -348,9 +295,9 @@ export const useVaultStore = create<AppState>((set, get) => ({
   },
 
   navigateToWelcome: () => {
-    // 使用原版路由工具函数更新 URL 哈希到 welcome
-    // 这样会触发 hashchange 事件，然后 useNewHashRouter 会处理状态更新
-    routeNavigateToWelcome();
+    // 导航到配置的首页文件，与桌面端保持一致
+    const config = getVaultConfig();
+    routeNavigateToFile(config.indexFile);
   },
 
   // 错误处理

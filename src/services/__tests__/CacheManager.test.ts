@@ -7,6 +7,7 @@ import 'fake-indexeddb/auto';
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CacheManager, initializeCacheManager, disposeCacheManager } from '../CacheManager.js';
+import type { IStorageService } from '../interfaces/IStorageService.js';
 
 // Mock StorageService 用于测试
 class MockStorageService implements IStorageService {
@@ -357,7 +358,7 @@ describe('CacheManager', () => {
       const cacheConfig = {
         getData: {
           ttl: 60000,
-          keyGenerator: (id: string) => `data:${id}`
+          keyGenerator: (...args: unknown[]) => `data:${args[0]}`
         }
       };
 

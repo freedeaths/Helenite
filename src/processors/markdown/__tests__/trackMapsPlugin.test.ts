@@ -7,13 +7,18 @@ import { describe, it, expect } from 'vitest';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import type { Node } from 'mdast';
-import { trackMapsPlugin } from '../plugins/remark/trackMapsPlugin.js';
+import { trackMapsPlugin, type TrackData } from '../plugins/remark/trackMapsPlugin.js';
+
+// 扩展 Node 类型以包含 trackData 属性
+interface TrackNode extends Node {
+  trackData?: TrackData;
+}
 
 describe('trackMapsPlugin', () => {
   const createProcessor = () => {
     return unified()
       .use(remarkParse)
-      .use(trackMapsPlugin, { baseUrl: '/test' });
+      .use(trackMapsPlugin, true);
   };
 
   describe('GPX 代码块', () => {
@@ -34,11 +39,11 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.type).toBe('single-track');
-      expect(trackNode.trackData.format).toBe('gpx');
-      expect(trackNode.trackData.source).toBe('inline');
-      expect(trackNode.trackData.content).toContain('<gpx>');
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.type).toBe('single-track');
+      expect(trackNode.trackData?.format).toBe('gpx');
+      expect(trackNode.trackData?.source).toBe('inline');
+      expect(trackNode.trackData?.content).toContain('<gpx>');
     });
 
     it('should process inline KML code block', () => {
@@ -55,9 +60,9 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.format).toBe('kml');
-      expect(trackNode.trackData.content).toContain('<kml>');
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.format).toBe('kml');
+      expect(trackNode.trackData?.content).toContain('<kml>');
     });
   });
 
@@ -72,11 +77,11 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.type).toBe('single-track');
-      expect(trackNode.trackData.format).toBe('gpx');
-      expect(trackNode.trackData.source).toBe('file');
-      expect(trackNode.trackData.filePath).toBe('hokkaido-trip.gpx');
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.type).toBe('single-track');
+      expect(trackNode.trackData?.format).toBe('gpx');
+      expect(trackNode.trackData?.source).toBe('file');
+      expect(trackNode.trackData?.filePath).toBe('hokkaido-trip.gpx');
     });
 
     it('should process KML file link [[]]', () => {
@@ -89,9 +94,9 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.format).toBe('kml');
-      expect(trackNode.trackData.filePath).toBe('city-walk.kml');
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.format).toBe('kml');
+      expect(trackNode.trackData?.filePath).toBe('city-walk.kml');
     });
 
     it('should process multiple file references in one paragraph', () => {
@@ -104,9 +109,9 @@ describe('trackMapsPlugin', () => {
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(3);
       
-      expect(trackMapNodes[0].trackData.filePath).toBe('day1.gpx');
-      expect(trackMapNodes[1].trackData.filePath).toBe('day2.kml');
-      expect(trackMapNodes[2].trackData.filePath).toBe('day3.gpx');
+      expect((trackMapNodes[0] as TrackNode).trackData?.filePath).toBe('day1.gpx');
+      expect((trackMapNodes[1] as TrackNode).trackData?.filePath).toBe('day2.kml');
+      expect((trackMapNodes[2] as TrackNode).trackData?.filePath).toBe('day3.gpx');
     });
   });
 
@@ -126,11 +131,11 @@ zoom: 12
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.type).toBe('single-track');
-      expect(trackNode.trackData.format).toBe('leaflet');
-      expect(trackNode.trackData.tracks).toHaveLength(1);
-      expect(trackNode.trackData.tracks[0].filePath).toBe('single-track.gpx');
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.type).toBe('single-track');
+      expect(trackNode.trackData?.format).toBe('leaflet');
+      expect(trackNode.trackData?.tracks).toHaveLength(1);
+      expect(trackNode.trackData?.tracks?.[0]?.filePath).toBe('single-track.gpx');
     });
 
     it('should process leaflet with multiple GPX files', () => {
@@ -151,15 +156,15 @@ zoom: 10
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
       
-      const trackNode = trackMapNodes[0] as Node & { trackData: unknown };
-      expect(trackNode.trackData.type).toBe('multi-track');
-      expect(trackNode.trackData.format).toBe('leaflet');
-      expect(trackNode.trackData.tracks).toHaveLength(3);
+      const trackNode = trackMapNodes[0] as TrackNode;
+      expect(trackNode.trackData?.type).toBe('multi-track');
+      expect(trackNode.trackData?.format).toBe('leaflet');
+      expect(trackNode.trackData?.tracks).toHaveLength(3);
       
-      expect(trackNode.trackData.tracks[0].filePath).toBe('track1.gpx');
-      expect(trackNode.trackData.tracks[1].filePath).toBe('track2.gpx');
-      expect(trackNode.trackData.tracks[2].filePath).toBe('track3.kml');
-      expect(trackNode.trackData.tracks[2].format).toBe('kml');
+      expect(trackNode.trackData?.tracks?.[0]?.filePath).toBe('track1.gpx');
+      expect(trackNode.trackData?.tracks?.[1]?.filePath).toBe('track2.gpx');
+      expect(trackNode.trackData?.tracks?.[2]?.filePath).toBe('track3.kml');
+      expect(trackNode.trackData?.tracks?.[2].format).toBe('kml');
     });
 
     it('should handle invalid leaflet YAML gracefully', () => {

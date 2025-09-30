@@ -325,7 +325,7 @@ describe('MetadataService', () => {
       });
 
       // Should fetch new metadata
-      const _newMetadata = await metadataService.getMetadata();
+      await metadataService.getMetadata();
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenLastCalledWith('/vaults/Publish/.obsidian/plugins/metadata-extractor/metadata.json');
     });

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVaultService } from '../../hooks/useVaultService.js';
+import type { UnifiedSearchResult } from '../../types/vaultTypes';
 
 /**
  * 新架构搜索面板组件 - 基于 VaultService 的数据访问
@@ -8,7 +9,7 @@ import { useVaultService } from '../../hooks/useVaultService.js';
 export function SearchPanel() {
   const { vaultService } = useVaultService();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Record<string, unknown>[]>([]);
+  const [searchResults, setSearchResults] = useState<UnifiedSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<'content' | 'tags'>('content');
 
@@ -17,20 +18,23 @@ export function SearchPanel() {
 
     setIsSearching(true);
     try {
-      // TODO: 实现真实的搜索功能
-      // console.log('NewSearchPanel: 执行搜索', { query: searchQuery, type: searchType });
+      let results: UnifiedSearchResult[];
 
-      // 模拟搜索结果
-      setSearchResults([
-        {
-          file: 'Welcome.md',
-          matches: [
-            { line: 1, content: `This contains ${searchQuery}`, highlighted: `This contains <mark>${searchQuery}</mark>` }
-          ]
-        }
-      ]);
+      if (searchType === 'content') {
+        // 内容搜索
+        results = await vaultService.search(searchQuery, {
+          type: 'content',
+          limit: 20
+        });
+      } else {
+        // 标签搜索
+        results = await vaultService.searchByTag(searchQuery);
+      }
+
+      setSearchResults(results);
     } catch {
       // console.error('NewSearchPanel: 搜索失败', error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -41,6 +45,36 @@ export function SearchPanel() {
       handleSearch();
     }
   };
+
+  // Handle tag search events from clickable tags in markdown content
+  useEffect(() => {
+    const handleTagSearch = (event: CustomEvent<{ tag: string }>) => {
+      const { tag } = event.detail;
+      setSearchQuery(tag);
+      setSearchType('tags');
+
+      // Perform the search immediately
+      if (vaultService) {
+        setIsSearching(true);
+        vaultService.searchByTag(tag)
+          .then(results => {
+            setSearchResults(results);
+          })
+          .catch(() => {
+            setSearchResults([]);
+          })
+          .finally(() => {
+            setIsSearching(false);
+          });
+      }
+    };
+
+    window.addEventListener('searchByTag', handleTagSearch as EventListener);
+
+    return () => {
+      window.removeEventListener('searchByTag', handleTagSearch as EventListener);
+    };
+  }, [vaultService]);
 
   return (
     <div className="h-full flex flex-col space-y-3">
@@ -100,12 +134,15 @@ export function SearchPanel() {
                 className="p-2 bg-[var(--background-modifier-hover)] rounded hover:bg-[var(--background-modifier-border)] cursor-pointer"
               >
                 <div className="text-sm font-medium text-[var(--text-normal)] mb-1">
-                  📄 {result.file}
+                  📄 {result.document?.title || result.document?.path?.split('/').pop() || 'Unknown'}
                 </div>
-                {result.matches.map((match: Record<string, unknown>, matchIndex: number) => (
+                <div className="text-xs text-[var(--text-muted)] mb-1">
+                  路径: {result.document?.path}
+                </div>
+                {result.matches?.map((match, matchIndex: number) => (
                   <div key={matchIndex} className="text-xs text-[var(--text-muted)]">
                     <span className="mr-2">第 {match.line} 行:</span>
-                    <span dangerouslySetInnerHTML={{ __html: match.highlighted }} />
+                    <span dangerouslySetInnerHTML={{ __html: match.context || match.value || '' }} />
                   </div>
                 ))}
               </div>

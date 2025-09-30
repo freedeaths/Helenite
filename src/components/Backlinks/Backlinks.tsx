@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useVaultStore } from '../../stores/vaultStore.js';
 
 interface BacklinkItem {
-  fileName: string;
-  link: string;
-  relativePath: string;
-  context?: string;
+  sourcePath: string;
+  sourceTitle?: string;
+  context: string;
+  line: number;
 }
 
 /**
@@ -17,8 +17,8 @@ export function Backlinks() {
   const [backlinks, setBacklinks] = useState<BacklinkItem[]>([]);
 
   useEffect(() => {
-    if (currentDocument?.backlinks) {
-      setBacklinks(currentDocument.backlinks);
+    if (currentDocument?.metadata?.backlinks) {
+      setBacklinks(currentDocument.metadata.backlinks);
     } else {
       setBacklinks([]);
     }
@@ -28,8 +28,8 @@ export function Backlinks() {
     // console.log('NewBacklinks: 反链点击', backlink);
 
     // TODO: 导航到源文档
-    if (backlink.relativePath) {
-      // console.log('导航到文档:', backlink.relativePath);
+    if (backlink.sourcePath) {
+      // console.log('导航到文档:', backlink.sourcePath);
     }
   };
 
@@ -49,22 +49,22 @@ export function Backlinks() {
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="text-sm font-medium text-[var(--text-normal)] truncate">
-                  📄 {backlink.fileName}
+                  📄 {backlink.sourceTitle || backlink.sourcePath.split('/').pop()?.replace('.md', '') || 'Untitled'}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] flex-shrink-0 ml-2">
                   链接
                 </div>
               </div>
 
-              {backlink.link && (
+              {backlink.context && (
                 <div className="text-xs text-[var(--text-muted)] mb-1">
-                  链接文本: "{backlink.link}"
+                  链接文本: "{backlink.context}"
                 </div>
               )}
 
-              {backlink.relativePath && (
+              {backlink.sourcePath && (
                 <div className="text-xs text-[var(--text-faint)] truncate">
-                  路径: {backlink.relativePath}
+                  路径: {backlink.sourcePath}
                 </div>
               )}
 
@@ -94,7 +94,7 @@ export function Backlinks() {
         </div>
         {backlinks.length > 0 && (
           <div className="mt-1 text-[var(--text-faint)]">
-            来自 {new Set(backlinks.map(b => b.fileName)).size} 个不同文档
+            来自 {new Set(backlinks.map(b => b.sourceTitle || b.sourcePath)).size} 个不同文档
           </div>
         )}
       </div>

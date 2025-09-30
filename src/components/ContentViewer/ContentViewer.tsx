@@ -67,6 +67,10 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
       setError(null);
 
       try {
+        if (!vaultService) {
+          throw new Error('VaultService not initialized');
+        }
+
         // 通过 VaultService 获取文档内容并处理
         const documentContent = await vaultService.getDocumentContent(filePath);
 
@@ -107,7 +111,8 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
         // console.error('NewContentViewer: 加载失败', err);
 
         // 检查是否是文件未找到错误
-        if (err?.type === 'FILE_NOT_FOUND' || err?.message?.includes('File not found')) {
+        const error = err as { type?: string; message?: string };
+        if (error?.type === 'FILE_NOT_FOUND' || error?.message?.includes('File not found')) {
           setError('404');
         } else {
           setError('加载失败');

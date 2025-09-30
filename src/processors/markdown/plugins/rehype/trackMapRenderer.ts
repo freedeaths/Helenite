@@ -18,10 +18,15 @@ export interface TrackMapRendererOptions {
  */
 export function trackMapRenderer() {
   return (tree: HastRoot) => {
-    visit(tree, (node: HastElement) => {
+    visit(tree, 'element', (node: HastElement) => {
       // 查找已转换的 track-map-container div 元素
-      if (node.type !== 'element' || node.tagName !== 'div') return;
-      if (!node.properties?.className?.includes('track-map-container')) return;
+      if (node.tagName !== 'div') return;
+
+      const classNameProp = node.properties?.className;
+      const classNames = Array.isArray(classNameProp) ? classNameProp
+        : typeof classNameProp === 'string' ? [classNameProp] : [];
+
+      if (!classNames.includes('track-map-container')) return;
 
       // 从 data-track-props 属性中提取所有数据
       const trackPropsJson = node.properties?.['data-track-props'];
@@ -34,7 +39,7 @@ export function trackMapRenderer() {
       // 解析存储的数据
       let trackData: unknown;
       try {
-        trackData = JSON.parse(trackPropsJson);
+        trackData = JSON.parse(String(trackPropsJson));
       } catch {
         // console.warn('Failed to parse track props:', error);
         return;
@@ -73,7 +78,7 @@ export function trackMapRenderer() {
 
       // 直接使用 TrackMap 作为组件名
       node.tagName = 'TrackMap';
-      node.properties = componentProps;  // 直接传递 props，不再使用 data-props
+      node.properties = componentProps as Record<string, string | number | boolean | (string | number)[] | null | undefined>;  // 直接传递 props，不再使用 data-props
 
       // 清理 track-map-container 的 data 属性
       delete node.properties['data-track-props'];

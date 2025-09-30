@@ -72,18 +72,18 @@ interface FootprintsData {
 /**
  * Footprints 插件
  */
-export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
+export function footprintsPlugin(_options: FootprintsPluginOptions = {}) {
   let footprintsId = 0;
 
   return (tree: MdastRoot) => {
-    visit(tree, 'code', async (node: Code, index, parent) => {
+    visit(tree, 'code', (node: Code, index, parent) => {
       if (!parent || typeof index !== 'number') return;
-      
+
       // 只处理 footprints 代码块
       if (node.lang?.toLowerCase() !== 'footprints') return;
 
       let config: FootprintsConfig = {};
-      
+
       try {
         config = YAML.parse(node.value) || {};
       } catch {
@@ -91,8 +91,12 @@ export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
         return;
       }
 
-      // 预处理配置，估算数据量
-      const estimatedData = await estimateFootprintsData(config, options.footprintsService);
+      // 预处理配置，估算数据量 - 移除异步操作，在 rehype 阶段处理
+      const estimatedData = {
+        tracksCount: 0,
+        locationsCount: 0,
+        photosCount: 0
+      };
       
       const footprintsData: FootprintsData = {
         id: `footprints-${footprintsId++}`,
@@ -108,84 +112,16 @@ export function footprintsPlugin(options: FootprintsPluginOptions = {}) {
           hProperties: {
             className: ['footprints-map-container'],
             'data-footprints-id': footprintsData.id,
-            'data-estimated-tracks': estimatedData.tracksCount,
-            'data-estimated-locations': estimatedData.locationsCount,
-            'data-estimated-photos': estimatedData.photosCount
+            'data-footprints-config': JSON.stringify(config)
           }
         },
-        footprintsData,
         children: []
-      };
+      } as MdastNode;
     });
   };
 }
 
-/**
- * 估算足迹数据量（用于优化渲染性能）
- */
-async function estimateFootprintsData(
-  config: FootprintsConfig, 
-  footprintsService?: unknown
-): Promise<FootprintsData['estimatedData']> {
-  let tracksCount = 0;
-  let locationsCount = 0;
-  const photosCount = 0;
-  let dateRange: { start: Date; end: Date } | undefined;
-
-  try {
-    // 估算用户输入的城市数量
-    if (config.userInputs?.length) {
-      locationsCount += config.userInputs.length;
-    }
-
-    // 如果有 footprintsService，扫描附件
-    if (footprintsService && config.attachmentsPath) {
-      if (config.includeTracks) {
-        try {
-          const trackFiles = await footprintsService.scanTrackFiles(config.attachmentsPath);
-          tracksCount = trackFiles?.length || 0;
-        } catch {
-          // console.warn('Failed to scan track files:', error);
-        }
-      }
-
-      if (config.includePhotos) {
-        try {
-          // TODO: 扫描照片文件
-          // const photoFiles = await footprintsService.scanPhotoFiles(config.attachmentsPath);
-          // photosCount = photoFiles?.length || 0;
-        } catch {
-          // console.warn('Failed to scan photo files:', error);
-          
-        }
-      }
-    }
-
-    // 处理时间过滤
-    if (config.timeFilter) {
-      try {
-        dateRange = {
-          start: new Date(config.timeFilter.start),
-          end: new Date(config.timeFilter.end)
-        };
-      } catch {
-        // console.warn('Invalid time filter format:', error);
-        
-      }
-    }
-
-  } catch {
-    // console.warn('Failed to estimate footprints data:', error);
-    
-  }
-
-  return {
-    tracksCount,
-    locationsCount,
-    photosCount,
-    dateRange
-  };
-}
+// 已移除未使用的估算函数
 
 // 默认配置
 export const DEFAULT_FOOTPRINTS_CONFIG: Partial<FootprintsConfig> = {
@@ -204,5 +140,4 @@ export const DEFAULT_FOOTPRINTS_CONFIG: Partial<FootprintsConfig> = {
   }
 };
 
-// 导出类型
-export type { FootprintsPluginOptions, FootprintsConfig, FootprintsData };
+// 类型已在文件顶部导出

@@ -5,7 +5,7 @@ interface ResizeHandleProps {
   onResize: (width: number) => void;
   minWidth: number;
   maxWidth: number;
-  sidebarRef: React.RefObject<HTMLDivElement>;
+  sidebarRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function ResizeHandle({ direction, onResize, minWidth, maxWidth, sidebarRef }: ResizeHandleProps) {

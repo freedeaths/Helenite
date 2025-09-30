@@ -8,16 +8,17 @@
  * - 性能和错误处理测试
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { spawn, type ChildProcess } from 'child_process';
 import { FootprintsService } from '../FootprintsService';
 import type { FootprintsConfig } from '../interfaces/IFootprintsService';
 import type { IStorageService } from '../interfaces/IStorageService';
-import type { ICacheManager } from '../interfaces/ICacheManager';
+import type { ReadResult, FileInfo } from '../types/StorageTypes';
 import fetch from 'node-fetch';
 import { promisify } from 'util';
 
 const sleep = promisify(setTimeout);
+
 
 // 简单的 StorageService 实现用于集成测试
 class IntegrationTestStorageService implements IStorageService {
@@ -37,9 +38,18 @@ class IntegrationTestStorageService implements IStorageService {
   }
 
   // 其他方法简单实现
-  async readFileWithInfo(path: string): Promise<{ content: string; info: Record<string, unknown> }> {
+  async readFileWithInfo(path: string): Promise<ReadResult> {
     const content = await this.readFile(path);
-    return { content, info: {} };
+    return {
+      content,
+      info: {
+        path,
+        size: typeof content === 'string' ? content.length : content.byteLength,
+        mimeType: 'text/plain',
+        lastModified: new Date(),
+        exists: true
+      }
+    };
   }
 
   async exists(path: string): Promise<boolean> {
@@ -51,8 +61,14 @@ class IntegrationTestStorageService implements IStorageService {
     }
   }
 
-  async getFileInfo(_path: string): Promise<Record<string, unknown>> {
-    return {};
+  async getFileInfo(path: string): Promise<FileInfo> {
+    return {
+      path,
+      size: 0,
+      mimeType: 'text/plain',
+      lastModified: new Date(),
+      exists: true
+    };
   }
 
   async listFiles(_dirPath: string, _recursive?: boolean): Promise<string[]> {
@@ -104,31 +120,10 @@ class IntegrationTestStorageService implements IStorageService {
   }
 }
 
-// 简单的 CacheManager 实现用于集成测试
-const createMockCacheManager = (): ICacheManager => {
-  return {
-    createCachedStorageService: (service: unknown) => service,
-    createCachedMetadataService: (service: unknown) => service,
-    createCachedFileTreeService: (service: unknown) => service,
-    createCachedSearchService: (service: unknown) => service,
-    createCachedGraphService: (service: unknown) => service,
-    createCachedTagService: (service: unknown) => service,
-    createCachedFootprintsService: (service: unknown) => service,
-    createCachedFrontMatterService: (service: unknown) => service,
-    createCachedExifService: (service: unknown) => service,
-    clearAll: async () => {},
-    getStatistics: async () => ({
-      totalEntries: 0,
-      totalSize: 0,
-      hitRate: 0
-    })
-  } as ICacheManager;
-};
 
 describe('FootprintsService Integration Tests', () => {
   let service: FootprintsService;
   let storageService: IStorageService;
-  let cacheManager: ICacheManager;
   let viteProcess: ChildProcess | null = null;
   const serverUrl = 'http://localhost:5173'; // Vite 默认开发服务器端口
 
@@ -193,8 +188,7 @@ describe('FootprintsService Integration Tests', () => {
 
   beforeEach(() => {
     storageService = new IntegrationTestStorageService();
-    cacheManager = createMockCacheManager();
-    service = new FootprintsService(storageService, cacheManager);
+    service = new FootprintsService(storageService);
   });
 
   // ===============================
@@ -313,7 +307,8 @@ describe('FootprintsService Integration Tests', () => {
       expect(result.locations).toHaveLength(0);
 
       // 验证不同厂商的轨迹都被正确处理
-      const _providers = [...new Set(result.tracks.map(track => track.provider))];
+      const providers = [...new Set(result.tracks.map(track => track.provider))];
+      expect(providers.length).toBeGreaterThan(0);
 
       // 验证每个轨迹都有基本数据
       result.tracks.forEach((track, _index) => {
@@ -507,7 +502,7 @@ describe('FootprintsService Integration Tests', () => {
 
       const originalFetch = global.fetch;
       // Create a mock that returns different content based on the URL
-      global.fetch = vi.fn().mockImplementation((url) => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
         if (url.includes('.gpx')) {
           return Promise.resolve({ ok: true, text: () => Promise.resolve(gpxContent) });
         } else if (url.includes('.kml')) {
@@ -586,7 +581,7 @@ describe('FootprintsService Integration Tests', () => {
 
     it('should maintain service instance integrity', async () => {
       // 测试服务实例在多次操作后的状态
-      const _initialVault = service.getCurrentVault();
+      service.getCurrentVault();
 
       // 执行多种操作
       await service.refreshCache();

@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconLayoutSidebar, IconChevronDown } from '@tabler/icons-react';
 import { ActionIcon } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore.js';

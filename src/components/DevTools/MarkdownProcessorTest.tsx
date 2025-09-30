@@ -3,8 +3,8 @@
  * 用于在不影响现有应用的情况下测试新的处理器
  */
 
-import React, { useState, useCallback } from 'react';
-import { MarkdownProcessor } from '../../processors/markdown/MarkdownProcessor.js';
+import React, { useState, useCallback, useEffect } from 'react';
+import { MarkdownProcessor, type ProcessedMarkdown } from '../../processors/markdown/MarkdownProcessor.js';
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { TestTrackMap } from './TestTrackMap.js';
 import { TrackMap } from '../TrackMap/TrackMap.js';
@@ -169,34 +169,32 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 }) => {
   const { getAPI } = useVaultService();
   const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
-  const [processedResult, setProcessedResult] = useState<unknown>(null);
+  const [processedResult, setProcessedResult] = useState<ProcessedMarkdown | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showRealMaps, setShowRealMaps] = useState(false);
 
   // 创建真实的文件加载服务
   const createRealVaultService = () => {
+    const getRawDocumentContent = async (path: string) => {
+      try {
+        // console.log('📁 Loading file:', path);
+        // 确保路径正确，处理 Attachments/ 前缀
+        let normalizedPath = path;
+        if (!path.startsWith('/') && !path.startsWith('Attachments/')) {
+          normalizedPath = `Attachments/${path}`;
+        }
 
-    return {
-      getRawDocumentContent: async (path: string) => {
-        try {
-          // console.log('📁 Loading file:', path);
-          // 确保路径正确，处理 Attachments/ 前缀
-          let normalizedPath = path;
-          if (!path.startsWith('/') && !path.startsWith('Attachments/')) {
-            normalizedPath = `Attachments/${path}`;
-          }
-
-          // 使用新的 VaultAPI 来获取文件内容
-          const api = await getAPI();
-          const content = await api.getDocumentContent(normalizedPath);
-          // console.log('✅ Loaded file:', path, 'Length:', content.length);
-          return content;
-        } catch (error) {
-          // console.warn('❌ Failed to load file:', path, error);
-          // 返回示例内容作为降级
-          if (path.endsWith('.gpx')) {
-            return `<?xml version="1.0"?>
+        // 使用新的 VaultAPI 来获取文件内容
+        const api = await getAPI();
+        const content = await api.getDocumentContent(normalizedPath);
+        // console.log('✅ Loaded file:', path, 'Length:', content.length);
+        return content;
+      } catch (error) {
+        // console.warn('❌ Failed to load file:', path, error);
+        // 返回示例内容作为降级
+        if (path.endsWith('.gpx')) {
+          return `<?xml version="1.0"?>
 <gpx version="1.1" creator="Helenite-Demo">
   <trk>
     <name>示例轨迹 - ${path}</name>
@@ -210,9 +208,9 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
     </trkseg>
   </trk>
 </gpx>`;
-          }
-          if (path.endsWith('.kml')) {
-            return `<?xml version="1.0" encoding="UTF-8"?>
+        }
+        if (path.endsWith('.kml')) {
+          return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>示例路线 - ${path}</name>
@@ -231,12 +229,15 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
     </Placemark>
   </Document>
 </kml>`;
-          }
-          throw error;
         }
-      },
+        throw error;
+      }
+    };
+
+    return {
+      getRawDocumentContent,
       getDocumentContent: async (path: string) => {
-        return this.getRawDocumentContent(path);
+        return getRawDocumentContent(path);
       }
     };
   };
@@ -377,9 +378,9 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             overflow: 'auto',
             minHeight: 0
           }}>
-            {/* HTML 预览 */}
+            {/* React 组件预览 */}
             <div>
-              <h4>HTML 输出</h4>
+              <h4>React 组件输出</h4>
               <div
                 style={{
                   border: '1px solid #ddd',
@@ -391,8 +392,9 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                   maxWidth: '100%'
                 }}
                 className="devtools-html-output"
-                dangerouslySetInnerHTML={{ __html: processedResult.html }}
-              />
+              >
+                {processedResult.content}
+              </div>
             </div>
 
             {/* Mermaid 图表渲染 */}
@@ -447,7 +449,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
               {processedResult.trackMaps && processedResult.trackMaps.length > 0 ? (
                 <div style={{ maxHeight: '800px', overflow: 'auto' }}>
-                  {processedResult.trackMaps.map((trackData: Record<string, unknown>, index: number) =>
+                  {processedResult.trackMaps.map((trackData, index: number) =>
                     showRealMaps ? (
                       <div key={`real-track-${index}`} style={{ marginBottom: '2rem' }}>
                         <div style={{
@@ -456,30 +458,24 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                           color: '#666',
                           fontWeight: 'bold'
                         }}>
-                          🗺️ {trackData.trackId} ({trackData.trackType}) - {trackData.format} - {trackData.source}
+                          🗺️ {trackData.id} ({trackData.fileType || 'unknown'}) - {trackData.isFile ? 'file' : 'inline'}
                         </div>
                         <TrackMap
-                          trackId={trackData.trackId || `track-${index}`}
-                          trackType={trackData.trackType}
-                          format={trackData.format}
-                          source={trackData.source}
-                          trackData={trackData.trackData}
-                          trackFile={trackData.trackFile}
-                          config={trackData.config}
-                          trackFilesJson={trackData.trackFilesJson}
+                          trackId={trackData.id}
+                          trackType={trackData.fileType === 'kml' ? 'single-track' : 'single-track'}
+                          config={{}}
                         />
                       </div>
                     ) : (
                       <TestTrackMap
                         key={`test-track-${index}`}
-                        trackId={trackData.trackId || `track-${index}`}
-                        trackType={trackData.trackType}
-                        format={trackData.format}
-                        source={trackData.source}
-                        trackData={trackData.trackData}
-                        trackFile={trackData.trackFile}
-                        tracks={trackData.tracks}
-                        config={trackData.config}
+                        trackId={trackData.id}
+                        trackType={trackData.fileType === 'kml' ? 'single-track' : 'single-track'}
+                        format={trackData.fileType === 'kml' ? 'kml' : 'gpx'}
+                        trackData={trackData.code}
+                        trackFile={trackData.isFile ? trackData.code : undefined}
+                        tracks={[]}
+                        config={{}}
                         {...trackData}
                       />
                     )

@@ -4,7 +4,8 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StorageService } from '../infra/StorageService.js';
-import { StorageConfig, StorageError, StorageErrorType } from '../types/StorageTypes.js';
+import type { StorageConfig } from '../types/StorageTypes.js';
+import { StorageError, StorageErrorType } from '../types/StorageTypes.js';
 
 // Mock fetch
 const mockFetch = vi.fn();
@@ -213,7 +214,7 @@ describe('StorageService', () => {
     });
 
     test('listFiles - 在非本地静态存储应该抛出错误', async () => {
-      await expect(storageService.listFiles('/docs'))
+      await expect(storageService.listFiles())
         .rejects
         .toThrow(StorageError);
     });

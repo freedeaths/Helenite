@@ -13,8 +13,8 @@ export function RightSidebar() {
       <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
         <Button.Group className="w-full">
           <Button
-            onClick={() => setActiveRightPanel('outline')}
-            variant={activeRightPanel === 'outline' ? 'filled' : 'light'}
+            onClick={() => setActiveRightPanel('toc')}
+            variant={activeRightPanel === 'toc' ? 'filled' : 'light'}
             leftSection={<IconList size={16} />}
             size="compact-sm"
             className="flex-1"
@@ -35,7 +35,7 @@ export function RightSidebar() {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden">
-        {activeRightPanel === 'outline' && <TOC />}
+        {activeRightPanel === 'toc' && <TOC />}
         {activeRightPanel === 'graph' && <LocalGraph />}
       </div>
     </div>

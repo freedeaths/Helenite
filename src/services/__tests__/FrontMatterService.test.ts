@@ -11,7 +11,8 @@
  * - 缓存和 Vault 管理
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { FrontMatterService } from '../FrontMatterService.js';
 import type { IMetadataService, MetadataArray, FrontMatter } from '../interfaces/IMetadataService.js';
 

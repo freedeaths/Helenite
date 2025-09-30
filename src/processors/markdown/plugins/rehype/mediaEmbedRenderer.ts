@@ -26,14 +26,15 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   return (tree: HastRoot) => {
-    visit(tree, (node: HastElement, index, parent) => {
+    visit(tree, 'element', (node: HastElement, index, parent) => {
       if (!parent || typeof index !== 'number') return;
 
       // 处理来自 remark 阶段的 HTML 占位符
-      if (node.type === 'element' && node.tagName === 'div' && node.properties?.className) {
-        const className = Array.isArray(node.properties.className)
-          ? node.properties.className.join(' ')
-          : node.properties.className;
+      if (node.tagName === 'div' && node.properties?.className) {
+        const classNameProp = node.properties.className;
+        const className = Array.isArray(classNameProp)
+          ? classNameProp.join(' ')
+          : typeof classNameProp === 'string' ? classNameProp : '';
 
         // 处理 PDF 嵌入占位符
         if (className.includes('pdf-embed-placeholder')) {

@@ -25,6 +25,11 @@ export interface FileTreeNode {
 }
 
 /**
+ * FileTree 类型别名，保持向后兼容
+ */
+export type FileTree = FileTreeNode;
+
+/**
  * 文件节点元数据（简化版，专注于文件树显示需要的信息）
  */
 export interface FileNodeMetadata {

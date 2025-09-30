@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
-import { LatLngBounds, LatLngTuple } from 'leaflet';
+import { LatLngBounds, type LatLngTuple } from 'leaflet';
 import type { IFootprintsService, FootprintsData } from '../../services/interfaces/IFootprintsService.js';
 import { useVaultService } from '../../hooks/useVaultService.js';
 
@@ -15,7 +15,7 @@ import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet default markers
 import L from 'leaflet';
-delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -248,7 +248,7 @@ export const TrackMap: React.FC<TrackMapProps> = ({
       try {
         const api = await getAPI();
         // 使用 vault API 中的 footprints service
-        setFootprintsService(api.services.footprints);
+        setFootprintsService(api.services.footprints as unknown as IFootprintsService);
       } catch {
         // console.error('Failed to initialize FootprintsService:', error);
       }

@@ -77,7 +77,7 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
       if (parts.length > 1) {
         const newNodes: MdastNode[] = parts.map(part => {
           if (part.type === 'text') {
-            return { type: 'text', value: part.value };
+            return { type: 'text', value: part.value } as MdastNode;
           } else {
             // Keep as text node but mark it with data for rehype processing
             return {
@@ -90,7 +90,7 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
                   'data-tag': part.value.slice(1)
                 }
               }
-            };
+            } as MdastNode;
           }
         });
 

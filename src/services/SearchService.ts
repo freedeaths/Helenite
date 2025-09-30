@@ -19,7 +19,15 @@ import type { SearchResult, SearchMatch } from './interfaces/ISearchAPI.js';
 // ===============================
 
 export interface SearchOptions {
+  /** 是否包含内容搜索 */
+  includeContent?: boolean;
+  /** 文件类型过滤 */
+  fileTypes?: string[];
+  /** 标签过滤 */
+  tags?: string[];
   /** 最大结果数量 */
+  limit?: number;
+  /** 最大结果数量（向后兼容） */
   maxResults?: number;
   /** 每个文件的最大匹配数 */
   maxMatchesPerFile?: number;
@@ -114,8 +122,6 @@ export class SearchService {
    */
   async searchContent(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
-      const _startTime = Date.now();
-
       // 检查缓存
       const cacheKey = this.getCacheKey('content', query, options);
       if (this.searchCache.has(cacheKey)) {
@@ -124,6 +130,11 @@ export class SearchService {
 
       // 获取所有文件的元数据
       const metadata = await this.metadataService.getMetadata();
+      if (!metadata) {
+        this.searchCache.set(cacheKey, []);
+        return [];
+      }
+
       const results: SearchResult[] = [];
 
       for (const fileInfo of metadata) {
@@ -182,8 +193,6 @@ export class SearchService {
    */
   async searchByTag(tag: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     try {
-      const _startTime = Date.now();
-
       // 检查缓存
       const cacheKey = this.getCacheKey('tag', tag, options);
       if (this.searchCache.has(cacheKey)) {
@@ -193,8 +202,14 @@ export class SearchService {
       // 移除 # 前缀进行搜索
       const tagName = tag.startsWith('#') ? tag.substring(1) : tag;
       const metadata = await this.metadataService.getMetadata();
+      if (!metadata) {
+        this.searchCache.set(cacheKey, []);
+        return [];
+      }
+
       const results: SearchResult[] = [];
 
+      // 只从 metadata 中查找包含指定标签的文件，不搜索文件内容
       for (const fileInfo of metadata) {
         try {
           const fileName = this.getFileNameWithoutExtension(fileInfo.relativePath);
@@ -205,9 +220,9 @@ export class SearchService {
             continue;
           }
 
-          // 检查文件是否包含标签
-          const fileTags = await this.metadataService.getFileMetadata(relativePath);
-          if (fileTags?.tags && fileTags.tags.includes(tagName)) {
+          // 只检查 metadata 中的标签，不搜索文件内容
+          const fileTags = fileInfo.tags || [];
+          if (fileTags.includes(tagName)) {
             const matches: SearchMatch[] = [{
               content: `Tag: #${tagName}`,
               highlighted: `Tag: <span class="search-result-file-matched-text">#${tagName}</span>`,
@@ -219,26 +234,6 @@ export class SearchService {
               fileName,
               matches,
               matchCount: 1
-            });
-            continue;
-          }
-
-          // 如果元数据中没有，尝试从文件内容搜索标签
-          let content = await this.getFileContent(relativePath);
-          content = this.processFrontmatterForTagSearch(content);
-
-          if (options.includeFilePath !== false) {
-            content = content + '\n' + relativePath;
-          }
-
-          const matches = this.findMatchesInContent(content, tagName, options);
-          if (matches.length > 0) {
-            const maxMatches = options.maxMatchesPerFile || 10;
-            results.push({
-              filePath: relativePath,
-              fileName,
-              matches: matches.slice(0, maxMatches),
-              matchCount: matches.length
             });
           }
         } catch {
@@ -275,8 +270,10 @@ export class SearchService {
       // 统计文件夹分布
       const folderMap = new Map<string, number>();
       for (const result of results) {
-        const folder = this.getFolderFromPath(result.filePath);
-        folderMap.set(folder, (folderMap.get(folder) || 0) + 1);
+        if (result && result.filePath) {
+          const folder = this.getFolderFromPath(result.filePath);
+          folderMap.set(folder, (folderMap.get(folder) || 0) + 1);
+        }
       }
 
       const topFolders = Array.from(folderMap.entries())
@@ -286,8 +283,9 @@ export class SearchService {
 
       const totalMatches = results.reduce((sum, result) => sum + result.matchCount, 0);
 
+      const metadata = await this.metadataService.getMetadata();
       return {
-        totalFiles: (await this.metadataService.getMetadata()).length,
+        totalFiles: metadata ? metadata.length : 0,
         matchedFiles: results.length,
         totalMatches,
         searchTime,
@@ -396,8 +394,9 @@ export class SearchService {
 
     try {
       const content = await this.storageService.readFile(filePath);
-      this.contentCache.set(filePath, content);
-      return content;
+      const stringContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+      this.contentCache.set(filePath, stringContent);
+      return stringContent;
     } catch {
       return '';
     }
@@ -434,25 +433,6 @@ export class SearchService {
     }
   }
 
-  /**
-   * 处理 frontmatter 用于标签搜索
-   */
-  private processFrontmatterForTagSearch(content: string): string {
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    if (!frontmatterMatch) {
-      return content;
-    }
-
-    const frontmatter = frontmatterMatch[1];
-    const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]/s) || frontmatter.match(/tags:(.*)/);
-
-    if (tagsMatch) {
-      const tagText = tagsMatch[1];
-      content = content + '\n' + tagText;
-    }
-
-    return content;
-  }
 
   /**
    * 从文件路径获取文件名（不含扩展名）

@@ -4,14 +4,19 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root, Text, Link, Image, Node, Parent } from 'mdast';
+import type { Root, Text, Link, Image, Node as MdastNode, Parent } from 'mdast';
 import { parseObsidianLink } from '../../utils/obsidianLinkUtils.js';
 import { VAULT_PATH } from '../../../../config/vaultConfig.js';
+
+interface FileMetadata {
+  fileName?: string;
+  relativePath?: string;
+}
 
 export interface ObsidianLinksPluginOptions {
   baseUrl?: string;
   currentFilePath?: string;
-  metadata?: unknown[]; // Array of file metadata for path resolution
+  metadata?: FileMetadata[]; // Array of file metadata for path resolution
 }
 
 interface ParsedLink {
@@ -31,8 +36,8 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       if (!parent || typeof index !== 'number') return;
 
       const children = node.children;
-      const newNodes: Node[] = [];
-      let currentParagraphChildren: Node[] = [];
+      const newNodes: MdastNode[] = [];
+      let currentParagraphChildren: MdastNode[] = [];
 
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
@@ -56,7 +61,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                   currentParagraphChildren.push({
                     type: 'text',
                     value: beforeText
-                  });
+                  } as MdastNode);
                 }
               }
 
@@ -73,7 +78,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                       newNodes.push({
                         type: 'paragraph',
                         children: [...currentParagraphChildren]
-                      });
+                      } as MdastNode);
                       currentParagraphChildren = [];
                     }
 
@@ -95,7 +100,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                 currentParagraphChildren.push({
                   type: 'text',
                   value: match[0]
-                });
+                } as MdastNode);
               }
 
               lastIndex = matchEnd;
@@ -108,7 +113,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                 currentParagraphChildren.push({
                   type: 'text',
                   value: remainingText
-                });
+                } as MdastNode);
               }
             }
           } else {
@@ -126,30 +131,26 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
         newNodes.push({
           type: 'paragraph',
           children: currentParagraphChildren
-        });
+        } as MdastNode);
       }
 
       // 检查是否需要替换段落
       let shouldReplace = false;
-      let _reason = '';
 
       if (newNodes.length > 1) {
         shouldReplace = true;
-        _reason = 'multiple nodes';
       } else if (newNodes.length === 1 && newNodes[0].type !== 'paragraph') {
         shouldReplace = true;
-        _reason = 'non-paragraph node';
       } else if (newNodes.length === 1 && newNodes[0].type === 'paragraph') {
         // 检查段落是否包含图片节点，如果包含则需要替换以正确渲染
         const hasImages = hasImageNodes(newNodes[0]);
         if (hasImages) {
           shouldReplace = true;
-          _reason = 'paragraph contains images';
         }
       }
 
       if (shouldReplace) {
-        parent.children.splice(index, 1, ...newNodes);
+        (parent.children as MdastNode[]).splice(index, 1, ...newNodes);
         return index + newNodes.length; // 跳过新插入的节点
       }
     });
@@ -159,7 +160,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       node: Text;
       parent: Parent;
       index: number;
-      newNodes: Node[];
+      newNodes: MdastNode[];
     }> = [];
 
     visit(tree, 'text', (node: Text, index, parent) => {
@@ -175,7 +176,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       if (matches.length === 0) return;
 
       // 处理非段落中的链接（标题、列表项等）
-      const newNodes: Node[] = [];
+      const newNodes: MdastNode[] = [];
       let lastIndex = 0;
 
       matches.forEach(match => {
@@ -189,7 +190,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
             newNodes.push({
               type: 'text',
               value: beforeText
-            });
+            } as MdastNode);
           }
         }
 
@@ -204,7 +205,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           newNodes.push({
             type: 'text',
             value: match[0]
-          });
+          } as MdastNode);
         }
 
         lastIndex = matchEnd;
@@ -217,7 +218,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           newNodes.push({
             type: 'text',
             value: remainingText
-          });
+          } as MdastNode);
         }
       }
 
@@ -234,7 +235,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 
     // 执行替换（从后往前，避免索引错乱）
     replacements.reverse().forEach(({ parent, index, newNodes }) => {
-      parent.children.splice(index, 1, ...newNodes);
+      (parent.children as MdastNode[]).splice(index, 1, ...newNodes);
     });
   };
 }
@@ -242,12 +243,12 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 /**
  * 检查节点是否包含图片
  */
-function hasImageNodes(node: Node & {type: string; children?: Node[]}): boolean {
+function hasImageNodes(node: MdastNode & {type: string; children?: MdastNode[]}): boolean {
   if (node.type === 'image') {
     return true;
   }
   if (node.children) {
-    return node.children.some((child: Node & {type: string; children?: Node[]}) => hasImageNodes(child));
+    return node.children.some((child: MdastNode & {type: string; children?: MdastNode[]}) => hasImageNodes(child));
   }
   return false;
 }
@@ -311,7 +312,7 @@ function createLinkNode(parsedLink: ParsedLink, options: ObsidianLinksPluginOpti
  * 智能的路径构造函数
  * 优先使用 metadata.json 查找文件，降级到直接路径构造，支持相对路径解析
  */
-function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: unknown[]): string {
+function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: FileMetadata[]): string {
   let filePath = linkPath.trim();
 
   // 第一步：尝试使用 metadata.json 查找文件
@@ -330,7 +331,7 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
              itemRelativePath === `${targetFileName}.md`; // 完整路径匹配
     });
 
-    if (matchedFile) {
+    if (matchedFile && matchedFile.relativePath) {
       const resolvedPath = `/${matchedFile.relativePath}`;
       return resolvedPath;
     }

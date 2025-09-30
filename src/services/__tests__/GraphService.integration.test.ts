@@ -108,7 +108,7 @@ describe('GraphService Integration Tests', () => {
   describe('Real Data Graph Construction', () => {
     it('should build global graph from real metadata', async () => {
       // 调试：检查 GraphService 使用的数据源
-      const _metadata = await metadataService.getMetadata();
+      await metadataService.getMetadata();
 
       const graph = await graphService.getGlobalGraph();
 
@@ -450,24 +450,24 @@ describe('GraphService Integration Tests', () => {
     it('should perform complex graph analysis workflow', async () => {
 
       // 1. 获取全局统计
-      const _stats = await graphService.getGraphStats();
+      await graphService.getGraphStats();
 
       // 2. 找到最连接的节点
       const hubs = await graphService.getMostConnectedNodes(3);
 
       // 3. 分析最连接节点的连通性
       if (hubs.length > 0) {
-        const _hubConnectivity = await graphService.analyzeNodeConnectivity(hubs[0].id);
+        await graphService.analyzeNodeConnectivity(hubs[0].id);
 
         // 4. 获取该节点的邻居
-        const _neighbors = await graphService.getNodeNeighbors(hubs[0].id, 2);
+        await graphService.getNodeNeighbors(hubs[0].id, 2);
       }
 
       // 5. 获取所有标签并过滤其中一个
       const allTags = await graphService.getAllTagNodes();
       if (allTags.length > 0) {
         const tagName = allTags[0].label.replace('#', '');
-        const _tagGraph = await graphService.filterByTag(tagName);
+        await graphService.filterByTag(tagName);
       }
 
     });

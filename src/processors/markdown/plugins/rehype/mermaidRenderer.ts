@@ -7,7 +7,12 @@
 import { visit } from 'unist-util-visit';
 import type { Root as HastRoot, Element as HastElement, Node as HastNode } from 'hast';
 import type { VFile } from 'vfile';
-import type { MermaidData } from '../remark/mermaidPlugin.js';
+// MermaidData 类型定义
+interface MermaidData {
+  id: string;
+  code: string;
+  placeholder: string;
+}
 
 /**
  * Mermaid Renderer 插件
@@ -15,13 +20,14 @@ import type { MermaidData } from '../remark/mermaidPlugin.js';
 export function mermaidRenderer() {
   return (tree: HastRoot, file: VFile) => {
     // 获取存储的 mermaid 数据
-    const mermaidDiagrams = file.data?.mermaidDiagrams || [];
+    const fileData = file.data as { mermaidDiagrams?: MermaidData[] };
+    const mermaidDiagrams = fileData?.mermaidDiagrams || [];
 
     if (mermaidDiagrams.length === 0) return;
 
     // 创建占位符到数据的映射
-    const placeholderMap = new Map();
-    (mermaidDiagrams as MermaidData[]).forEach((diagram) => {
+    const placeholderMap = new Map<string, MermaidData>();
+    mermaidDiagrams.forEach((diagram) => {
       placeholderMap.set(diagram.placeholder, diagram);
     });
 
@@ -30,7 +36,8 @@ export function mermaidRenderer() {
       if (node.type !== 'text') return;
       if (!parent || index === undefined) return;
 
-      const text = node.value;
+      const textNode = node as HastNode & { value?: string };
+      const text = textNode.value;
       if (!text || typeof text !== 'string') return;
 
       // 检查是否包含 Mermaid 占位符
@@ -61,7 +68,8 @@ export function mermaidRenderer() {
         // });
 
         // 替换文本节点为 MermaidDiagram 组件
-        parent.children[index] = mermaidNode;
+        const parentWithChildren = parent as HastNode & { children: HastNode[] };
+        parentWithChildren.children[index] = mermaidNode;
       } else {
         // 如果文本中混合了占位符和其他内容，需要分割处理
         const parts: HastNode[] = [];
@@ -75,7 +83,7 @@ export function mermaidRenderer() {
             parts.push({
               type: 'text',
               value: text.substring(lastIndex, matchIndex)
-            });
+            } as HastNode);
           }
 
           // 添加 Mermaid 组件
@@ -89,7 +97,7 @@ export function mermaidRenderer() {
                 id: diagram.id
               },
               children: []
-            });
+            } as HastElement);
           }
 
           lastIndex = matchIndex + match.length;
@@ -100,11 +108,12 @@ export function mermaidRenderer() {
           parts.push({
             type: 'text',
             value: text.substring(lastIndex)
-          });
+          } as HastNode);
         }
 
         // 替换原节点
-        parent.children.splice(index, 1, ...parts);
+        const parentWithChildren = parent as HastNode & { children: HastNode[] };
+        parentWithChildren.children.splice(index, 1, ...parts);
       }
     });
   };

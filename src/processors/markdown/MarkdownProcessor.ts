@@ -23,7 +23,6 @@ import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { VAULT_PATH } from '../../config/vaultConfig.js';
 import { MermaidDiagram } from '../../components/MermaidDiagram.js';
 import { TrackMap } from '../../components/TrackMap/TrackMap.js';
-import { PDFViewer } from '../../components/PDFViewer/PDFViewer.js';
 import { parseFrontMatter, type FrontMatterData } from './utils/frontMatterParser.js';
 
 // 导入新的插件
@@ -32,7 +31,6 @@ import {
   trackMapRenderer,
   mermaidPlugin,
   mermaidRenderer,
-  type MermaidData,
   obsidianLinksPlugin,
   obsidianTagsPlugin,
   obsidianHighlightsPlugin,
@@ -41,17 +39,22 @@ import {
   externalLinksPlugin,
   mediaEmbedRenderer,
   type TrackMapsPluginOptions,
-  type MermaidPluginOptions,
   type ObsidianLinksPluginOptions,
   type ObsidianTagsOptions,
   type ObsidianHighlightsOptions,
   type ObsidianCalloutsOptions,
-  type TableWrapperOptions,
-  type ExternalLinksOptions
+  type TableWrapperOptions
 } from './plugins/index.js';
 
 // 导入TrackData类型（由于TypeScript模块系统限制，需要单独导入）
 import type { TrackData } from './plugins/remark/trackMapsPlugin.js';
+
+// MermaidData 类型定义
+interface MermaidData {
+  id: string;
+  code: string;
+  placeholder: string;
+}
 
 /**
  * Markdown 处理选项
@@ -96,7 +99,7 @@ export interface ProcessedMarkdown {
   };
   frontMatter: FrontMatterData;
   mermaidDiagrams: Array<{ id: string; code: string; placeholder: string }>;
-  trackMaps: Array<{ id: string; code: string; placeholder: string; isFile?: boolean; fileType?: string }>;
+  trackMaps: TrackData[];
 }
 
 /**
@@ -105,11 +108,15 @@ export interface ProcessedMarkdown {
  */
 export class MarkdownProcessor {
   private processor: Processor;
+  private vaultService: IVaultService;
+  private options: MarkdownProcessingOptions;
 
   constructor(
-    private vaultService: IVaultService,
-    private options: MarkdownProcessingOptions = DEFAULT_OPTIONS
+    vaultService: IVaultService,
+    options: MarkdownProcessingOptions = DEFAULT_OPTIONS
   ) {
+    this.vaultService = vaultService;
+    this.options = options;
     this.processor = this.createProcessor();
   }
 
@@ -154,7 +161,7 @@ export class MarkdownProcessor {
     }
 
     if (mergedOptions.enableMermaid) {
-      processor.use(mermaidPlugin, {} as MermaidPluginOptions);
+      processor.use(mermaidPlugin, {});
     }
 
     // 转换为 HTML AST
@@ -224,7 +231,7 @@ export class MarkdownProcessor {
     processor.use(tableWrapperPlugin, {} as TableWrapperOptions);
 
     // 外部链接处理（为外部链接添加样式和 target="_blank"）
-    processor.use(externalLinksPlugin, {} as ExternalLinksOptions);
+    processor.use(externalLinksPlugin, {});
 
     // 最终渲染为 React 元素
     processor.use(rehypeReact, {
@@ -259,22 +266,30 @@ export class MarkdownProcessor {
           })));
           return React.createElement(React.Suspense, {
             fallback: React.createElement('img', restProps)
-          }, React.createElement(ImageWithZoom, restProps));
+          }, React.createElement(ImageWithZoom, { ...restProps, src: restProps.src || '' }));
         },
         input: (props: React.InputHTMLAttributes<HTMLInputElement>) => {
           const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
           return React.createElement('input', restProps);
         },
         // 处理标签渲染
-        span: (props: React.HTMLAttributes<HTMLSpanElement> & { children?: React.ReactNode }) => {
+        span: (props: React.HTMLAttributes<HTMLSpanElement> & { children?: React.ReactNode; 'data-tag'?: string }) => {
           const { children, className, ...restProps } = props;
+          const tagName = restProps['data-tag'];
           // 检查是否是标签
-          if (className && className.includes('tag')) {
-            // 渲染为非链接的标签
+          if (className && className.includes('tag') && tagName) {
+            // 渲染为可点击的标签
             return React.createElement('span', {
               ...restProps,
-              className,
-              style: { cursor: 'default' }
+              className: `${className} cursor-pointer hover:bg-[var(--background-modifier-hover)] px-1 rounded`,
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault();
+                // 触发标签搜索
+                const tagSearchEvent = new CustomEvent('searchByTag', {
+                  detail: { tag: tagName }
+                });
+                window.dispatchEvent(tagSearchEvent);
+              }
             }, children);
           }
           // 其他 span 元素正常渲染
@@ -376,9 +391,7 @@ export class MarkdownProcessor {
         // 处理 TrackMap 组件 - 直接映射
         TrackMap: TrackMap,
         // 处理 MermaidDiagram 组件 - 直接映射
-        MermaidDiagram: MermaidDiagram,
-        // 处理 PDFViewer 组件 - 直接映射
-        PDFViewer: PDFViewer
+        MermaidDiagram: MermaidDiagram
       }
     });
 
@@ -475,17 +488,17 @@ export class MarkdownProcessor {
   private extractMetadataFromAst(ast: Node, metadata: { headings: Array<{ level: number; text: string; id: string }>; links: Array<{ href: string; text: string }>; tags: string[] }): void {
     const visit = (node: Node & { type?: string; tagName?: string; properties?: Record<string, unknown>; children?: Node[] }) => {
       // 提取标题
-      if (node.type === 'element' && /^h[1-6]$/.test(node.tagName)) {
+      if (node.type === 'element' && node.tagName && /^h[1-6]$/.test(node.tagName)) {
         const level = parseInt(node.tagName.charAt(1));
         const text = this.extractTextFromNode(node);
-        const id = node.properties?.id || text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const id = String(node.properties?.id || '') || text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
         metadata.headings.push({ level, text, id });
       }
 
       // 提取链接
       if (node.type === 'element' && node.tagName === 'a') {
-        const href = node.properties?.href || '';
+        const href = String(node.properties?.href || '');
         const text = this.extractTextFromNode(node);
 
         metadata.links.push({ href, text });
@@ -547,35 +560,6 @@ export class MarkdownProcessor {
     visit(ast);
   }
 
-  /**
-   * 从 AST 中提取 trackMaps 数据
-   */
-  private extractTrackMapsFromAst(ast: Node, trackMaps: TrackData[]): void {
-    const visit = (node: Node & { type?: string; tagName?: string; properties?: Record<string, unknown>; children?: Node[] }) => {
-      if (node.type === 'element' && node.tagName === 'div') {
-        if (node.properties?.className?.includes('track-map-component')) {
-          // 从 data-props 属性中提取 trackMap 数据
-          const propsData = node.properties?.['data-props'];
-          if (propsData) {
-            try {
-              const parsedProps = typeof propsData === 'string' ? JSON.parse(propsData) : propsData;
-              trackMaps.push(parsedProps);
-            } catch {
-              // console.warn('Failed to parse track props:', error);
-              // 静默处理JSON解析错误
-            }
-          }
-        }
-      }
-
-      // 递归遍历子节点
-      if (node.children) {
-        node.children.forEach(visit);
-      }
-    };
-
-    visit(ast);
-  }
 
   /**
    * 快速处理（只生成 React 元素）

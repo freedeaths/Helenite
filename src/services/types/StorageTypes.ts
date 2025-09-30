@@ -57,31 +57,40 @@ export interface ReadOptions {
 }
 
 /** 支持的存储类型 */
-export enum StorageType {
+export const StorageType = {
   /** 本地静态文件服务 (如 Vite dev server, nginx) */
-  LOCAL_STATIC = 'local_static',
+  LOCAL_STATIC: 'local_static',
   /** CDN 存储 */
-  CDN = 'cdn', 
+  CDN: 'cdn',
   /** 远程 HTTP 存储 */
-  REMOTE_HTTP = 'remote_http'
-}
+  REMOTE_HTTP: 'remote_http'
+} as const;
+
+export type StorageType = typeof StorageType[keyof typeof StorageType];
 
 /** 存储错误类型 */
-export enum StorageErrorType {
-  FILE_NOT_FOUND = 'FILE_NOT_FOUND',
-  PERMISSION_DENIED = 'PERMISSION_DENIED',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  TIMEOUT = 'TIMEOUT',
-  INVALID_PATH = 'INVALID_PATH'
-}
+export const StorageErrorType = {
+  FILE_NOT_FOUND: 'FILE_NOT_FOUND',
+  PERMISSION_DENIED: 'PERMISSION_DENIED',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  TIMEOUT: 'TIMEOUT',
+  INVALID_PATH: 'INVALID_PATH'
+} as const;
+
+export type StorageErrorType = typeof StorageErrorType[keyof typeof StorageErrorType];
 
 export class StorageError extends Error {
+  public type: StorageErrorType;
+  public path?: string;
+
   constructor(
     message: string,
-    public type: StorageErrorType,
-    public path?: string
+    type: StorageErrorType,
+    path?: string
   ) {
     super(message);
+    this.type = type;
+    this.path = path;
     this.name = 'StorageError';
   }
 }

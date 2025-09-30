@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useVaultStore } from '../../stores/vaultStore.js';
 import { useUIStore } from '../../stores/uiStore.js';
+import type { TOCHeading } from '../../types/vaultTypes.js';
 
 /**
  * 新架构目录组件 - 完全复制老版本 TOC 功能
@@ -173,12 +174,14 @@ export function TOC() {
       const scrollContainer = findMainContentScrollContainer();
       if (!scrollContainer) return;
 
+      if (!currentDocument?.metadata?.headings) return;
+
       const headings = currentDocument.metadata.headings
-        .map((heading: Record<string, unknown>) => ({
+        .map((heading: TOCHeading) => ({
           ...heading,
           element: document.getElementById(heading.id)
         }))
-        .filter((heading: Record<string, unknown>) => heading.element);
+        .filter((heading) => heading.element);
 
       let currentHeading = '';
       const scrollOffset = 30;
@@ -232,7 +235,7 @@ export function TOC() {
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="space-y-1 text-sm">
-          {currentDocument.metadata.headings.map((heading: Record<string, unknown>, index: number) => {
+          {currentDocument.metadata.headings.map((heading: TOCHeading, index: number) => {
           const indent = (heading.level - 1) * 12; // 12px per level for cleaner look
           const isActive = activeHeadingId === heading.id;
 

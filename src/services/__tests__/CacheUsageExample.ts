@@ -6,7 +6,7 @@
 
 import { CacheManager, initializeCacheManager } from '../CacheManager.js';
 import { StorageService } from '../infra/StorageService.js';
-import { IStorageService } from '../interfaces/IStorageService.js';
+import type { IStorageService } from '../interfaces/IStorageService.js';
 
 // ===============================
 // 1. 基础缓存使用示例
@@ -119,7 +119,7 @@ export function customServiceCacheExample() {
   const searchCacheConfig = {
     search: {
       ttl: 120000,
-      keyGenerator: (query: string) => `search:${query.toLowerCase()}`
+      keyGenerator: (...args: unknown[]) => `search:${(args[0] as string).toLowerCase()}`
     },
     getPopularTags: {
       ttl: 600000,

@@ -20,6 +20,7 @@ import type {
   ExifStatistics
 } from './interfaces/IExifService.js';
 import type { IStorageService } from './interfaces/IStorageService.js';
+import type { FileContent } from './types/StorageTypes.js';
 
 // ===============================
 // 支持的图片格式
@@ -84,18 +85,7 @@ export class ExifService implements IExifService {
       // 方法1: 直接用 Buffer
       if (Buffer.isBuffer(fileContent)) {
         try {
-          rawExif = await exifr.parse(fileContent, {
-            gps: true,
-            exif: true,
-            ifd0: true,
-            ifd1: true,
-            interop: true,
-            makerNote: false,
-            userComment: false,
-            translateKeys: true,
-            translateValues: true,
-            reviveValues: true
-          });
+          rawExif = await exifr.parse(fileContent, true);
         } catch {
           // TODO: 记录错误
         }
@@ -104,18 +94,7 @@ export class ExifService implements IExifService {
       // 方法2: 用 ArrayBuffer（通常在 HTTP 环境中成功）
       if (!rawExif) {
         try {
-          rawExif = await exifr.parse(arrayBuffer, {
-            gps: true,
-            exif: true,
-            ifd0: true,
-            ifd1: true,
-            interop: true,
-            makerNote: false,
-            userComment: false,
-            translateKeys: true,
-            translateValues: true,
-            reviveValues: true
-          });
+          rawExif = await exifr.parse(arrayBuffer, true);
         } catch {
           // TODO: 记录错误
         }
@@ -125,18 +104,7 @@ export class ExifService implements IExifService {
       if (!rawExif) {
         try {
           const uint8Array = new Uint8Array(arrayBuffer);
-          rawExif = await exifr.parse(uint8Array, {
-            gps: true,
-            exif: true,
-            ifd0: true,
-            ifd1: true,
-            interop: true,
-            makerNote: false,
-            userComment: false,
-            translateKeys: true,
-            translateValues: true,
-            reviveValues: true
-          });
+          rawExif = await exifr.parse(uint8Array, true);
         } catch {
           // TODO: 记录错误
         }
@@ -657,9 +625,9 @@ export class ExifService implements IExifService {
    * 字符串转 ArrayBuffer
    */
   /**
-   * 将文件内容转换为 ArrayBuffer（支持 Buffer 和字符串）
+   * 将文件内容转换为 ArrayBuffer（支持 FileContent 类型）
    */
-  private toArrayBuffer(data: string | Buffer): ArrayBuffer {
+  private toArrayBuffer(data: FileContent): ArrayBuffer {
     if (Buffer.isBuffer(data)) {
       // 如果是 Buffer，创建一个新的 ArrayBuffer 来避免共享内存问题
       const arrayBuffer = new ArrayBuffer(data.length);
@@ -668,6 +636,12 @@ export class ExifService implements IExifService {
         view[i] = data[i];
       }
       return arrayBuffer;
+    } else if (data instanceof ArrayBuffer) {
+      // 如果已经是 ArrayBuffer，直接返回
+      return data;
+    } else if (data instanceof Uint8Array) {
+      // 如果是 Uint8Array，转换为 ArrayBuffer
+      return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     } else {
       // 如果是字符串，使用原有的转换逻辑
       const buffer = new ArrayBuffer(data.length);
@@ -679,12 +653,6 @@ export class ExifService implements IExifService {
     }
   }
 
-  /**
-   * @deprecated Use toArrayBuffer instead
-   */
-  private stringToArrayBuffer(str: string): ArrayBuffer {
-    return this.toArrayBuffer(str);
-  }
 
   /**
    * 获取文件扩展名
@@ -703,10 +671,10 @@ export class ExifService implements IExifService {
     }
 
     return {
-      latitude: rawExif.latitude,
-      longitude: rawExif.longitude,
-      altitude: rawExif.GPSAltitude || undefined,
-      accuracy: rawExif.GPSHPositioningError || undefined
+      latitude: rawExif.latitude as number,
+      longitude: rawExif.longitude as number,
+      altitude: (rawExif.GPSAltitude as number) || undefined,
+      accuracy: (rawExif.GPSHPositioningError as number) || undefined
     };
   }
 
@@ -719,10 +687,10 @@ export class ExifService implements IExifService {
     }
 
     return {
-      make: rawExif.Make || undefined,
-      model: rawExif.Model || undefined,
-      lensModel: rawExif.LensModel || undefined,
-      software: rawExif.Software || undefined
+      make: (rawExif.Make as string) || undefined,
+      model: (rawExif.Model as string) || undefined,
+      lensModel: (rawExif.LensModel as string) || undefined,
+      software: (rawExif.Software as string) || undefined
     };
   }
 
@@ -737,14 +705,14 @@ export class ExifService implements IExifService {
     }
 
     return {
-      iso: rawExif.ISO || undefined,
-      aperture: rawExif.FNumber || undefined,
-      shutterSpeed: rawExif.ExposureTime || undefined,
-      focalLength: rawExif.FocalLength || undefined,
-      flash: rawExif.Flash || undefined,
-      whiteBalance: rawExif.WhiteBalance || undefined,
-      meteringMode: rawExif.MeteringMode || undefined,
-      exposureMode: rawExif.ExposureMode || undefined
+      iso: (rawExif.ISO as number) || undefined,
+      aperture: (rawExif.FNumber as number) || undefined,
+      shutterSpeed: (rawExif.ExposureTime as number) || undefined,
+      focalLength: (rawExif.FocalLength as number) || undefined,
+      flash: (rawExif.Flash as string) || undefined,
+      whiteBalance: (rawExif.WhiteBalance as string) || undefined,
+      meteringMode: (rawExif.MeteringMode as string) || undefined,
+      exposureMode: (rawExif.ExposureMode as string) || undefined
     };
   }
 
@@ -764,7 +732,7 @@ export class ExifService implements IExifService {
       dateTime: this.normalizeDate(rawExif.DateTime || rawExif.ModifyDate),
       dateTimeOriginal: this.normalizeDate(rawExif.DateTimeOriginal || rawExif.CreateDate),
       dateTimeDigitized: this.normalizeDate(rawExif.DateTimeDigitized || rawExif.CreateDate),
-      timeZoneOffset: rawExif.OffsetTime || undefined
+      timeZoneOffset: (rawExif.OffsetTime as string) || undefined
     };
   }
 
@@ -814,13 +782,13 @@ export class ExifService implements IExifService {
     }
 
     return {
-      width: rawExif.ImageWidth || rawExif.ExifImageWidth || undefined,
-      height: rawExif.ImageHeight || rawExif.ExifImageHeight || undefined,
-      colorSpace: rawExif.ColorSpace || undefined,
-      orientation: rawExif.Orientation || undefined,
-      xResolution: rawExif.XResolution || undefined,
-      yResolution: rawExif.YResolution || undefined,
-      resolutionUnit: rawExif.ResolutionUnit || undefined
+      width: (rawExif.ImageWidth as number) || (rawExif.ExifImageWidth as number) || undefined,
+      height: (rawExif.ImageHeight as number) || (rawExif.ExifImageHeight as number) || undefined,
+      colorSpace: (rawExif.ColorSpace as string) || undefined,
+      orientation: (rawExif.Orientation as number) || undefined,
+      xResolution: (rawExif.XResolution as number) || undefined,
+      yResolution: (rawExif.YResolution as number) || undefined,
+      resolutionUnit: (rawExif.ResolutionUnit as string) || undefined
     };
   }
 

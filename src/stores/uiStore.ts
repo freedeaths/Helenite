@@ -87,7 +87,7 @@ export const useUIStore = create<UIState>((set) => ({
   activeMobileTab: 'files',
 
   activeLeftPanel: 'files',
-  activeRightPanel: 'outline',
+  activeRightPanel: 'toc',
 
   mainContentView: 'file',
 

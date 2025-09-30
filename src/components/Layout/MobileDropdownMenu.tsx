@@ -7,7 +7,8 @@ import { FileExplorer } from '../FileExplorer/FileExplorer';
 import { TOC } from '../TOC/TOC';
 import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../Tags/TagsPanel';
-import type { FileTree } from '../../services/interfaces/IFileTreeService';
+import { getVaultConfig } from '../../config/vaultConfig';
+import type { FileTree } from '../../types/vaultTypes';
 
 export function MobileDropdownMenu() {
   const {
@@ -19,7 +20,7 @@ export function MobileDropdownMenu() {
     theme,
     setTheme
   } = useUIStore();
-  const { activeFile, fileTree, navigateToFile, navigateToGraph, navigateToWelcome } = useVaultStore();
+  const { activeFile, fileTree, navigateToFile, navigateToGraph } = useVaultStore();
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -72,11 +73,12 @@ export function MobileDropdownMenu() {
 
   // 打开主页
   const goHome = useCallback(() => {
-    // 默认导航到 Welcome 页面，如果有配置可以使用配置的 indexFile
-    navigateToWelcome();
+    // 导航到配置的首页文件，与桌面端保持一致
+    const config = getVaultConfig();
+    navigateToFile(config.indexFile);
     setMainContentView('file');
     setMobileDropdownOpen(false);
-  }, [setMainContentView, setMobileDropdownOpen, navigateToWelcome]);
+  }, [setMainContentView, setMobileDropdownOpen, navigateToFile]);
 
   // 打开全局图谱
   const openGlobalGraph = useCallback(() => {

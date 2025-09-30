@@ -79,6 +79,23 @@ export interface DocumentRef {
   lastModified?: Date;
   /** 文件大小（字节） */
   size?: number;
+  /** 文档标签 */
+  tags?: string[];
+  /** 文档别名 */
+  aliases?: string[];
+  /** 前置属性 */
+  frontmatter?: Record<string, unknown>;
+  /** 标题列表 */
+  headings?: Array<{ level: number; text: string; id: string }>;
+  /** 链接列表 */
+  links?: Array<{ path: string; text: string }>;
+  /** 反向链接 */
+  backlinks?: Array<{
+    sourcePath: string;
+    sourceTitle?: string;
+    context: string;
+    line: number;
+  }>;
 }
 
 // ===============================

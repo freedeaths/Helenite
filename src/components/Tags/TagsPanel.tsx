@@ -3,6 +3,7 @@ import { IconFile, IconX } from '@tabler/icons-react';
 import { ActionIcon } from '@mantine/core';
 import { useVaultStore } from '../../stores/vaultStore.js';
 import { useUIStore } from '../../stores/uiStore.js';
+import type { UnifiedSearchResult } from '../../types/vaultTypes.js';
 
 /**
  * 新架构标签面板 - 完全复制老版本功能
@@ -30,7 +31,7 @@ export function TagsPanel() {
 
       // 转换为带计数的格式
       const tagCounts = tags.map(tagData => {
-        let tagName = tagData.tag || tagData.name || tagData.toString();
+        let tagName = tagData.name || tagData.toString();
         // 移除开头的 # 符号，因为显示时会再加上
         if (tagName.startsWith('#')) {
           tagName = tagName.substring(1);
@@ -72,11 +73,12 @@ export function TagsPanel() {
       }
 
       // 获取包含该标签的文件列表
-      const filePaths = await vaultService.getFilesByTag(tag);
-      // console.log(`📊 NewTagsPanel: 标签 "${tag}" 的文件:`, filePaths);
+      const searchResults = await vaultService.searchByTag(tag);
+      // console.log(`📊 NewTagsPanel: 标签 "${tag}" 的文件:`, searchResults);
 
       // 转换为文件信息数组
-      const fileList = filePaths.map(filePath => {
+      const fileList = searchResults.map((result: UnifiedSearchResult) => {
+        const filePath = result.document?.path || '';
         // 从路径中提取文件名（不含扩展名）
         const fileName = filePath.split('/').pop()?.replace(/\.md$/, '') || filePath;
         return {
@@ -170,7 +172,7 @@ export function TagsPanel() {
                         className={`
                           flex items-center justify-between px-2 py-1 rounded cursor-pointer transition-colors
                           ${isCurrentTag
-                            ? 'bg-[var(--interactive-accent)] text-white hover:bg-[var(--interactive-accent-hover)]'
+                            ? 'bg-[var(--interactive-accent)] text-white hover:bg-[var(--interactive-hover)]'
                             : isExpanded
                             ? 'bg-[var(--background-modifier-hover)] text-[var(--text-normal)]'
                             : 'bg-[var(--background-modifier-border)] text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'

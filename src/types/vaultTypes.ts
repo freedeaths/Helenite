@@ -3,8 +3,9 @@
  * 基于 VaultService 接口的前端类型映射
  */
 
-// 重新导出 VaultService 的核心类型
-export type {
+// 需要导入 IVaultService
+import type {
+  IVaultService,
   VaultInfo,
   VaultStatistics,
   HealthStatus,
@@ -15,9 +16,7 @@ export type {
   LocalGraphOptions
 } from '../services/interfaces/IVaultService.js';
 
-export type {
-  FileTree
-} from '../services/interfaces/IFileTreeService.js';
+import type { FileTree } from '../services/interfaces/IFileTreeService.js';
 
 export type {
   SearchResult
@@ -28,9 +27,21 @@ export type {
   GraphEdge
 } from '../services/interfaces/IGraphService.js';
 
+import type { TagData } from '../services/interfaces/ITagService.js';
+
+// 重新导出所有导入的类型
 export type {
+  VaultInfo,
+  VaultStatistics,
+  HealthStatus,
+  DocumentRef,
+  UnifiedSearchOptions,
+  UnifiedSearchResult,
+  GraphData,
+  LocalGraphOptions,
+  FileTree,
   TagData
-} from '../services/interfaces/ITagService.js';
+};
 
 export type {
   FootprintsData
@@ -54,6 +65,7 @@ export interface UIState {
   // 加载状态
   loading: boolean;
   error: string | null;
+  isLoadingFileTree: boolean;
 }
 
 // 新架构的路由状态
@@ -65,6 +77,12 @@ export interface RouteState {
   anchor?: string;
 }
 
+export interface TOCHeading {
+  id: string;
+  level: number;
+  text: string;
+}
+
 interface DocumentMetadata {
   title?: string;
   tags?: string[];
@@ -72,12 +90,20 @@ interface DocumentMetadata {
   created?: string;
   modified?: string;
   frontmatter?: Record<string, unknown>;
+  // 补全缺失的属性（从 build 错误看到需要的）
+  backlinks?: Array<{
+    sourcePath: string;
+    sourceTitle?: string;
+    context: string;
+    line: number;
+  }>;
+  headings?: TOCHeading[];
 }
 
 // VaultService 状态容器
 export interface VaultState {
   // 服务实例
-  vaultService: unknown; // 抽象服务实例，避免循环依赖
+  vaultService: IVaultService | null;
 
   // 基础数据
   vaultInfo: VaultInfo | null;

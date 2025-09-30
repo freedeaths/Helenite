@@ -22,7 +22,7 @@ describe('Direct EXIF Parsing Tests', () => {
       const rawExif = await exifr.parse(uint8Array, {
         gps: true,
         exif: true,
-        ifd0: true,
+        ifd0: {},
         ifd1: true,
         interop: true,
         makerNote: false,
@@ -58,7 +58,7 @@ describe('Direct EXIF Parsing Tests', () => {
         try {
           const fileBuffer = readFileSync(fullPath);
           const uint8Array = new Uint8Array(fileBuffer);
-          const _rawExif = await exifr.parse(uint8Array);
+          await exifr.parse(uint8Array);
         } catch {
           // TODO: 处理错误
         }

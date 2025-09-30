@@ -1,4 +1,5 @@
 import { IconDice, IconHome, IconSettings, IconMoon, IconSun } from '@tabler/icons-react';
+import type { FileTree } from '../../types/vaultTypes';
 import { LuFolderTree } from "react-icons/lu";
 import { PiGraphFill } from "react-icons/pi";
 import { ActionIcon, Tooltip } from '@mantine/core';
@@ -21,7 +22,7 @@ export function LeftRibbon() {
     fileTree,
     navigateToFile,
     navigateToGraph,
-    currentRoute
+    type
   } = useVaultStore();
 
   const [lastClickedButton, setLastClickedButton] = useState<string>('files');
@@ -34,9 +35,9 @@ export function LeftRibbon() {
   // 监听路由变化，同步按钮状态（用于直接访问 URL 的情况）
   useEffect(() => {
     const handleRouteChange = () => {
-      // console.log('🔄 New Route changed:', currentRoute);
+      // console.log('🔄 New Route changed:', type);
       // 处理图谱路由的特殊情况
-      if (currentRoute?.type === 'graph') {
+      if (type === 'graph') {
         // console.log('🔄 Setting graph button active');
         setLastClickedButton('graph');
       }
@@ -45,7 +46,7 @@ export function LeftRibbon() {
 
     // 初始化时执行一次
     handleRouteChange();
-  }, [currentRoute]);
+  }, [type]);
 
   // 监听 mainContentView 变化，当通过其他方式切换到 globalGraph 时也要同步按钮状态
   useEffect(() => {
@@ -68,10 +69,10 @@ export function LeftRibbon() {
   }, [theme, setTheme]);
 
   // 从文件树中收集所有 markdown 文件
-  const collectMarkdownFiles = (fileNodes: Record<string, unknown>[]): string[] => {
+  const collectMarkdownFiles = (fileNodes: FileTree[]): string[] => {
     const mdFiles: string[] = [];
 
-    const traverse = (nodes: Record<string, unknown>[]) => {
+    const traverse = (nodes: FileTree[]) => {
       for (const node of nodes) {
         if (node.type === 'file' && node.path.endsWith('.md')) {
           mdFiles.push(node.path);

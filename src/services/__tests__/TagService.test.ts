@@ -8,7 +8,8 @@
  * - 降级处理机制
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { TagService } from '../TagService.js';
 import type { IMetadataService, MetadataArray } from '../interfaces/IMetadataService.js';
 import type { IStorageService } from '../interfaces/IStorageService.js';
@@ -20,9 +21,18 @@ import type { IStorageService } from '../interfaces/IStorageService.js';
 const createMockMetadataService = (): IMetadataService => ({
   getMetadata: vi.fn(),
   getFileMetadata: vi.fn(),
-  getAllTags: vi.fn(),
-  searchInMetadata: vi.fn(),
+  getAllFiles: vi.fn(),
+  getFileByName: vi.fn(),
   getFilesByTag: vi.fn(),
+  getAllTags: vi.fn(),
+  getFileLinks: vi.fn(),
+  getFileBacklinks: vi.fn(),
+  getFileHeadings: vi.fn(),
+  getFileAliases: vi.fn(),
+  getFileFrontMatter: vi.fn(),
+  hasFile: vi.fn(),
+  getFilesLinkingTo: vi.fn(),
+  searchInMetadata: vi.fn(),
   refreshCache: vi.fn(),
   getCacheStats: vi.fn(),
   switchVault: vi.fn(),
@@ -31,15 +41,23 @@ const createMockMetadataService = (): IMetadataService => ({
 
 const createMockStorageService = (): IStorageService => ({
   readFile: vi.fn(),
-  writeFile: vi.fn(),
   exists: vi.fn(),
   getFileInfo: vi.fn(),
   listFiles: vi.fn(),
   readFileWithInfo: vi.fn(),
-  deleteFile: vi.fn(),
-  createDirectory: vi.fn(),
-  watchFile: vi.fn(),
-  getDirectoryInfo: vi.fn()
+  normalizePath: vi.fn(),
+  resolvePath: vi.fn(),
+  isValidPath: vi.fn(),
+  getMimeType: vi.fn(),
+  isImageFile: vi.fn(),
+  isTrackFile: vi.fn(),
+  isMarkdownFile: vi.fn(),
+  clearCache: vi.fn(),
+  preloadFiles: vi.fn(),
+  config: { basePath: '', timeout: 5000 },
+  initialize: vi.fn(),
+  dispose: vi.fn(),
+  healthCheck: vi.fn()
 });
 
 // ===============================
@@ -68,26 +86,22 @@ const mockMetadata: MetadataArray = [
   {
     relativePath: 'How-to-Implement.md',
     fileName: 'How-to-Implement',
-    tags: ['tech', 'tutorial'],
-    title: 'Implementation Guide'
+    tags: ['tech', 'tutorial']
   },
   {
     relativePath: 'Japan-Trip.md',
     fileName: 'Japan-Trip',
-    tags: ['travel', 'japan'],
-    title: 'Japan Travel Notes'
+    tags: ['travel', 'japan']
   },
   {
     relativePath: 'React-Guide.md',
     fileName: 'React-Guide',
-    tags: ['tech', 'react'],
-    title: 'React Development Guide'
+    tags: ['tech', 'react']
   },
   {
     relativePath: 'Pasta-Recipe.md',
     fileName: 'Pasta-Recipe',
-    tags: ['cooking'],
-    title: 'Italian Pasta Recipe'
+    tags: ['cooking']
   }
 ];
 
@@ -204,7 +218,7 @@ describe('TagService', () => {
       (mockMetadataService.getMetadata as Mock).mockResolvedValue(mockMetadata);
 
       // Act
-      const _result = await tagService.getAllTags();
+      await tagService.getAllTags();
 
       // Assert
       expect(mockMetadataService.getMetadata).toHaveBeenCalled();

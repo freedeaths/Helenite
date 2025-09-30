@@ -20,11 +20,12 @@ import { ExifService } from '../services/ExifService.js';
 import { CacheManager } from '../services/CacheManager.js';
 
 // 导入类型定义
-import type { FileTree } from '../services/interfaces/IFileTreeService.js';
+import type { FileTree } from '../types/vaultTypes.js';
 import type { TagData } from '../services/interfaces/ITagService.js';
 import type { GraphNode, GraphEdge } from '../services/interfaces/IGraphService.js';
-import type { SearchResult } from '../services/interfaces/ISearchAPI.js';
-import type { FootprintsData } from '../services/interfaces/IFootprintsService.js';
+import type { FootprintsData, FootprintsConfig } from '../services/interfaces/IFootprintsService.js';
+import type { SearchOptions } from '../services/SearchService.js';
+import type { IVaultService, UnifiedSearchOptions, UnifiedSearchResult, DocumentRef } from '../services/interfaces/IVaultService.js';
 
 /**
  * 统一的 Vault API 接口
@@ -63,15 +64,7 @@ export interface VaultAPI {
 
   // === 文档管理 ===
   getDocumentContent(path: string): Promise<string>;
-  getDocumentInfo(path: string): Promise<{
-    title: string;
-    tags: string[];
-    aliases: string[];
-    frontmatter: Record<string, unknown>;
-    headings: Array<{ level: number; text: string; id: string }>;
-    links: Array<{ path: string; text: string }>;
-    backlinks: Array<{ path: string; text: string }>;
-  }>;
+  getDocumentInfo(path: string): Promise<DocumentRef>;
 
   // 复杂的文档上下文获取（编排多个服务）
   getDocumentWithContext(path: string): Promise<{
@@ -87,13 +80,15 @@ export interface VaultAPI {
 
   // === 搜索功能 ===
   search(query: string, options?: {
-    includeContent?: boolean;
+    type?: 'content' | 'tag' | 'filename' | 'all';
+    scope?: string;
     fileTypes?: string[];
-    tags?: string[];
+    includeAttachments?: boolean;
     limit?: number;
-  }): Promise<SearchResult[]>;
+    sortBy?: 'relevance' | 'modified' | 'created' | 'alphabetical';
+  }): Promise<UnifiedSearchResult[]>;
 
-  searchByTag(tagName: string): Promise<SearchResult[]>;
+  searchByTag(tagName: string): Promise<UnifiedSearchResult[]>;
 
   // === 标签管理 ===
   getAllTags(): Promise<TagData[]>;
@@ -101,7 +96,8 @@ export interface VaultAPI {
 
   // === 图谱功能 ===
   getGlobalGraph(): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }>;
-  getLocalGraph(centerPath: string, options?: {
+  getLocalGraph(options: {
+    centerPath: string;
     depth?: number;
     includeOrphans?: boolean;
   }): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }>;
@@ -111,15 +107,15 @@ export interface VaultAPI {
 
   // === 原始服务访问（如果需要） ===
   services: {
-    storage: Record<string, unknown>;
-    metadata: Record<string, unknown>;
-    fileTree: Record<string, unknown>;
-    search: Record<string, unknown>;
-    graph: Record<string, unknown>;
-    tag: Record<string, unknown>;
-    footprints: Record<string, unknown>;
-    frontMatter: Record<string, unknown>;
-    exif: Record<string, unknown>;
+    storage: unknown;
+    metadata: unknown;
+    fileTree: unknown;
+    search: unknown;
+    graph: unknown;
+    tag: unknown;
+    footprints: unknown;
+    frontMatter: unknown;
+    exif: unknown;
   };
 
   // === 缓存管理 ===
@@ -178,11 +174,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
     );
     const cachedSearch = cacheManager.createCachedSearchService(searchService);
 
-    const footprintsService = new FootprintsService(cachedStorage, cacheManager);
+    const footprintsService = new FootprintsService(cachedStorage);
     // 暂时不使用缓存包装，直接使用原始服务以调试问题
     const cachedFootprints = footprintsService; // cacheManager.createCachedFootprintsService(footprintsService);
 
-    const frontMatterService = new FrontMatterService(cachedStorage, cacheManager);
+    const frontMatterService = new FrontMatterService(cachedMetadata, 'Demo');
     const cachedFrontMatter = cacheManager.createCachedFrontMatterService(frontMatterService);
 
     const exifService = new ExifService(cachedStorage, 'Demo');
@@ -325,28 +321,37 @@ async function createVaultAPI(): Promise<VaultAPI> {
         // 检查是否返回了 HTML（Vite 开发服务器对不存在的文件返回 index.html）
         if (textContent.includes('<!DOCTYPE html>') || textContent.includes('<html') || textContent.includes('</script>')) {
           const error = new Error(`File not found: ${path}`);
-          (error as Record<string, unknown>).type = 'FILE_NOT_FOUND';
+          (error as unknown as Record<string, unknown>).type = 'FILE_NOT_FOUND';
           throw error;
         }
 
         return textContent;
       },
 
-      async getDocumentInfo(path: string) {
+      async getDocumentInfo(path: string): Promise<DocumentRef> {
         try {
           const metadata = await cachedMetadata.getFileMetadata(path);
           return {
-            title: metadata?.title || path.split('/').pop()?.replace('.md', '') || 'Untitled',
+            path,
+            type: 'markdown' as const,
+            title: (metadata?.fileName as string) || path.split('/').pop()?.replace('.md', '') || 'Untitled',
             tags: metadata?.tags || [],
             aliases: metadata?.aliases || [],
-            frontmatter: metadata?.frontmatter || {},
-            headings: metadata?.headings || [],
-            links: metadata?.links || [],
-            backlinks: metadata?.backlinks || []
+            frontmatter: (metadata?.frontmatter as Record<string, unknown>) || {},
+            headings: (metadata?.headings || []).map(h => ({ level: h.level, text: h.heading, id: `heading-${h.level}-${h.heading.replace(/\s+/g, '-').toLowerCase()}` })),
+            links: (metadata?.links || []).map(l => ({ path: l.link, text: l.displayText || l.link })),
+            backlinks: (metadata?.backlinks || []).map(b => ({
+              sourcePath: b.relativePath,
+              sourceTitle: b.fileName || b.link,
+              context: '', // TODO: 从实际内容中提取上下文
+              line: 0      // TODO: 从实际内容中提取行号
+            }))
           };
         } catch {
           // console.warn(`获取文档信息失败 ${path}:`, error);
           return {
+            path,
+            type: 'markdown' as const,
             title: path.split('/').pop()?.replace('.md', '') || 'Untitled',
             tags: [],
             aliases: [],
@@ -367,11 +372,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
             cachedGraph.getLocalGraph(path).catch(() => ({ nodes: [], edges: [] }))
           ]);
 
-          const backlinks = metadata?.backlinks || [];
+          const backlinks = (metadata?.backlinks || []).map(b => ({ path: b.relativePath, text: b.fileName || b.link }));
 
           return {
             content,
-            metadata,
+            metadata: (metadata as unknown as Record<string, unknown>) || {},
             localGraph,
             backlinks,
             hasGraph: localGraph.nodes.length > 1 // 超过当前文件本身
@@ -381,7 +386,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           const content = await api.getDocumentContent(path);
           return {
             content,
-            metadata: null,
+            metadata: {} as Record<string, unknown>,
             localGraph: { nodes: [], edges: [] },
             backlinks: [],
             hasGraph: false
@@ -395,12 +400,51 @@ async function createVaultAPI(): Promise<VaultAPI> {
       },
 
       // === 搜索功能 ===
-      async search(query: string, options = {}) {
-        return cachedSearch.search(query, options);
+      async search(query: string, options: UnifiedSearchOptions = {}) {
+        // 转换选项格式
+        const searchOptions: SearchOptions = {
+          includeContent: options.type === 'content' || options.type === 'all',
+          fileTypes: options.fileTypes,
+          limit: options.limit
+        };
+
+        const searchResults = await cachedSearch.search(query, searchOptions);
+
+        // 转换结果格式: SearchResult[] -> UnifiedSearchResult[]
+        return searchResults.map(result => ({
+          document: {
+            path: result.filePath,
+            title: result.fileName,
+            type: 'markdown' as const
+          },
+          matches: result.matches.map(match => ({
+            type: 'content' as const,
+            value: match.content,
+            context: match.highlighted,
+            line: match.lineNumber
+          })),
+          score: result.matchCount / 10 // 简单评分算法
+        }));
       },
 
       async searchByTag(tagName: string) {
-        return cachedSearch.searchByTag(tagName);
+        const searchResults = await cachedSearch.searchByTag(tagName);
+
+        // 转换结果格式: SearchResult[] -> UnifiedSearchResult[]
+        return searchResults.map(result => ({
+          document: {
+            path: result.filePath,
+            title: result.fileName,
+            type: 'markdown' as const
+          },
+          matches: result.matches.map(match => ({
+            type: 'tag' as const,
+            value: match.content,
+            context: match.highlighted,
+            line: match.lineNumber
+          })),
+          score: result.matchCount / 10
+        }));
       },
 
       // === 标签管理 ===
@@ -417,32 +461,32 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return cachedGraph.getGlobalGraph();
       },
 
-      async getLocalGraph(centerPath: string, options = {}) {
-        return cachedGraph.getLocalGraph(centerPath, options);
+      async getLocalGraph(options: { centerPath: string; depth?: number; includeOrphans?: boolean }) {
+        return cachedGraph.getLocalGraph(options.centerPath, options);
       },
 
       // === 高级功能 ===
       async getFootprints(filePath: string) {
-        return cachedFootprints.getFootprints(filePath);
+        return cachedFootprints.aggregateFootprints({ centerPath: filePath } as FootprintsConfig);
       },
 
       // === 原始服务访问 ===
       services: {
-        storage: cachedStorage,
-        metadata: cachedMetadata,
-        fileTree: cachedFileTree,
-        search: cachedSearch,
-        graph: cachedGraph,
-        tag: cachedTag,
-        footprints: cachedFootprints,
-        frontMatter: cachedFrontMatter,
-        exif: cachedExif
+        storage: cachedStorage as unknown,
+        metadata: cachedMetadata as unknown,
+        fileTree: cachedFileTree as unknown,
+        search: cachedSearch as unknown,
+        graph: cachedGraph as unknown,
+        tag: cachedTag as unknown,
+        footprints: cachedFootprints as unknown,
+        frontMatter: cachedFrontMatter as unknown,
+        exif: cachedExif as unknown
       },
 
       // === 缓存管理 ===
       cache: {
         async clear() {
-          await cacheManager.clearAll();
+          await cacheManager.clearCache();
         },
         async getStats() {
           const stats = await cacheManager.getStatistics();
@@ -509,8 +553,10 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return `# 文档内容 (${path})\n\n服务降级中，暂时无法获取内容。`;
       },
 
-      async getDocumentInfo(path: string) {
+      async getDocumentInfo(path: string): Promise<DocumentRef> {
         return {
+          path,
+          type: 'markdown' as const,
           title: path.split('/').pop()?.replace('.md', '') || 'Untitled',
           tags: [],
           aliases: [],
@@ -525,7 +571,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         const content = await fallbackAPI.getDocumentContent(path);
         return {
           content,
-          metadata: null,
+          metadata: {} as Record<string, unknown>,
           localGraph: { nodes: [], edges: [] },
           backlinks: [],
           hasGraph: false
@@ -564,7 +610,17 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return null;
       },
 
-      services: {} as Record<string, unknown>,
+      services: {
+        storage: {} as unknown,
+        metadata: {} as unknown,
+        fileTree: {} as unknown,
+        search: {} as unknown,
+        graph: {} as unknown,
+        tag: {} as unknown,
+        footprints: {} as unknown,
+        frontMatter: {} as unknown,
+        exif: {} as unknown
+      },
 
       cache: {
         async clear() { },
@@ -616,7 +672,7 @@ export function useVaultService() {
       const api = await vaultAPI.getAPI();
 
       // 测试 API 基本功能
-      const _info = await api.getVaultInfo();
+      await api.getVaultInfo();
       // console.log('✅ VaultAPI 初始化成功:', info);
 
       // 兼容现有的 store 接口，传入一个模拟的 vaultService 对象
@@ -636,7 +692,7 @@ export function useVaultService() {
         getLocalGraph: api.getLocalGraph
       };
 
-      await initializeVaultService(mockVaultService as Record<string, unknown>);
+      await initializeVaultService(mockVaultService as unknown as IVaultService);
     } catch {
       // console.error('VaultAPI 初始化失败:', error);
     }

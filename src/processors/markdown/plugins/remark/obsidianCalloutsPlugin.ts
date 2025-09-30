@@ -6,7 +6,7 @@
  */
 
 import { visit } from 'unist-util-visit';
-import type { Root as MdastRoot } from 'mdast';
+import type { Root as MdastRoot, Node as MdastNode, BlockContent } from 'mdast';
 
 export interface ObsidianCalloutsOptions {
   classPrefix?: string;
@@ -65,7 +65,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
           }
         },
         children: [{ type: 'text', value: calloutTitle }]
-      };
+      } as MdastNode;
 
       // 创建内容容器
       const contentChildren = [];
@@ -92,9 +92,9 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
           }
         },
         children: contentChildren
-      };
+      } as MdastNode;
 
-      node.children = [titleElement, contentElement];
+      node.children = [titleElement, contentElement] as BlockContent[];
     });
   };
 }

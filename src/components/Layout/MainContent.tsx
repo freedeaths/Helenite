@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useUIStore } from '../../stores/uiStore.js';
 import { useVaultStore } from '../../stores/vaultStore.js';
 import { ContentViewer } from '../ContentViewer/ContentViewer.js';

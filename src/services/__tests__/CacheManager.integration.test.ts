@@ -9,6 +9,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { CacheManager } from '../CacheManager.js';
 import { StorageService } from '../infra/StorageService.js';
 import type { StorageConfig } from '../types/StorageTypes.js';
+import type { IStorageService } from '../interfaces/IStorageService.js';
 import fetch from 'node-fetch';
 import { spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
@@ -17,8 +18,8 @@ const sleep = promisify(setTimeout);
 
 describe('CacheManager Integration Tests', () => {
   let cacheManager: CacheManager;
-  let storageService: StorageService;
-  let cachedStorageService: StorageService;
+  let storageService: IStorageService;
+  let cachedStorageService: IStorageService;
   let viteProcess: ChildProcess | null = null;
   const serverUrl = 'http://localhost:5173'; // Vite 默认开发服务器端口
 
@@ -32,7 +33,7 @@ describe('CacheManager Integration Tests', () => {
       try {
         const response = await fetch(`${serverUrl}/vaults/Demo/Welcome.md`);
         const contentType = response.headers.get('content-type');
-        return response.ok && contentType?.includes('text');
+        return response.ok && (contentType?.includes('text') ?? false);
       } catch {
         return false;
       }
@@ -142,7 +143,7 @@ describe('CacheManager Integration Tests', () => {
       const time1 = Date.now() - start1;
 
       expect(typeof content1).toBe('string');
-      expect(content1.length).toBeGreaterThan(0);
+      expect((content1 as string).length).toBeGreaterThan(0);
 
       // 第二次读取 - 应该从缓存返回，更快
       const start2 = Date.now();
@@ -361,7 +362,7 @@ describe('CacheManager Integration Tests', () => {
 
       // 错误应该一致
       if (error1 && error2) {
-        expect(error1.message).toBe(error2.message);
+        expect((error1 as Error).message).toBe((error2 as Error).message);
       }
     });
 
@@ -373,7 +374,7 @@ describe('CacheManager Integration Tests', () => {
       };
 
       const timeoutStorageService = new StorageService(timeoutConfig);
-      const _cachedTimeoutService = cacheManager.createCachedStorageService(timeoutStorageService);
+      cacheManager.createCachedStorageService(timeoutStorageService);
 
       // 尝试读取文件 - 应该失败
       let error: unknown;

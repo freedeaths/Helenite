@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useVaultService } from '../../hooks/useVaultService.js';
 import { navigateToFile } from '../../hooks/routeUtils.js';
-import type { GraphData, GraphNode, GraphEdge } from '../../apis/interfaces/IGraphAPI';
+import type { GraphData, GraphNode, GraphEdge } from '../../types/vaultTypes';
 
 interface D3Node extends GraphNode {
   x?: number;
   y?: number;
   fx?: number | null;
   fy?: number | null;
-  path?: string; // 添加缺失的 path 属性
 }
 
 interface D3Link extends Omit<GraphEdge, 'from' | 'to'> {
@@ -78,24 +77,25 @@ export function GlobalGraph() {
 
     // 过滤掉引用不存在节点的边，修复 D3 "node not found" 错误
     const validEdges = graphData.edges.filter(edge => {
-      const sourceId = edge.from || edge.source;
-      const targetId = edge.to || edge.target;
+      const sourceId = edge.from;
+      const targetId = edge.to;
       return nodeIds.has(sourceId) && nodeIds.has(targetId);
     });
 
     const links: D3Link[] = validEdges.map(edge => ({
       ...edge,
-      source: edge.from || edge.source,
-      target: edge.to || edge.target
+      source: edge.from,
+      target: edge.to
     }));
 
     // 创建力仿真 - 完全复制老版本参数
-    const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: D3Node) => d.id).distance(100).strength(0.6))
+    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
+      .force('link', d3.forceLink(links).id((d: d3.SimulationNodeDatum) => (d as D3Node).id).distance(100).strength(0.6))
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: D3Node) => {
-        if (d.type === 'tag') return 15;
+      .force('collision', d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
+        const node = d as D3Node;
+        if (node.type === 'tag') return 15;
         return 20;
       }));
 
@@ -110,8 +110,10 @@ export function GlobalGraph() {
       .attr('stroke-width', 1)
       .attr('stroke-dasharray', (d: D3Link) => {
         // 检查连线的两端是否有标签节点
-        const sourceNode = nodes.find(n => n.id === d.source.id || n.id === d.source);
-        const targetNode = nodes.find(n => n.id === d.target.id || n.id === d.target);
+        const sourceId = typeof d.source === 'string' ? d.source : (d.source as D3Node).id;
+        const targetId = typeof d.target === 'string' ? d.target : (d.target as D3Node).id;
+        const sourceNode = nodes.find(n => n.id === sourceId);
+        const targetNode = nodes.find(n => n.id === targetId);
 
         // 如果有一端是标签节点，使用虚线
         if (sourceNode?.type === 'tag' || targetNode?.type === 'tag') {
@@ -187,13 +189,13 @@ export function GlobalGraph() {
       });
 
       link
-        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
-        .attr('y1', (d: D3Link) => (d.source as D3Node).y)
-        .attr('x2', (d: D3Link) => (d.target as D3Node).x)
-        .attr('y2', (d: D3Link) => (d.target as D3Node).y);
+        .attr('x1', (d: D3Link) => (d.source as D3Node).x || 0)
+        .attr('y1', (d: D3Link) => (d.source as D3Node).y || 0)
+        .attr('x2', (d: D3Link) => (d.target as D3Node).x || 0)
+        .attr('y2', (d: D3Link) => (d.target as D3Node).y || 0);
 
       node
-        .attr('transform', (d: D3Node) => `translate(${d.x},${d.y})`);
+        .attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
     });
 
     // 拖拽功能 - 完全复制老版本

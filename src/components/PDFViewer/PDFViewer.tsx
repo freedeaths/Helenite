@@ -335,7 +335,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
             overflow: 'auto'
           })
         }}>
-          {Array.from(new Array(numPages || 0), (el, index) => {
+          {Array.from(new Array(numPages || 0), (_, index) => {
             // 移动端横屏时，使用 scale 而不是固定 width/height
             if (!isDesktop && isLandscape) {
               // 横屏模式：让 react-pdf 自动适应，只提供缩放比例
@@ -347,10 +347,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   className="mb-4"
-                  style={{
-                    margin: '0 auto',
-                    display: 'block'
-                  }}
                 />
               );
             } else {
@@ -364,7 +360,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   className="mb-4"
-                  style={{ height: 'auto' }}
                 />
               );
             }
