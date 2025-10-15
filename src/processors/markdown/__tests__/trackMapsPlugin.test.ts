@@ -14,7 +14,7 @@ interface TrackNode extends Node {
   type: 'trackMap';
   data?: {
     hName?: string;
-    hProperties?: Record<string, unknown>;
+    hProperties?: Record<string, string | number | boolean | (string | number)[] | null | undefined>;
   };
 }
 
