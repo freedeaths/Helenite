@@ -23,15 +23,15 @@ export function QRCodeModal({ opened, onClose, url, title }: QRCodeModalProps) {
         margin: 2,
         color: {
           dark: '#000000',
-          light: '#FFFFFF'
-        }
+          light: '#FFFFFF',
+        },
       })
         .then((dataURL) => {
           setQRCodeDataURL(dataURL);
           setLoading(false);
         })
-        .catch((error) => {
-          console.error('生成二维码失败:', error);
+        .catch(() => {
+          // console.error('生成二维码失败:', error);
           setLoading(false);
         });
     }
@@ -53,9 +53,9 @@ export function QRCodeModal({ opened, onClose, url, title }: QRCodeModalProps) {
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      
+
       notifications.show({
-        title: '复制成功', 
+        title: '复制成功',
         message: 'URL已复制到剪贴板',
         color: 'green',
       });
@@ -63,36 +63,52 @@ export function QRCodeModal({ opened, onClose, url, title }: QRCodeModalProps) {
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title="微信分享二维码"
-      centered
-      size="sm"
-    >
+    <Modal opened={opened} onClose={onClose} title="微信分享二维码" centered size="sm">
       <Stack gap="md">
         <Text size="sm" c="dimmed" ta="center">
           使用微信扫描下方二维码访问并分享
         </Text>
-        
+
         <Center>
           {loading ? (
-            <div style={{ width: 256, height: 256, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc' }}>
-              <Text size="sm" c="dimmed">生成中...</Text>
+            <div
+              style={{
+                width: 256,
+                height: 256,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px dashed #ccc',
+              }}
+            >
+              <Text size="sm" c="dimmed">
+                生成中...
+              </Text>
             </div>
           ) : qrCodeDataURL ? (
-            <img 
-              src={qrCodeDataURL} 
-              alt="分享二维码" 
-              style={{ 
-                width: 256, 
+            <img
+              src={qrCodeDataURL}
+              alt="分享二维码"
+              style={{
+                width: 256,
                 height: 256,
-                border: '1px solid var(--mantine-color-gray-3)'
-              }} 
+                border: '1px solid var(--mantine-color-gray-3)',
+              }}
             />
           ) : (
-            <div style={{ width: 256, height: 256, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc' }}>
-              <Text size="sm" c="dimmed">生成失败</Text>
+            <div
+              style={{
+                width: 256,
+                height: 256,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px dashed #ccc',
+              }}
+            >
+              <Text size="sm" c="dimmed">
+                生成失败
+              </Text>
             </div>
           )}
         </Center>
@@ -102,9 +118,9 @@ export function QRCodeModal({ opened, onClose, url, title }: QRCodeModalProps) {
         </Text>
 
         <Stack gap="xs">
-          <Button 
+          <Button
             leftSection={<IconCopy size={16} />}
-            variant="light" 
+            variant="light"
             onClick={handleCopyUrl}
             fullWidth
           >

@@ -1,0 +1,139 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality-check:
+    name: 'Quality Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint check
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Integration tests
+        run: |
+          # 后台启动 Vite 开发服务器用于集成测试
+          npm run dev &
+          DEV_PID=$!
+
+          # 等待服务器启动
+          timeout 30 bash -c 'until curl -s http://localhost:5173 > /dev/null; do sleep 1; done'
+
+          # 运行集成测试
+          npm run test:integration
+
+          # 停止开发服务器
+          kill $DEV_PID || true
+
+      - name: Build verification
+        run: npm run build
+
+  e2e-test:
+    name: 'E2E Tests'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  lint-regression:
+    name: 'Lint Regression Check'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get baseline lint count
+        run: |
+          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > /tmp/baseline-lint-count.txt || echo "0" > /tmp/baseline-lint-count.txt
+          echo "Baseline lint issues: $(cat /tmp/baseline-lint-count.txt)"
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Install dependencies for PR
+        run: npm ci
+
+      - name: Get PR lint count
+        run: |
+          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > /tmp/pr-lint-count.txt || echo "0" > /tmp/pr-lint-count.txt
+          echo "PR lint issues: $(cat /tmp/pr-lint-count.txt)"
+
+      - name: Compare lint counts
+        run: |
+          baseline=$(cat /tmp/baseline-lint-count.txt)
+          pr_count=$(cat /tmp/pr-lint-count.txt)
+          echo "Baseline: $baseline, PR: $pr_count"
+
+          if [ "$pr_count" -gt "$baseline" ]; then
+            echo "❌ PR introduces new lint issues: $pr_count > $baseline"
+            echo "Please fix the new lint issues before merging."
+            exit 1
+          elif [ "$pr_count" -lt "$baseline" ]; then
+            echo "✅ PR reduces lint issues: $pr_count < $baseline"
+            echo "Great job improving code quality! 🎉"
+          else
+            echo "✅ PR maintains current lint level: $pr_count = $baseline"
+          fi

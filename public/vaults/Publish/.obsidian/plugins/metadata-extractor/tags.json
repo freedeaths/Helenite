@@ -1,0 +1,25 @@
+[
+  {
+    "tag": "tech",
+    "tagCount": 1,
+    "relativePaths": [
+      "How-to-Implement-obsidian-sharing-space.md"
+    ]
+  },
+  {
+    "tag": "japan",
+    "tagCount": 2,
+    "relativePaths": [
+      "Trips/Plans/春岚樱语——北九州初体验.md",
+      "Trips/Plans/本应慵懒的河口湖--完美逆富士之旅.md"
+    ]
+  },
+  {
+    "tag": "travel",
+    "tagCount": 2,
+    "relativePaths": [
+      "Trips/Plans/春岚樱语——北九州初体验.md",
+      "Trips/Plans/本应慵懒的河口湖--完美逆富士之旅.md"
+    ]
+  }
+]

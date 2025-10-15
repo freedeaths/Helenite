@@ -1,32 +1,46 @@
-import { useUIStore } from '../../stores/uiStore';
-import { useVaultStore } from '../../stores/vaultStore';
-import { MarkdownViewer } from '../MarkdownViewer/MarkdownViewer';
-import { GlobalGraph } from '../Graph/GlobalGraph';
-import { ViewHeader } from './ViewHeader';
-import { useScrollPositionPersistence } from '../../hooks/useScrollPositionPersistence';
+import { useMemo } from 'react';
+import { useUIStore } from '../../stores/uiStore.js';
+import { useVaultStore } from '../../stores/vaultStore.js';
+import { ContentViewer } from '../ContentViewer/ContentViewer.js';
+import { GlobalGraph } from '../Graph/GlobalGraph.js';
+import { ViewHeader } from './ViewHeader.js';
 
+/**
+ * 新架构主内容区组件 - 基于 VaultService 的数据访问
+ * 复制老版本功能，支持内容查看和全局图谱切换
+ */
 export function MainContent() {
   const { mainContentView } = useUIStore();
   const { activeFile } = useVaultStore();
-  
-  // Use scroll position persistence hook
-  const scrollContainerRef = useScrollPositionPersistence(activeFile);
+
+  // Memoize the ContentViewer at the top level to prevent unnecessary re-renders
+  // Must be called unconditionally to follow React hooks rules
+  const memoizedContentViewer = useMemo(() => {
+    if (!activeFile) return null;
+    return <ContentViewer filePath={activeFile} />;
+  }, [activeFile]);
+
+  // console.log('NewMainContent: render', {
+  //   mainContentView,
+  //   activeFile,
+  //   hasActiveFile: !!activeFile
+  // });
 
   return (
-    <div className="h-full flex flex-col bg-[var(--background-primary)]">
-      {/* Header - use sticky positioning within the main content area */}
+    <div data-testid="main-content" className="h-full flex flex-col bg-[var(--background-primary)]">
+      {/* Header - sticky positioning within the main content area */}
       <div className="sticky top-0 z-[100] bg-[var(--background-secondary)]">
         <ViewHeader />
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto" ref={scrollContainerRef}>
+      <div className="flex-1 overflow-auto">
         {mainContentView === 'globalGraph' ? (
           <GlobalGraph />
         ) : (
           <>
             {activeFile ? (
-              <MarkdownViewer />
+              memoizedContentViewer
             ) : (
               <div className="flex items-center justify-center h-full min-h-96">
                 <div className="text-center text-[var(--text-muted)] max-w-2xl mx-auto px-6">

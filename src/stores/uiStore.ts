@@ -1,163 +1,119 @@
+/**
+ * 新架构 UI 状态管理
+ * 复制老版本功能，基于 VaultService
+ */
 import { create } from 'zustand';
 
-// 主题持久化辅助函数
-const getStoredTheme = (): 'light' | 'dark' => {
-  if (typeof window === 'undefined') return 'light';
-  
-  const stored = localStorage.getItem('perlite-theme');
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
-  }
-  
-  // 如果没有存储的主题，检查系统偏好
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
-  }
-  
-  return 'light';
-};
-
-const setStoredTheme = (theme: 'light' | 'dark') => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('perlite-theme', theme);
-  }
-};
-
-interface UIState {
-  // Sidebar states
+export interface UIState {
+  // Layout state
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;
   leftSidebarWidth: number;
   rightSidebarWidth: number;
-  
-  // Active panels
-  activeLeftPanel: 'files' | 'tags';
-  activeRightPanel: 'outline' | 'graph';
-  
-  // Main content view
-  mainContentView: 'file' | 'globalGraph';
-  
-  // Theme
-  theme: 'light' | 'dark';
-  
-  // Responsive states
+
+  // Responsive state
   isMobile: boolean;
   isTablet: boolean;
-  
-  // Mobile drawer states
+
+  // Mobile drawer state
   mobileLeftDrawerOpen: boolean;
   mobileRightDrawerOpen: boolean;
-  
-  // New unified mobile drawer
-  mobileDrawerOpen: boolean;
-  activeMobileTab: 'files' | 'outline' | 'graph' | 'tags';
-  
-  // Mobile dropdown menu from ViewHeader
+
+  // Mobile dropdown state (老版本兼容)
   mobileDropdownOpen: boolean;
-  
+  activeMobileTab: 'files' | 'outline' | 'graph' | 'tags';
+
+  // Active panels
+  activeLeftPanel: 'files' | 'search' | 'tags';
+  activeRightPanel: 'toc' | 'graph' | 'tags' | 'backlinks';
+
+  // Main content view - 复制原版设计
+  mainContentView: 'file' | 'globalGraph';
+
+  // Theme
+  theme: 'light' | 'dark';
+
   // Actions
-  toggleLeftSidebar: () => void;
-  toggleRightSidebar: () => void;
+  setLeftSidebarOpen: (open: boolean) => void;
+  setRightSidebarOpen: (open: boolean) => void;
   setLeftSidebarWidth: (width: number) => void;
   setRightSidebarWidth: (width: number) => void;
-  setActiveLeftPanel: (panel: 'files' | 'tags') => void;
-  setActiveRightPanel: (panel: 'outline' | 'graph') => void;
-  setMainContentView: (view: 'file' | 'globalGraph') => void;
-  setTheme: (theme: 'light' | 'dark') => void;
   setIsMobile: (isMobile: boolean) => void;
   setIsTablet: (isTablet: boolean) => void;
-  
-  // Mobile drawer actions
   setMobileLeftDrawerOpen: (open: boolean) => void;
   setMobileRightDrawerOpen: (open: boolean) => void;
-  
-  // New unified mobile drawer actions
-  setMobileDrawerOpen: (open: boolean) => void;
-  setActiveMobileTab: (tab: 'files' | 'outline' | 'graph' | 'tags') => void;
-  
-  // Mobile dropdown actions
   setMobileDropdownOpen: (open: boolean) => void;
+  setActiveMobileTab: (tab: 'files' | 'outline' | 'graph' | 'tags') => void;
+  setActiveLeftPanel: (panel: 'files' | 'search' | 'tags') => void;
+  setActiveRightPanel: (panel: 'toc' | 'graph' | 'tags' | 'backlinks') => void;
+  setMainContentView: (view: 'file' | 'globalGraph') => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  toggleLeftSidebar: () => void;
+  toggleRightSidebar: () => void;
 }
 
+// Helper function to get initial theme
+const getInitialTheme = (): 'light' | 'dark' => {
+  if (typeof window === 'undefined') return 'light';
+
+  // Check localStorage first
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    return savedTheme;
+  }
+
+  // Check system preference
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return 'light';
+};
+
 export const useUIStore = create<UIState>((set) => ({
-  // Initial state - open sidebars on desktop and tablet, close on mobile
-  leftSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
+  // Initial state - 复制老版本默认值
+  leftSidebarOpen: true,
   rightSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
-  leftSidebarWidth: 300,    // 统一使用 300px，与平板模式保持一致
-  rightSidebarWidth: 280,   // 减少到 280px，足够放置 TOC 和图谱
-  activeLeftPanel: 'files',
-  activeRightPanel: 'outline',
-  mainContentView: 'file',
-  theme: getStoredTheme(),
-  isMobile: typeof window !== 'undefined' ? window.innerWidth < 768 : false,
-  isTablet: typeof window !== 'undefined' ? window.innerWidth >= 768 && window.innerWidth < 1024 : false,
-  
-  // Mobile drawer states
+  leftSidebarWidth: 320,
+  rightSidebarWidth: 280,
+
+  isMobile: false,
+  isTablet: false,
+
   mobileLeftDrawerOpen: false,
   mobileRightDrawerOpen: false,
-  
-  // New unified mobile drawer
-  mobileDrawerOpen: false,
-  activeMobileTab: 'files',
-  
-  // Mobile dropdown menu
+
   mobileDropdownOpen: false,
-  
+  activeMobileTab: 'files',
+
+  activeLeftPanel: 'files',
+  activeRightPanel: 'toc',
+
+  mainContentView: 'file',
+
+  theme: getInitialTheme(),
+
   // Actions
-  toggleLeftSidebar: () => set((state) => ({ 
-    leftSidebarOpen: !state.leftSidebarOpen 
-  })),
-  toggleRightSidebar: () => set((state) => ({ 
-    rightSidebarOpen: !state.rightSidebarOpen 
-  })),
-  setLeftSidebarWidth: (width) => {
-    // Constrain width between 200px and 600px for desktop dragging
-    const constrainedWidth = Math.max(200, Math.min(600, width));
-    set({ leftSidebarWidth: constrainedWidth });
-  },
-  setRightSidebarWidth: (width) => {
-    // Constrain width between 200px and 600px for desktop dragging
-    const constrainedWidth = Math.max(200, Math.min(600, width));
-    set({ rightSidebarWidth: constrainedWidth });
-  },
+  setLeftSidebarOpen: (open) => set({ leftSidebarOpen: open }),
+  setRightSidebarOpen: (open) => set({ rightSidebarOpen: open }),
+  setLeftSidebarWidth: (width) => set({ leftSidebarWidth: Math.max(200, Math.min(600, width)) }),
+  setRightSidebarWidth: (width) => set({ rightSidebarWidth: Math.max(200, Math.min(500, width)) }),
+  setIsMobile: (isMobile) => set({ isMobile }),
+  setIsTablet: (isTablet) => set({ isTablet }),
+  setMobileLeftDrawerOpen: (open) => set({ mobileLeftDrawerOpen: open }),
+  setMobileRightDrawerOpen: (open) => set({ mobileRightDrawerOpen: open }),
+  setMobileDropdownOpen: (open) => set({ mobileDropdownOpen: open }),
+  setActiveMobileTab: (tab) => set({ activeMobileTab: tab }),
   setActiveLeftPanel: (panel) => set({ activeLeftPanel: panel }),
   setActiveRightPanel: (panel) => set({ activeRightPanel: panel }),
   setMainContentView: (view) => set({ mainContentView: view }),
   setTheme: (theme) => {
-    setStoredTheme(theme);
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
     set({ theme });
   },
-  setIsMobile: (isMobile) => set((state) => {
-    // 当切换到移动端时，关闭抽屉
-    if (isMobile && !state.isMobile) {
-      return { 
-        isMobile, 
-        mobileLeftDrawerOpen: false,
-        mobileRightDrawerOpen: false
-      };
-    }
-    return { isMobile };
-  }),
-  setIsTablet: (isTablet) => set((state) => {
-    // 切换到平板模式时，确保左侧栏宽度合理
-    if (isTablet && !state.isTablet && state.leftSidebarWidth > 300) {
-      return { 
-        isTablet,
-        // 如果当前宽度太大，调整为平板模式的300px
-        leftSidebarWidth: 300
-      };
-    }
-    return { isTablet };
-  }),
-  
-  // Mobile drawer actions
-  setMobileLeftDrawerOpen: (open) => set({ mobileLeftDrawerOpen: open }),
-  setMobileRightDrawerOpen: (open) => set({ mobileRightDrawerOpen: open }),
-  
-  // New unified mobile drawer actions
-  setMobileDrawerOpen: (open) => set({ mobileDrawerOpen: open }),
-  setActiveMobileTab: (tab) => set({ activeMobileTab: tab }),
-  
-  // Mobile dropdown actions
-  setMobileDropdownOpen: (open) => set({ mobileDropdownOpen: open }),
+  toggleLeftSidebar: () => set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen })),
+  toggleRightSidebar: () => set((state) => ({ rightSidebarOpen: !state.rightSidebarOpen })),
 }));

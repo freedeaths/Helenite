@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { ActionIcon, Menu, Tooltip, Text } from '@mantine/core';
-import { IconLink, IconBrandTwitter, IconBrandWechat, IconCopy, IconCheck } from '@tabler/icons-react';
+import {
+  IconLink,
+  IconBrandTwitter,
+  IconBrandWechat,
+  IconCopy,
+  IconCheck,
+} from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { QRCodeModal } from './QRCodeModal';
 
@@ -12,22 +18,22 @@ export interface ShareButtonProps {
 export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [qrModalOpened, setQrModalOpened] = useState(false);
-  
+
   const currentUrl = window.location.href;
   const pageTitle = document.title;
-  
+
   // URL处理策略：根据不同平台需求
   const getDecodedUrl = () => {
     try {
       return decodeURIComponent(currentUrl);
-    } catch (error) {
-      console.warn('Failed to decode URL:', error);
+    } catch {
+      // console.warn('Failed to decode URL:', error);
       return currentUrl;
     }
   };
-  
+
   const decodedUrl = getDecodedUrl(); // 解码版本（用于原生分享、微信）
-  const encodedUrl = currentUrl;      // 编码版本（用于Twitter、调试对比）
+  const encodedUrl = currentUrl; // 编码版本（用于Twitter、调试对比）
 
   // 复制链接功能 - 使用解码版本显示中文字符
   const handleCopyLink = async () => {
@@ -40,7 +46,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
         color: 'green',
         icon: <IconCheck size={16} />,
       });
-      
+
       // 2秒后重置图标
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -51,7 +57,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      
+
       setCopied(true);
       notifications.show({
         title: '复制成功',
@@ -66,8 +72,8 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
   // 分享到Twitter/X - 使用编码版本确保URL完整性
   const handleShareToTwitter = () => {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(pageTitle)}&url=${encodeURIComponent(encodedUrl)}`;
-    console.log('Twitter分享URL:', twitterUrl);
-    console.log('使用编码URL:', encodedUrl);
+    // console.log('Twitter分享URL:', twitterUrl);
+    // console.log('使用编码URL:', encodedUrl);
     window.open(twitterUrl, '_blank', 'width=550,height=420');
   };
 
@@ -82,13 +88,13 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           color: 'blue',
           autoClose: 3000,
         });
-        
+
         await navigator.share({
           title: pageTitle,
           text: `查看这篇文章：${pageTitle}`,
           url: decodedUrl,
         });
-        
+
         notifications.show({
           title: '分享成功',
           message: '内容已通过系统分享',
@@ -104,9 +110,9 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           color: 'red',
           autoClose: 5000,
         });
-        
+
         if (error instanceof Error && error.name !== 'AbortError') {
-          console.warn('Native share failed:', error);
+          // console.warn('Native share failed:', error);
           // 降级到复制链接
           handleCopyLink();
         }
@@ -123,13 +129,14 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
     }
   };
 
-
   // 分享到微信（移动端检测）
   const handleShareToWechat = () => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
     const isWechat = /MicroMessenger/i.test(navigator.userAgent);
     const hasNativeShare = 'share' in navigator;
-    
+
     if (isWechat) {
       // 在微信内直接提示
       notifications.show({
@@ -153,11 +160,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
       <Menu shadow="md" width={200}>
         <Menu.Target>
           <Tooltip label="分享" position="bottom">
-            <ActionIcon
-              variant={variant}
-              color="gray"
-              size={size}
-            >
+            <ActionIcon variant={variant} color="gray" size={size}>
               <IconLink size={18} />
             </ActionIcon>
           </Tooltip>
@@ -165,22 +168,16 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
 
         <Menu.Dropdown>
           <Menu.Label>分享到</Menu.Label>
-          
-          
+
           <Menu.Item
             leftSection={<IconCopy size={16} />}
             onClick={handleCopyLink}
             rightSection={copied ? <IconCheck size={14} color="green" /> : null}
           >
-            <Text size="sm">
-              {copied ? '已复制' : '复制链接'}
-            </Text>
+            <Text size="sm">{copied ? '已复制' : '复制链接'}</Text>
           </Menu.Item>
 
-          <Menu.Item
-            leftSection={<IconBrandTwitter size={16} />}
-            onClick={handleShareToTwitter}
-          >
+          <Menu.Item leftSection={<IconBrandTwitter size={16} />} onClick={handleShareToTwitter}>
             <Text size="sm">分享到 X (Twitter)</Text>
           </Menu.Item>
 
@@ -191,7 +188,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           >
             <Text size="sm">分享到微信</Text>
           </Menu.Item>
-
         </Menu.Dropdown>
       </Menu>
 

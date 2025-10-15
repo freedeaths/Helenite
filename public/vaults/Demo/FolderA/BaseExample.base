@@ -1,0 +1,13 @@
+formulas:
+  Test: ""
+views:
+  - type: table
+    name: Table
+    order:
+      - file.name
+      - file.backlinks
+      - file.folder
+      - formula.Test
+    sort:
+      - property: formula.Test
+        direction: DESC

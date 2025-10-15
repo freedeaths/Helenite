@@ -1,0 +1,44 @@
+[
+  {
+    "tag": "helenite",
+    "tagCount": 1,
+    "relativePaths": [
+      "helenite-docs/services-architecture.md"
+    ]
+  },
+  {
+    "tag": "test",
+    "tagCount": 1,
+    "relativePaths": [
+      "FolderA/SubFolder/Abilities.md"
+    ]
+  },
+  {
+    "tag": "react",
+    "tagCount": 1,
+    "relativePaths": [
+      "FolderA/SubFolder/Abilities.md"
+    ]
+  },
+  {
+    "tag": "markdown",
+    "tagCount": 1,
+    "relativePaths": [
+      "FolderA/SubFolder/Abilities.md"
+    ]
+  },
+  {
+    "tag": "obsidian",
+    "tagCount": 1,
+    "relativePaths": [
+      "FolderA/SubFolder/Abilities.md"
+    ]
+  },
+  {
+    "tag": "abc",
+    "tagCount": 1,
+    "relativePaths": [
+      "FolderA/SubFolder/Abilities.md"
+    ]
+  }
+]

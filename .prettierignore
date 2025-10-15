@@ -1,0 +1,56 @@
+# Only format core development files: src/, e2e/, and root config files
+# Exclude everything else by default
+
+# Build outputs
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Public assets and vault files
+public/
+
+# Deprecated code
+deprecated/
+
+# Documentation (not critical for formatting)
+docs/
+README*.md
+CHANGELOG*.md
+CONTRIBUTING*.md
+
+# GitHub templates and workflows (not critical for formatting)
+.github/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+
+# Test reports
+playwright-report/
+test-results/
+
+# Environment files
+.env*
+
+# Editor and IDE files
+.vscode/
+.idea/
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db

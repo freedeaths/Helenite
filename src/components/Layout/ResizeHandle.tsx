@@ -1,83 +1,73 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface ResizeHandleProps {
   direction: 'left' | 'right';
   onResize: (width: number) => void;
-  minWidth?: number;
-  maxWidth?: number;
+  minWidth: number;
+  maxWidth: number;
   sidebarRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function ResizeHandle({ 
-  direction, 
-  onResize, 
-  minWidth = 200, 
-  maxWidth = 600,
-  sidebarRef
+export function ResizeHandle({
+  direction,
+  onResize,
+  minWidth,
+  maxWidth,
+  sidebarRef,
 }: ResizeHandleProps) {
-  const [isResizing, setIsResizing] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
 
-  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
-    mouseDownEvent.preventDefault();
-    setIsResizing(true);
-  }, []);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!sidebarRef.current) return;
 
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
-  }, []);
+      isDragging.current = true;
+      startX.current = e.clientX;
+      startWidth.current = sidebarRef.current.offsetWidth;
 
-  const resize = useCallback(
-    (mouseMoveEvent: MouseEvent) => {
-      if (isResizing && sidebarRef.current) {
-        const rect = sidebarRef.current.getBoundingClientRect();
-        let newWidth: number;
-        
-        if (direction === 'left') {
-          // For left sidebar: calculate from mouse position to real-time left edge
-          newWidth = mouseMoveEvent.clientX - rect.left;
-        } else {
-          // For right sidebar: width = real-time right edge - mouseX
-          newWidth = rect.right - mouseMoveEvent.clientX;
-        }
-        
-        // Constrain within bounds
-        const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-        
-        // Update immediately
-        onResize(constrainedWidth);
-      }
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
     },
-    [isResizing, direction, minWidth, maxWidth, onResize, sidebarRef]
+    [sidebarRef]
   );
 
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging.current) return;
+
+      const deltaX = direction === 'left' ? e.clientX - startX.current : startX.current - e.clientX;
+      const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidth.current + deltaX));
+
+      onResize(newWidth);
+    },
+    [direction, onResize, minWidth, maxWidth]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }, []);
+
   useEffect(() => {
-    window.addEventListener('mousemove', resize);
-    window.addEventListener('mouseup', stopResizing);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
     return () => {
-      window.removeEventListener('mousemove', resize);
-      window.removeEventListener('mouseup', stopResizing);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resize, stopResizing]);
+  }, [handleMouseMove, handleMouseUp]);
 
   return (
     <div
-      className={`
-        cursor-ew-resize z-20 flex-shrink-0 relative
-        ${isHovered || isResizing 
-          ? 'bg-[var(--interactive-accent)] opacity-100' 
-          : 'bg-[var(--background-modifier-border)] opacity-50 hover:opacity-100'
-        }
-      `}
+      className="w-1 cursor-col-resize hover:bg-[var(--interactive-accent)] hover:opacity-100 opacity-0 transition-opacity flex-shrink-0"
+      onMouseDown={handleMouseDown}
       style={{
-        width: isHovered || isResizing ? '2px' : '1px',
-        height: '100%',
-        transition: 'width 0.2s ease'
+        background: isDragging.current ? 'var(--interactive-accent)' : 'transparent',
       }}
-      onMouseDown={startResizing}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-    </div>
+    />
   );
 }
