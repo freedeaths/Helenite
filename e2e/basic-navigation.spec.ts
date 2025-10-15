@@ -20,13 +20,13 @@ test.describe('Basic Navigation', () => {
     // Check if we're on mobile - if so, need to open drawer first
     const viewport = page.viewportSize();
     const isMobile = viewport && viewport.width < 768;
-    
+
     if (isMobile) {
       // On mobile, click dropdown button to open mobile menu
       const dropdownButton = page.locator('[data-testid="mobile-dropdown-button"]');
       await expect(dropdownButton).toBeVisible({ timeout: 5000 });
       await dropdownButton.click();
-      
+
       // Wait for dropdown content to appear (contains file tree)
       await page.waitForTimeout(500); // Wait for animation
     }
@@ -44,16 +44,16 @@ test.describe('Basic Navigation', () => {
     // Wait for app to load
     await page.waitForSelector('[data-testid="app-layout"]', { timeout: 10000 });
 
-    // Check if we're on mobile - if so, need to open drawer first  
+    // Check if we're on mobile - if so, need to open drawer first
     const viewport = page.viewportSize();
     const isMobile = viewport && viewport.width < 768;
-    
+
     if (isMobile) {
       // On mobile, click dropdown button to open mobile menu
       const dropdownButton = page.locator('[data-testid="mobile-dropdown-button"]');
       await expect(dropdownButton).toBeVisible({ timeout: 5000 });
       await dropdownButton.click();
-      
+
       // Wait for dropdown content to appear (contains file tree)
       await page.waitForTimeout(500); // Wait for animation
     }
@@ -79,7 +79,9 @@ test.describe('Basic Navigation', () => {
 
     // Check if content is rendered (should contain markdown content)
     // Welcome.md contains "This is your new *vault*" text
-    await expect(page.locator('[data-testid="markdown-content"]').getByText(/This is your new/i)).toBeVisible();
+    await expect(
+      page.locator('[data-testid="markdown-content"]').getByText(/This is your new/i)
+    ).toBeVisible();
   });
 
   test('should toggle left sidebar', async ({ page }) => {
@@ -91,7 +93,7 @@ test.describe('Basic Navigation', () => {
     // Check if we're on mobile - if so, skip this test since mobile doesn't have left sidebar toggle
     const viewport = page.viewportSize();
     const isMobile = viewport && viewport.width < 768;
-    
+
     if (isMobile) {
       // On mobile, there's no left sidebar toggle - test the dropdown instead
       const dropdownButton = page.locator('[data-testid="mobile-dropdown-button"]');
@@ -99,14 +101,14 @@ test.describe('Basic Navigation', () => {
         // Open dropdown
         await dropdownButton.click();
         await page.waitForTimeout(500);
-        
+
         // Verify dropdown content is accessible (file tree should be visible)
         await expect(page.locator('[data-testid="file-tree"]')).toBeVisible({ timeout: 5000 });
-        
+
         // Close dropdown by clicking the button again
         await dropdownButton.click();
         await page.waitForTimeout(300);
-        
+
         // Dropdown should close (file tree should not be visible in dropdown context)
         // Note: file tree might still be visible in sidebar on larger screens, so this test is context-dependent
       }
@@ -114,17 +116,17 @@ test.describe('Basic Navigation', () => {
       // Desktop/tablet: test the actual left sidebar toggle
       const toggleButton = page.locator('[data-testid="toggle-left-sidebar"]');
       await expect(toggleButton).toBeVisible({ timeout: 10000 });
-      
+
       // Check initial sidebar state
       const leftSidebar = page.locator('[data-testid="left-sidebar"]');
       const initiallyVisible = await leftSidebar.isVisible();
-      
+
       // Click toggle button
       await toggleButton.click();
-      
+
       // Wait a moment for animation
       await page.waitForTimeout(300);
-      
+
       // Sidebar visibility should have changed
       const afterToggleVisible = await leftSidebar.isVisible();
       expect(afterToggleVisible).toBe(!initiallyVisible);

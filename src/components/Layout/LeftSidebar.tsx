@@ -7,12 +7,22 @@ import { LocalGraph } from '../Graph/LocalGraph';
 import { TagsPanel } from '../Tags/TagsPanel';
 
 export function LeftSidebar() {
-  const { activeMobileTab, setActiveMobileTab, activeLeftPanel, setActiveLeftPanel, isMobile, isTablet } = useUIStore();
+  const {
+    activeMobileTab,
+    setActiveMobileTab,
+    activeLeftPanel,
+    setActiveLeftPanel,
+    isMobile,
+    isTablet,
+  } = useUIStore();
 
   // 桌面端显示 Files + Tags 切换
   if (!isMobile && !isTablet) {
     return (
-      <div data-testid="left-sidebar" className="h-full flex flex-col bg-[var(--background-secondary)]">
+      <div
+        data-testid="left-sidebar"
+        className="h-full flex flex-col bg-[var(--background-secondary)]"
+      >
         {/* Desktop Tab Headers */}
         <div className="border-b border-[var(--background-modifier-border)] p-2 h-10 flex items-center">
           <Button.Group className="w-full">
@@ -54,10 +64,13 @@ export function LeftSidebar() {
     { id: 'tags' as const, label: 'Tags', icon: IconTags, component: TagsPanel },
   ];
 
-  const ActiveComponent = tabs.find(tab => tab.id === activeMobileTab)?.component || FileExplorer;
+  const ActiveComponent = tabs.find((tab) => tab.id === activeMobileTab)?.component || FileExplorer;
 
   return (
-    <div data-testid="left-sidebar" className="h-full flex flex-col bg-[var(--background-secondary)]">
+    <div
+      data-testid="left-sidebar"
+      className="h-full flex flex-col bg-[var(--background-secondary)]"
+    >
       {/* Tab Bar - 只在平板端显示 */}
       <div className="border-b border-[var(--background-modifier-border)] bg-[var(--background-secondary)] p-2 h-10 flex items-center">
         <Button.Group>
@@ -71,11 +84,11 @@ export function LeftSidebar() {
               styles={{
                 inner: {
                   flexDirection: 'column',
-                  gap: '4px'
+                  gap: '4px',
                 },
                 label: {
-                  fontSize: '11px'
-                }
+                  fontSize: '11px',
+                },
               }}
             >
               <tab.icon size={16} />

@@ -1,5 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { IconFolder, IconFile, IconChevronRight, IconChevronDown, IconSearch, IconX, IconHash } from '@tabler/icons-react';
+import {
+  IconFolder,
+  IconFile,
+  IconChevronRight,
+  IconChevronDown,
+  IconSearch,
+  IconX,
+  IconHash,
+} from '@tabler/icons-react';
 import { useVaultStore } from '../../stores/vaultStore';
 import { useUIStore } from '../../stores/uiStore';
 import type { FileTree, UnifiedSearchResult } from '../../types/vaultTypes';
@@ -12,7 +20,13 @@ interface FileTreeItemProps {
   onToggleExpand: (path: string) => void;
 }
 
-function FileTreeItem({ node, level, onFileSelect, expandedFolders, onToggleExpand }: FileTreeItemProps) {
+function FileTreeItem({
+  node,
+  level,
+  onFileSelect,
+  expandedFolders,
+  onToggleExpand,
+}: FileTreeItemProps) {
   const isExpanded = expandedFolders.has(node.path);
 
   const isFolder = node.type === 'folder';
@@ -35,11 +49,7 @@ function FileTreeItem({ node, level, onFileSelect, expandedFolders, onToggleExpa
       >
         {isFolder && hasChildren && (
           <div className="w-4 h-4 flex items-center justify-center mr-1">
-            {isExpanded ? (
-              <IconChevronDown size={14} />
-            ) : (
-              <IconChevronRight size={14} />
-            )}
+            {isExpanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
           </div>
         )}
         {!isFolder || !hasChildren ? <div className="w-4 mr-1" /> : null}
@@ -92,13 +102,7 @@ const getAllFolderPaths = (nodes: FileTree[]): string[] => {
 };
 
 export function FileExplorer() {
-  const {
-    fileTree,
-    isLoadingFileTree,
-    error,
-    navigateToFile,
-    vaultService
-  } = useVaultStore();
+  const { fileTree, isLoadingFileTree, error, navigateToFile, vaultService } = useVaultStore();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   // Search state
@@ -158,7 +162,7 @@ export function FileExplorer() {
 
   // Toggle folder expand/collapse state
   const handleToggleExpand = (folderPath: string) => {
-    setExpandedFolders(prev => {
+    setExpandedFolders((prev) => {
       const newExpanded = new Set(prev);
       if (newExpanded.has(folderPath)) {
         newExpanded.delete(folderPath);
@@ -218,7 +222,7 @@ export function FileExplorer() {
           if (filteredChildren.length > 0 || matchesSearch) {
             acc.push({
               ...item,
-              children: filteredChildren
+              children: filteredChildren,
             });
           }
         } else if (item.type === 'file' && matchesSearch) {
@@ -233,27 +237,15 @@ export function FileExplorer() {
   }, [fileTree, searchQuery]);
 
   if (isLoadingFileTree) {
-    return (
-      <div className="p-4 text-center text-[var(--text-muted)]">
-        Loading files...
-      </div>
-    );
+    return <div className="p-4 text-center text-[var(--text-muted)]">Loading files...</div>;
   }
 
   if (error) {
-    return (
-      <div className="p-4 text-center text-[var(--text-error)]">
-        Error: {error}
-      </div>
-    );
+    return <div className="p-4 text-center text-[var(--text-error)]">Error: {error}</div>;
   }
 
   if (fileTree.length === 0) {
-    return (
-      <div className="p-4 text-center text-[var(--text-muted)]">
-        No files found
-      </div>
-    );
+    return <div className="p-4 text-center text-[var(--text-muted)]">No files found</div>;
   }
 
   const isTagSearch = searchQuery.startsWith('#');
@@ -328,10 +320,13 @@ export function FileExplorer() {
                         <IconFile size={14} className="text-[var(--text-muted)]" />
                       )}
                       <span className="text-sm font-medium text-[var(--text-normal)]">
-                        {result.document?.title || result.document?.path?.split('/').pop() || 'Unknown'}
+                        {result.document?.title ||
+                          result.document?.path?.split('/').pop() ||
+                          'Unknown'}
                       </span>
                       <span className="text-xs text-[var(--text-muted)] ml-auto">
-                        {result.matches?.length || 0} match{(result.matches?.length || 0) !== 1 ? 'es' : ''}
+                        {result.matches?.length || 0} match
+                        {(result.matches?.length || 0) !== 1 ? 'es' : ''}
                       </span>
                     </div>
                     <div className="text-xs text-[var(--text-muted)] mt-1">
@@ -375,9 +370,7 @@ export function FileExplorer() {
           <div data-testid="file-tree" className="p-2">
             <div className="text-xs text-[var(--text-muted)] mb-2 px-2">FILES</div>
             {fileTree.length === 0 ? (
-              <div className="text-sm text-[var(--text-muted)] p-2">
-                Loading files...
-              </div>
+              <div className="text-sm text-[var(--text-muted)] p-2">Loading files...</div>
             ) : (
               filteredFiles.map((node) => (
                 <FileTreeItem

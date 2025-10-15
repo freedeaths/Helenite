@@ -42,12 +42,11 @@ describe('CacheManager Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -71,12 +70,11 @@ describe('CacheManager Integration Tests', () => {
       }
     }
 
-
     // 配置真实的 StorageService 指向测试 vault
     const config: StorageConfig = {
       basePath: `${serverUrl}/vaults/Demo`,
       timeout: 10000,
-      cache: false // 禁用 StorageService 内置缓存，只测试我们的代理缓存
+      cache: false, // 禁用 StorageService 内置缓存，只测试我们的代理缓存
     };
 
     storageService = new StorageService(config);
@@ -87,13 +85,13 @@ describe('CacheManager Integration Tests', () => {
       tiers: {
         lru: {
           maxCount: 200,
-          defaultTTL: 300000 // 5分钟
-        }
+          defaultTTL: 300000, // 5分钟
+        },
       },
       cleanup: {
         interval: 30000, // 30秒
-        enabled: true
-      }
+        enabled: true,
+      },
     });
   }, 15000);
 
@@ -134,7 +132,6 @@ describe('CacheManager Integration Tests', () => {
 
   describe('Real File Caching', () => {
     it('should cache markdown file reading', async () => {
-
       const filePath = '/Welcome.md';
 
       // 第一次读取 - 网络请求
@@ -178,7 +175,7 @@ describe('CacheManager Integration Tests', () => {
       // 验证缓存键结构
       const cache = cacheManager.cache;
       const keys = await cache.getKeysMatching('storage:*');
-      const infoKeys = keys.filter(key => key.includes('info:/Welcome.md'));
+      const infoKeys = keys.filter((key) => key.includes('info:/Welcome.md'));
       expect(infoKeys.length).toBeGreaterThan(0);
     }, 10000);
 
@@ -261,7 +258,7 @@ describe('CacheManager Integration Tests', () => {
 
       const cache = cacheManager.cache;
       const keys = await cache.getKeysMatching('storage:*');
-      const fileKeys = keys.filter(key => key.includes('file:/Welcome.md'));
+      const fileKeys = keys.filter((key) => key.includes('file:/Welcome.md'));
 
       // 应该有不同选项对应的缓存键
       expect(fileKeys.length).toBeGreaterThan(0);
@@ -370,7 +367,7 @@ describe('CacheManager Integration Tests', () => {
       // 创建一个会超时的配置
       const timeoutConfig: StorageConfig = {
         basePath: '/vaults/Demo',
-        timeout: 1 // 1ms 超时，几乎肯定会失败
+        timeout: 1, // 1ms 超时，几乎肯定会失败
       };
 
       const timeoutStorageService = new StorageService(timeoutConfig);
@@ -396,9 +393,9 @@ describe('CacheManager Integration Tests', () => {
         tiers: {
           lru: {
             maxCount: 3, // 只允许3个条目
-            defaultTTL: 60000
-          }
-        }
+            defaultTTL: 60000,
+          },
+        },
       });
 
       // 使用已经初始化的 storageService
@@ -410,7 +407,6 @@ describe('CacheManager Integration Tests', () => {
 
         const stats = await smallCacheManager.getStatistics();
         expect(stats.totalEntries).toBeLessThanOrEqual(3);
-
       } finally {
         smallCacheManager.dispose();
       }

@@ -1,6 +1,6 @@
 /**
  * Cache Service Interface - 缓存基础设施服务
- * 
+ *
  * 职责：提供统一的缓存抽象，支持多种存储策略和缓存层级
  */
 
@@ -48,7 +48,12 @@ export interface ICacheService {
    * @param metadata 缓存元数据（sourceUrl、contentHash 等）
    * @returns 缓存值或新计算的值
    */
-  getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T>;
+  getOrSet<T = unknown>(
+    key: string,
+    factory: () => Promise<T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<T>;
 
   /**
    * 删除缓存项
@@ -69,7 +74,11 @@ export interface ICacheService {
   /**
    * 批量设置
    */
-  setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void>;
+  setMultiple<T = unknown>(
+    entries: Map<string, T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<void>;
 
   /**
    * 批量删除
@@ -144,12 +153,18 @@ export interface ICacheService {
   /**
    * 监听缓存事件
    */
-  on?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: unknown) => void): void;
+  on?(
+    event: 'hit' | 'miss' | 'set' | 'delete' | 'expire',
+    callback: (key: string, value?: unknown) => void
+  ): void;
 
   /**
    * 移除事件监听
    */
-  off?(event: 'hit' | 'miss' | 'set' | 'delete' | 'expire', callback: (key: string, value?: unknown) => void): void;
+  off?(
+    event: 'hit' | 'miss' | 'set' | 'delete' | 'expire',
+    callback: (key: string, value?: unknown) => void
+  ): void;
 
   // === 持久化支持（可选）===
   /**

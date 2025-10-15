@@ -16,22 +16,21 @@ import type {
   TrackData,
   LocationData,
   FootprintsConfig,
-  GeoBounds
+  GeoBounds,
 } from '../interfaces/IFootprintsService';
 import type { IStorageService } from '../interfaces/IStorageService';
-
 
 // Mock gpx-parser-builder
 vi.mock('gpx-parser-builder', () => ({
   default: {
     parseGpx: vi.fn(),
-    parse: vi.fn()
-  }
+    parse: vi.fn(),
+  },
 }));
 
 // Mock xml2js
 vi.mock('xml2js', () => ({
-  parseString: vi.fn()
+  parseString: vi.fn(),
 }));
 
 // Mock StorageService for unit tests
@@ -54,10 +53,9 @@ const createMockStorageService = (): IStorageService => {
     initialize: vi.fn(),
     dispose: vi.fn(),
     healthCheck: vi.fn().mockResolvedValue(true),
-    config: { basePath: '/test' }
+    config: { basePath: '/test' },
   } as IStorageService;
 };
-
 
 describe('FootprintsService', () => {
   let service: FootprintsService;
@@ -97,15 +95,27 @@ describe('FootprintsService', () => {
       // Mock GPX parser
       const { default: gpxParser } = await import('gpx-parser-builder');
       (gpxParser.parseGpx as ReturnType<typeof vi.fn>).mockReturnValue({
-        trk: [{
-          name: 'Test Track',
-          trkseg: [{
-            trkpt: [
-              { $: { lat: '35.6762', lon: '139.6503' }, ele: '10.0', time: '2024-01-01T12:00:00Z' },
-              { $: { lat: '35.6763', lon: '139.6504' }, ele: '11.0', time: '2024-01-01T12:01:00Z' }
-            ]
-          }]
-        }]
+        trk: [
+          {
+            name: 'Test Track',
+            trkseg: [
+              {
+                trkpt: [
+                  {
+                    $: { lat: '35.6762', lon: '139.6503' },
+                    ele: '10.0',
+                    time: '2024-01-01T12:00:00Z',
+                  },
+                  {
+                    $: { lat: '35.6763', lon: '139.6504' },
+                    ele: '11.0',
+                    time: '2024-01-01T12:01:00Z',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
 
       const result = await service.parseSingleTrack('/test/track.gpx');
@@ -122,14 +132,16 @@ describe('FootprintsService', () => {
       expect(track.waypoints[0]).toMatchObject({
         latitude: 35.6762,
         longitude: 139.6503,
-        elevation: 10.0
+        elevation: 10.0,
       });
       expect(track.provider).toBe('yamap');
       expect(track.style.color).toBe('#ff6b35'); // YAMAP 颜色
     });
 
     it('should handle parsing errors gracefully', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('File not found'));
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('File not found')
+      );
 
       const result = await service.parseSingleTrack('/nonexistent/track.gpx');
 
@@ -139,7 +151,7 @@ describe('FootprintsService', () => {
       expect(result.metadata.errors).toHaveLength(1);
       expect(result.metadata.errors[0]).toMatchObject({
         filePath: '/nonexistent/track.gpx',
-        error: 'File not found'
+        error: 'File not found',
       });
     });
 
@@ -165,13 +177,15 @@ describe('FootprintsService', () => {
           kml: {
             Document: {
               name: ['2bulu Track'],
-              Placemark: [{
-                LineString: {
-                  coordinates: '139.6503,35.6762,10 139.6504,35.6763,11'
-                }
-              }]
-            }
-          }
+              Placemark: [
+                {
+                  LineString: {
+                    coordinates: '139.6503,35.6762,10 139.6504,35.6763,11',
+                  },
+                },
+              ],
+            },
+          },
         });
       });
 
@@ -189,9 +203,14 @@ describe('FootprintsService', () => {
   describe('parseMultipleTracks', () => {
     it('should parse multiple track files', async () => {
       // Mock multiple fetch calls
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>) = vi.fn()
-        .mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Track 1</name></trk></gpx>`)
-        .mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="Garmin"><trk><name>Track 2</name></trk></gpx>`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>) = vi
+        .fn()
+        .mockResolvedValueOnce(
+          `<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Track 1</name></trk></gpx>`
+        )
+        .mockResolvedValueOnce(
+          `<?xml version="1.0"?><gpx creator="Garmin"><trk><name>Track 2</name></trk></gpx>`
+        );
 
       // Mock GPX parser for multiple calls
       const { default: gpxParser } = await import('gpx-parser-builder');
@@ -213,13 +232,17 @@ describe('FootprintsService', () => {
     });
 
     it('should handle mixed success and failure', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>) = vi.fn()
-        .mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Track 1</name></trk></gpx>`)
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>) = vi
+        .fn()
+        .mockResolvedValueOnce(
+          `<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Track 1</name></trk></gpx>`
+        )
         .mockRejectedValueOnce(new Error('Track 2 not found'));
 
       const { default: gpxParser } = await import('gpx-parser-builder');
-      (gpxParser.parseGpx as ReturnType<typeof vi.fn>)
-        .mockReturnValueOnce({ trk: [{ name: 'Track 1', trkseg: [] }] });
+      (gpxParser.parseGpx as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+        trk: [{ name: 'Track 1', trkseg: [] }],
+      });
 
       const result = await service.parseMultipleTracks(['/test/track1.gpx', '/test/track2.gpx']);
 
@@ -243,9 +266,9 @@ describe('FootprintsService', () => {
           clustering: {
             enabled: true,
             maxDistance: 50,
-            minPoints: 3
-          }
-        }
+            minPoints: 3,
+          },
+        },
       };
 
       // Mock scanTrackFiles
@@ -253,17 +276,19 @@ describe('FootprintsService', () => {
 
       // Mock parseMultipleTracks
       vi.spyOn(service, 'parseMultipleTracks').mockResolvedValue({
-        tracks: [{
-          id: 'track1',
-          name: 'Test Track',
-          waypoints: [],
-          placemarks: [],
-          provider: 'yamap',
-          style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-          metadata: { source: 'gpx' }
-        }],
+        tracks: [
+          {
+            id: 'track1',
+            name: 'Test Track',
+            waypoints: [],
+            placemarks: [],
+            provider: 'yamap',
+            style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
+            metadata: { source: 'gpx' },
+          },
+        ],
         locations: [],
-        metadata: { totalTracks: 1, totalLocations: 0, processingTime: 100, errors: [] }
+        metadata: { totalTracks: 1, totalLocations: 0, processingTime: 100, errors: [] },
       });
 
       // Mock processUserInputs
@@ -285,7 +310,7 @@ describe('FootprintsService', () => {
       const config: FootprintsConfig = {
         userInputs: ['tokyo'],
         includeTracks: false,
-        visualization: { locationType: 'centerPoint' }
+        visualization: { locationType: 'centerPoint' },
       };
 
       vi.spyOn(service, 'processUserInputs').mockResolvedValue([]);
@@ -304,7 +329,9 @@ describe('FootprintsService', () => {
 
   describe('detectProvider', () => {
     it('should detect YAMAP provider from GPX content', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="YAMAP">`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><gpx creator="YAMAP">`
+      );
 
       const result = await service.detectProvider('/test/yamap.gpx');
 
@@ -313,7 +340,9 @@ describe('FootprintsService', () => {
     });
 
     it('should detect Garmin provider from GPX content', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="Garmin">`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><gpx creator="Garmin">`
+      );
 
       const result = await service.detectProvider('/test/garmin.gpx');
 
@@ -322,7 +351,9 @@ describe('FootprintsService', () => {
     });
 
     it('should detect 2bulu provider from KML content', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><kml><Document><name>2bulu track</name></Document></kml>`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><kml><Document><name>2bulu track</name></Document></kml>`
+      );
 
       const result = await service.detectProvider('/test/2bulu.kml');
 
@@ -331,7 +362,9 @@ describe('FootprintsService', () => {
     });
 
     it('should return unknown provider for unrecognized content', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><gpx creator="Unknown">`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><gpx creator="Unknown">`
+      );
 
       const result = await service.detectProvider('/test/unknown.gpx');
 
@@ -340,7 +373,9 @@ describe('FootprintsService', () => {
     });
 
     it('should handle file read errors', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('File not found'));
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('File not found')
+      );
 
       const result = await service.detectProvider('/nonexistent.gpx');
 
@@ -351,7 +386,9 @@ describe('FootprintsService', () => {
 
   describe('validateTrackFile', () => {
     it('should validate GPX file format', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><gpx version="1.1">`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><gpx version="1.1">`
+      );
 
       const result = await service.validateTrackFile('/test/valid.gpx');
 
@@ -359,7 +396,9 @@ describe('FootprintsService', () => {
     });
 
     it('should validate KML file format', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`<?xml version="1.0"?><kml xmlns="http://www.opengis.net/kml/2.2">`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `<?xml version="1.0"?><kml xmlns="http://www.opengis.net/kml/2.2">`
+      );
 
       const result = await service.validateTrackFile('/test/valid.kml');
 
@@ -367,7 +406,9 @@ describe('FootprintsService', () => {
     });
 
     it('should reject invalid file format', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(`This is not a valid track file`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        `This is not a valid track file`
+      );
 
       const result = await service.validateTrackFile('/test/invalid.txt');
 
@@ -375,7 +416,9 @@ describe('FootprintsService', () => {
     });
 
     it('should handle file read errors', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('File not found'));
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('File not found')
+      );
 
       const result = await service.validateTrackFile('/nonexistent.gpx');
 
@@ -405,34 +448,34 @@ describe('FootprintsService', () => {
           name: 'Track 1',
           waypoints: [
             { latitude: 35.6762, longitude: 139.6503 },
-            { latitude: 35.6763, longitude: 139.6504 }
+            { latitude: 35.6763, longitude: 139.6504 },
           ],
           placemarks: [],
           provider: 'yamap',
           style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-          metadata: { source: 'gpx' }
+          metadata: { source: 'gpx' },
         },
         {
           id: 'track2',
           name: 'Track 2',
           waypoints: [
             { latitude: 35.6765, longitude: 139.6505 },
-            { latitude: 35.6760, longitude: 139.6500 }
+            { latitude: 35.676, longitude: 139.65 },
           ],
           placemarks: [],
           provider: 'garmin',
           style: { color: '#0066cc', weight: 3, opacity: 0.8 },
-          metadata: { source: 'gpx' }
-        }
+          metadata: { source: 'gpx' },
+        },
       ];
 
       const bounds = service.calculateTracksBounds(tracks);
 
       expect(bounds).toEqual({
         north: 35.6765,
-        south: 35.6760,
+        south: 35.676,
         east: 139.6505,
-        west: 139.6500
+        west: 139.65,
       });
     });
 
@@ -443,7 +486,7 @@ describe('FootprintsService', () => {
         north: 0,
         south: 0,
         east: 0,
-        west: 0
+        west: 0,
       });
     });
   });
@@ -458,17 +501,17 @@ describe('FootprintsService', () => {
           displayName: 'Tokyo',
           visitStatus: 'visited',
           visualization: {
-            centerPoint: [139.6917, 35.6895]
+            centerPoint: [139.6917, 35.6895],
           },
           aggregation: {
             photoCount: 5,
             userInputCount: 1,
-            totalVisits: 3
+            totalVisits: 3,
           },
           sources: {
             photos: [],
-            userInputs: []
-          }
+            userInputs: [],
+          },
         },
         {
           id: 'osaka',
@@ -477,18 +520,18 @@ describe('FootprintsService', () => {
           displayName: 'Osaka',
           visitStatus: 'wantToVisit',
           visualization: {
-            centerPoint: [135.5023, 34.6937]
+            centerPoint: [135.5023, 34.6937],
           },
           aggregation: {
             photoCount: 0,
             userInputCount: 1,
-            totalVisits: 0
+            totalVisits: 0,
           },
           sources: {
             photos: [],
-            userInputs: []
-          }
-        }
+            userInputs: [],
+          },
+        },
       ];
 
       const bounds = service.calculateLocationsBounds(locations);
@@ -497,7 +540,7 @@ describe('FootprintsService', () => {
         north: 35.6895,
         south: 34.6937,
         east: 139.6917,
-        west: 135.5023
+        west: 135.5023,
       });
     });
 
@@ -508,7 +551,7 @@ describe('FootprintsService', () => {
         north: 0,
         south: 0,
         east: 0,
-        west: 0
+        west: 0,
       });
     });
   });
@@ -519,14 +562,14 @@ describe('FootprintsService', () => {
         north: 35.7,
         south: 35.6,
         east: 139.8,
-        west: 139.6
+        west: 139.6,
       };
 
       const bounds2: GeoBounds = {
         north: 35.8,
         south: 35.5,
         east: 139.7,
-        west: 139.5
+        west: 139.5,
       };
 
       const merged = service.mergeBounds(bounds1, bounds2);
@@ -535,7 +578,7 @@ describe('FootprintsService', () => {
         north: 35.8,
         south: 35.5,
         east: 139.8,
-        west: 139.5
+        west: 139.5,
       });
     });
   });
@@ -547,12 +590,12 @@ describe('FootprintsService', () => {
         name: 'Test Track',
         waypoints: [
           { latitude: 35.6762, longitude: 139.6503, elevation: 10 },
-          { latitude: 35.6763, longitude: 139.6504, elevation: 15 }
+          { latitude: 35.6763, longitude: 139.6504, elevation: 15 },
         ],
         placemarks: [],
         provider: 'yamap',
         style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-        metadata: { source: 'gpx' }
+        metadata: { source: 'gpx' },
       };
 
       const stats = service.getTrackStatistics(track);
@@ -564,7 +607,7 @@ describe('FootprintsService', () => {
         elevationGain: expect.any(Number) as number,
         elevationLoss: expect.any(Number) as number,
         maxElevation: expect.any(Number) as number,
-        minElevation: expect.any(Number) as number
+        minElevation: expect.any(Number) as number,
       });
     });
   });
@@ -605,7 +648,7 @@ describe('FootprintsService', () => {
 
       expect(vaultInfo).toEqual({
         id: 'default',
-        path: '/vault'
+        path: '/vault',
       });
     });
   });
@@ -626,11 +669,13 @@ describe('FootprintsService', () => {
       vi.clearAllMocks();
       vi.resetAllMocks();
 
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(`<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Test</name></trk></gpx>`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+        `<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Test</name></trk></gpx>`
+      );
 
       const { default: gpxParser } = await import('gpx-parser-builder');
       const mockParseGpx = vi.fn().mockReturnValue({
-        trk: [{ name: 'Test', trkseg: [] }]
+        trk: [{ name: 'Test', trkseg: [] }],
       });
 
       // 确保 mock 被正确应用
@@ -646,15 +691,17 @@ describe('FootprintsService', () => {
       const testCases = [
         { creator: 'YAMAP', provider: 'yamap', expectedColor: '#ff6b35' },
         { creator: 'Garmin', provider: 'garmin', expectedColor: '#0066cc' },
-        { creator: 'Unknown', provider: 'unknown', expectedColor: '#3498db' }
+        { creator: 'Unknown', provider: 'unknown', expectedColor: '#3498db' },
       ];
 
       for (const testCase of testCases) {
-        (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(`<?xml version="1.0"?><gpx creator="${testCase.creator}"><trk><name>Test</name></trk></gpx>`);
+        (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+          `<?xml version="1.0"?><gpx creator="${testCase.creator}"><trk><name>Test</name></trk></gpx>`
+        );
 
         const { default: gpxParser } = await import('gpx-parser-builder');
         (gpxParser.parseGpx as ReturnType<typeof vi.fn>).mockReturnValue({
-          trk: [{ name: 'Test', trkseg: [] }]
+          trk: [{ name: 'Test', trkseg: [] }],
         });
 
         const result = await service.parseSingleTrack('/test/track.gpx');
@@ -671,7 +718,9 @@ describe('FootprintsService', () => {
 
   describe('error handling', () => {
     it('should handle invalid GPX parser results', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(`<?xml version="1.0"?><gpx></gpx>`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+        `<?xml version="1.0"?><gpx></gpx>`
+      );
 
       const { default: gpxParser } = await import('gpx-parser-builder');
       (gpxParser.parseGpx as ReturnType<typeof vi.fn>).mockReturnValue(null);
@@ -683,7 +732,9 @@ describe('FootprintsService', () => {
     });
 
     it('should handle XML parsing errors in KML', async () => {
-      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(`<?xml version="1.0"?><kml>invalid xml`);
+      (mockStorageService.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+        `<?xml version="1.0"?><kml>invalid xml`
+      );
 
       const { parseString } = await import('xml2js');
       (parseString as ReturnType<typeof vi.fn>).mockImplementation((_xml, callback) => {

@@ -33,7 +33,9 @@ describe('FileTreeService Integration Tests', () => {
     // 检查服务器是否已经在运行
     const isServerRunning = async (): Promise<boolean> => {
       try {
-        const response = await fetch(`${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`);
+        const response = await fetch(
+          `${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`
+        );
         return response.ok;
       } catch {
         return false;
@@ -43,12 +45,11 @@ describe('FileTreeService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -98,11 +99,10 @@ describe('FileTreeService Integration Tests', () => {
       expect(tree.length).toBeGreaterThan(0);
 
       // 验证文件树结构
-      const hasFiles = tree.some(node => node.type === 'file');
-      const hasFolders = tree.some(node => node.type === 'folder');
+      const hasFiles = tree.some((node) => node.type === 'file');
+      const hasFolders = tree.some((node) => node.type === 'folder');
 
       expect(hasFiles || hasFolders).toBe(true);
-
     });
 
     it('should find specific files from real data', async () => {
@@ -130,7 +130,6 @@ describe('FileTreeService Integration Tests', () => {
 
       expect(Array.isArray(allFolders)).toBe(true);
       expect(allFolders.length).toBeGreaterThanOrEqual(0);
-
     });
 
     it('should have correct file structure', async () => {
@@ -140,17 +139,16 @@ describe('FileTreeService Integration Tests', () => {
       expect(allFiles.length).toBeGreaterThan(0);
 
       // 验证所有文件路径格式正确
-      allFiles.forEach(filePath => {
+      allFiles.forEach((filePath) => {
         expect(filePath.startsWith('/')).toBe(true);
       });
-
     });
   });
 
   describe('Real Data Queries', () => {
     it('should search files in real data', async () => {
       const tree = await fileTreeService.getFileTree();
-      const allFiles = tree.filter(node => node.type === 'file');
+      const allFiles = tree.filter((node) => node.type === 'file');
 
       if (allFiles.length > 0) {
         // 使用第一个文件的名称进行搜索
@@ -159,8 +157,7 @@ describe('FileTreeService Integration Tests', () => {
 
         expect(Array.isArray(searchResults)).toBe(true);
         expect(searchResults.length).toBeGreaterThan(0);
-        expect(searchResults.some(result => result.name.includes(firstFileName))).toBe(true);
-
+        expect(searchResults.some((result) => result.name.includes(firstFileName))).toBe(true);
       }
     });
 
@@ -171,15 +168,13 @@ describe('FileTreeService Integration Tests', () => {
       expect(typeof stats.totalFiles).toBe('number');
       expect(typeof stats.totalFolders).toBe('number');
       expect(stats.totalFiles).toBeGreaterThan(0);
-
     });
 
     it('should get files by folder from real data', async () => {
       const rootFiles = await fileTreeService.getFilesByFolder();
 
       expect(Array.isArray(rootFiles)).toBe(true);
-      expect(rootFiles.every(file => file.type === 'file')).toBe(true);
-
+      expect(rootFiles.every((file) => file.type === 'file')).toBe(true);
 
       // 如果有子文件夹，测试子文件夹的文件
       const allFolders = await fileTreeService.getAllFolders();
@@ -188,8 +183,7 @@ describe('FileTreeService Integration Tests', () => {
         const folderFiles = await fileTreeService.getFilesByFolder(firstFolder);
 
         expect(Array.isArray(folderFiles)).toBe(true);
-        expect(folderFiles.every(file => file.type === 'file')).toBe(true);
-
+        expect(folderFiles.every((file) => file.type === 'file')).toBe(true);
       }
     });
 
@@ -219,7 +213,6 @@ describe('FileTreeService Integration Tests', () => {
 
       expect(Array.isArray(filteredTree)).toBe(true);
       expect(Array.isArray(unfilteredTree)).toBe(true);
-
     });
 
     it('should handle empty folders option with real data', async () => {
@@ -228,26 +221,23 @@ describe('FileTreeService Integration Tests', () => {
 
       expect(Array.isArray(treeWithEmpty)).toBe(true);
       expect(Array.isArray(treeWithoutEmpty)).toBe(true);
-
     });
 
     it('should apply custom sort to real data', async () => {
       const defaultTree = await fileTreeService.getFileTree();
 
       const reverseSortTree = await fileTreeService.getFileTree({
-        customSort: (a, b) => b.name.localeCompare(a.name)
+        customSort: (a, b) => b.name.localeCompare(a.name),
       });
 
       expect(Array.isArray(defaultTree)).toBe(true);
       expect(Array.isArray(reverseSortTree)).toBe(true);
       expect(defaultTree.length).toBe(reverseSortTree.length);
-
     });
   });
 
   describe('Caching Integration with Real Data', () => {
     it('should demonstrate caching performance with real data', async () => {
-
       const start1 = performance.now();
       const firstCall = await cachedFileTreeService.getFileTree();
       const time1 = performance.now() - start1;
@@ -259,7 +249,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(firstCall).toBeTruthy();
       expect(secondCall).toBeTruthy();
       expect(firstCall.length).toBe(secondCall.length);
-
 
       // 缓存应该显著提高性能（至少快一些）
       expect(time2).toBeLessThanOrEqual(time1);
@@ -286,7 +275,6 @@ describe('FileTreeService Integration Tests', () => {
         expect(secondFind).toBeTruthy();
         expect(firstFind?.path).toBe(secondFind?.path);
 
-
         expect(time2).toBeLessThanOrEqual(time1);
       }
     });
@@ -306,7 +294,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(Array.isArray(secondSearch)).toBe(true);
       expect(firstSearch.length).toBe(secondSearch.length);
 
-
       expect(time2).toBeLessThanOrEqual(time1);
     });
   });
@@ -321,7 +308,6 @@ describe('FileTreeService Integration Tests', () => {
       expect(tree).toBeTruthy();
       expect(Array.isArray(tree)).toBe(true);
       expect(tree.length).toBeGreaterThan(0);
-
     });
 
     it('should maintain consistency with MetadataService', async () => {
@@ -334,7 +320,6 @@ describe('FileTreeService Integration Tests', () => {
 
         expect(treeFiles.length).toBeGreaterThan(0);
         expect(treeFiles.length).toBeLessThanOrEqual(metadata.length);
-
       }
     });
   });
@@ -367,17 +352,16 @@ describe('FileTreeService Integration Tests', () => {
       const allFiles = await fileTreeService.getAllFiles();
       const allFolders = await fileTreeService.getAllFolders();
 
-      allFiles.forEach(filePath => {
+      allFiles.forEach((filePath) => {
         // 大多数应该是 .md 文件
         if (filePath.endsWith('.md')) {
           expect(fileTreeService.isFilePath(filePath)).toBe(true);
         }
       });
 
-      allFolders.forEach(folderPath => {
+      allFolders.forEach((folderPath) => {
         expect(fileTreeService.isFilePath(folderPath)).toBe(false);
       });
-
     });
 
     it('should correctly extract node names and parent paths', async () => {
@@ -397,7 +381,6 @@ describe('FileTreeService Integration Tests', () => {
         } else {
           expect(parentPath).toBeNull();
         }
-
       }
     });
   });

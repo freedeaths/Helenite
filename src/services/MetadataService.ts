@@ -70,13 +70,12 @@ export class MetadataService implements IMetadataService {
         return null;
       }
 
-      const metadata = await response.json() as MetadataArray;
+      const metadata = (await response.json()) as MetadataArray;
 
       this.cachedMetadata = metadata;
 
       return metadata;
     } catch {
-      
       return null;
     }
   }
@@ -97,7 +96,7 @@ export class MetadataService implements IMetadataService {
     // 标准化路径（移除开头的斜杠）
     const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
 
-    return metadata.find(file => file.relativePath === normalizedPath) || null;
+    return metadata.find((file) => file.relativePath === normalizedPath) || null;
   }
 
   /**
@@ -117,7 +116,7 @@ export class MetadataService implements IMetadataService {
       return null;
     }
 
-    return metadata.find(file => file.fileName === fileName) || null;
+    return metadata.find((file) => file.fileName === fileName) || null;
   }
 
   /**
@@ -129,9 +128,7 @@ export class MetadataService implements IMetadataService {
       return [];
     }
 
-    return metadata.filter(file =>
-      file.tags?.includes(tag)
-    );
+    return metadata.filter((file) => file.tags?.includes(tag));
   }
 
   /**
@@ -144,13 +141,12 @@ export class MetadataService implements IMetadataService {
     }
 
     const tagSet = new Set<string>();
-    metadata.forEach(file => {
-      file.tags?.forEach(tag => tagSet.add(tag));
+    metadata.forEach((file) => {
+      file.tags?.forEach((tag) => tagSet.add(tag));
     });
 
     return Array.from(tagSet).sort();
   }
-
 
   /**
    * 获取文件的出链
@@ -215,11 +211,12 @@ export class MetadataService implements IMetadataService {
 
     const normalizedTarget = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
 
-    return metadata.filter(file =>
-      file.links?.some(link =>
-        link.relativePath === normalizedTarget ||
-        link.cleanLink === normalizedTarget ||
-        link.link.includes(normalizedTarget)
+    return metadata.filter((file) =>
+      file.links?.some(
+        (link) =>
+          link.relativePath === normalizedTarget ||
+          link.cleanLink === normalizedTarget ||
+          link.link.includes(normalizedTarget)
       )
     );
   }
@@ -235,7 +232,7 @@ export class MetadataService implements IMetadataService {
 
     const lowerQuery = query.toLowerCase();
 
-    return metadata.filter(file => {
+    return metadata.filter((file) => {
       // 文件名匹配
       if (file.fileName.toLowerCase().includes(lowerQuery)) {
         return true;
@@ -247,17 +244,17 @@ export class MetadataService implements IMetadataService {
       }
 
       // 标签匹配
-      if (file.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
+      if (file.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))) {
         return true;
       }
 
       // 别名匹配
-      if (file.aliases?.some(alias => alias.toLowerCase().includes(lowerQuery))) {
+      if (file.aliases?.some((alias) => alias.toLowerCase().includes(lowerQuery))) {
         return true;
       }
 
       // 标题匹配
-      if (file.headings?.some(heading => heading.heading.toLowerCase().includes(lowerQuery))) {
+      if (file.headings?.some((heading) => heading.heading.toLowerCase().includes(lowerQuery))) {
         return true;
       }
 
@@ -287,7 +284,6 @@ export class MetadataService implements IMetadataService {
 
     // 重新加载
     await this.getMetadata();
-
   }
 
   /**
@@ -297,7 +293,7 @@ export class MetadataService implements IMetadataService {
     return {
       vaultId: this.vaultConfig.id,
       hasLocalCache: this.cachedMetadata !== null,
-      fileCount: this.cachedMetadata?.length || 0
+      fileCount: this.cachedMetadata?.length || 0,
     };
   }
 
@@ -316,10 +312,10 @@ export class MetadataService implements IMetadataService {
   /**
    * 获取当前 vault 信息
    */
-  getCurrentVault(): { id: string, path: string } {
+  getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 

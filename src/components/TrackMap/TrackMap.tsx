@@ -7,7 +7,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLngBounds, type LatLngTuple } from 'leaflet';
-import type { IFootprintsService, FootprintsData } from '../../services/interfaces/IFootprintsService.js';
+import type {
+  IFootprintsService,
+  FootprintsData,
+} from '../../services/interfaces/IFootprintsService.js';
 import { useVaultService } from '../../hooks/useVaultService.js';
 
 // Import Leaflet CSS
@@ -25,9 +28,9 @@ L.Icon.Default.mergeOptions({
 interface TrackMapProps {
   trackId: string;
   trackType: 'single-track' | 'multi-track' | 'leaflet';
-  filePathsJson?: string;  // JSON 字符串格式的文件路径数组
-  filePaths?: string[];  // 直接传递的数组（用于测试）
-  config?: Record<string, unknown>;  // Leaflet 特定配置
+  filePathsJson?: string; // JSON 字符串格式的文件路径数组
+  filePaths?: string[]; // 直接传递的数组（用于测试）
+  config?: Record<string, unknown>; // Leaflet 特定配置
 }
 
 // 组件用于在地图加载后重新适应边界（主要用于全屏切换）
@@ -38,14 +41,14 @@ const RefitBounds: React.FC<{ bounds: LatLngBounds; trigger: boolean }> = ({ bou
     if (map && bounds && bounds.isValid()) {
       // 给一点延迟让地图容器大小改变生效
       setTimeout(() => {
-        map.invalidateSize();  // 重新计算地图大小
+        map.invalidateSize(); // 重新计算地图大小
         map.fitBounds(bounds, {
           padding: [50, 50],
           maxZoom: 16,
         });
       }, 100);
     }
-  }, [map, bounds, trigger]);  // 当 trigger (全屏状态) 改变时触发
+  }, [map, bounds, trigger]); // 当 trigger (全屏状态) 改变时触发
 
   return null;
 };
@@ -117,12 +120,14 @@ const MapControls: React.FC<{
         +
       </button>
 
-      <div style={{
-        width: '1px',
-        height: isMobile ? '16px' : '20px',
-        backgroundColor: 'rgba(224, 224, 224, 0.5)',
-        margin: isMobile ? '0 3px' : '0 4px'
-      }} />
+      <div
+        style={{
+          width: '1px',
+          height: isMobile ? '16px' : '20px',
+          backgroundColor: 'rgba(224, 224, 224, 0.5)',
+          margin: isMobile ? '0 3px' : '0 4px',
+        }}
+      />
 
       <button
         onClick={handleZoomOut}
@@ -146,12 +151,14 @@ const MapControls: React.FC<{
         −
       </button>
 
-      <div style={{
-        width: '1px',
-        height: isMobile ? '16px' : '20px',
-        backgroundColor: 'rgba(224, 224, 224, 0.5)',
-        margin: isMobile ? '0 3px' : '0 4px'
-      }} />
+      <div
+        style={{
+          width: '1px',
+          height: isMobile ? '16px' : '20px',
+          backgroundColor: 'rgba(224, 224, 224, 0.5)',
+          margin: isMobile ? '0 3px' : '0 4px',
+        }}
+      />
 
       <button
         onClick={handleReset}
@@ -175,12 +182,14 @@ const MapControls: React.FC<{
         ⟲
       </button>
 
-      <div style={{
-        width: '1px',
-        height: isMobile ? '16px' : '20px',
-        backgroundColor: 'rgba(224, 224, 224, 0.5)',
-        margin: isMobile ? '0 3px' : '0 4px'
-      }} />
+      <div
+        style={{
+          width: '1px',
+          height: isMobile ? '16px' : '20px',
+          backgroundColor: 'rgba(224, 224, 224, 0.5)',
+          margin: isMobile ? '0 3px' : '0 4px',
+        }}
+      />
 
       <button
         onClick={onFullscreen}
@@ -210,7 +219,7 @@ const MapControls: React.FC<{
 export const TrackMap: React.FC<TrackMapProps> = ({
   trackId,
   filePathsJson,
-  filePaths: filePathsProp
+  filePaths: filePathsProp,
 }) => {
   const [footprintsData, setFootprintsData] = useState<FootprintsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -256,7 +265,6 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     initService();
   }, [getAPI]);
 
-
   const loadTrackData = useCallback(async () => {
     if (!footprintsService) {
       // console.log('FootprintsService not initialized yet');
@@ -279,7 +287,7 @@ export const TrackMap: React.FC<TrackMapProps> = ({
       // 检查是否有错误
       if (result.metadata.errors.length > 0) {
         // 如果有部分文件加载失败，记录错误但继续处理成功的文件
-        result.metadata.errors.forEach(_error => {
+        result.metadata.errors.forEach((_error) => {
           // console.warn(`Failed to load ${_error.filePath}: ${_error.error}`);
         });
       }
@@ -297,7 +305,7 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
       const leafletBounds = new LatLngBounds([
         [bounds.south, bounds.west],
-        [bounds.north, bounds.east]
+        [bounds.north, bounds.east],
       ]);
 
       // console.log('Leaflet bounds valid?', leafletBounds.isValid());
@@ -309,11 +317,10 @@ export const TrackMap: React.FC<TrackMapProps> = ({
         // 设置默认边界
         const defaultBounds = new LatLngBounds([
           [31.0, 120.0], // Southwest
-          [32.0, 121.0]  // Northeast
+          [32.0, 121.0], // Northeast
         ]);
         setMapBounds(defaultBounds);
       }
-
     } catch (err) {
       setError(err instanceof Error ? err.message : '轨迹数据加载失败');
       if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_TRACKS) {
@@ -340,8 +347,9 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     }
 
     // 多个轨迹时，显示所有供应商
-    const providers = [...new Set(footprintsData.tracks.map(t => t.provider).filter(Boolean))];
-    const providerText = providers.length > 0 ? ` [${providers.map(p => p!.toUpperCase()).join(', ')}]` : '';
+    const providers = [...new Set(footprintsData.tracks.map((t) => t.provider).filter(Boolean))];
+    const providerText =
+      providers.length > 0 ? ` [${providers.map((p) => p!.toUpperCase()).join(', ')}]` : '';
 
     return `${footprintsData.tracks.length} 条轨迹${providerText}`;
   };
@@ -383,23 +391,26 @@ export const TrackMap: React.FC<TrackMapProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-
   if (loading) {
     return (
-      <div style={{
-        margin: '1.5rem auto',
-        maxWidth: '90%',
-      }}>
-        <div style={{
-          height: '440px',  // 400px + 40px 标题栏
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        }}>
+      <div
+        style={{
+          margin: '1.5rem auto',
+          maxWidth: '90%',
+        }}
+      >
+        <div
+          style={{
+            height: '440px', // 400px + 40px 标题栏
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          }}
+        >
           <div style={{ textAlign: 'center' }}>
             <div>🗺️ 加载轨迹数据中...</div>
             <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
@@ -413,21 +424,25 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
   if (error) {
     return (
-      <div style={{
-        margin: '1.5rem auto',
-        maxWidth: '90%',
-      }}>
-        <div style={{
-          height: '440px',  // 400px + 40px 标题栏
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#fff5f5',
-          border: '1px solid #fed7d7',
-          borderRadius: '8px',
-          color: '#c53030',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        }}>
+      <div
+        style={{
+          margin: '1.5rem auto',
+          maxWidth: '90%',
+        }}
+      >
+        <div
+          style={{
+            height: '440px', // 400px + 40px 标题栏
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#fff5f5',
+            border: '1px solid #fed7d7',
+            borderRadius: '8px',
+            color: '#c53030',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          }}
+        >
           <div style={{ textAlign: 'center' }}>
             <div>❌ 轨迹加载失败</div>
             <div style={{ fontSize: '0.8em', marginTop: '0.5rem' }}>{error}</div>
@@ -439,20 +454,24 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
   if (!footprintsData || footprintsData.tracks.length === 0 || !mapBounds) {
     return (
-      <div style={{
-        margin: '1.5rem auto',
-        maxWidth: '90%',
-      }}>
-        <div style={{
-          height: '440px',  // 400px + 40px 标题栏
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        }}>
+      <div
+        style={{
+          margin: '1.5rem auto',
+          maxWidth: '90%',
+        }}
+      >
+        <div
+          style={{
+            height: '440px', // 400px + 40px 标题栏
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          }}
+        >
           <div style={{ textAlign: 'center' }}>
             <div>📍 未找到轨迹数据</div>
             <div style={{ fontSize: '0.8em', color: '#666', marginTop: '0.5rem' }}>
@@ -467,31 +486,35 @@ export const TrackMap: React.FC<TrackMapProps> = ({
   // 根据视口宽度决定最大宽度
   const getMaxWidth = () => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      return '80%';  // 桌面端使用 80%
+      return '80%'; // 桌面端使用 80%
     }
-    return '90%';  // 移动端使用 90%
+    return '90%'; // 移动端使用 90%
   };
 
   return (
-    <div style={{
-      ...(isFullscreen ? {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9999,
-        backgroundColor: 'white',
-        margin: 0,
-        maxWidth: '100%',
-        width: '100%',
-        height: '100vh',
-        padding: 0,
-      } : {
-        margin: '1.5rem auto',
-        maxWidth: getMaxWidth(),  // 不占满整个宽度，留出滚动区域
-      }),
-    }}>
+    <div
+      style={{
+        ...(isFullscreen
+          ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999,
+              backgroundColor: 'white',
+              margin: 0,
+              maxWidth: '100%',
+              width: '100%',
+              height: '100vh',
+              padding: 0,
+            }
+          : {
+              margin: '1.5rem auto',
+              maxWidth: getMaxWidth(), // 不占满整个宽度，留出滚动区域
+            }),
+      }}
+    >
       <div
         ref={mapContainerRef}
         style={{
@@ -506,38 +529,45 @@ export const TrackMap: React.FC<TrackMapProps> = ({
         }}
       >
         {/* 标题栏 */}
-        <div style={{
-          height: isMobile ? '36px' : '40px',
-          backgroundColor: '#f8f9fa',
-          borderBottom: '1px solid #dee2e6',
-          display: 'flex',
-          alignItems: 'center',
-          padding: `0 ${isMobile ? '8px' : '12px'}`,
-          fontSize: isMobile ? '13px' : '14px',
-          fontWeight: 500,
-          color: '#333',
-        }}>
+        <div
+          style={{
+            height: isMobile ? '36px' : '40px',
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #dee2e6',
+            display: 'flex',
+            alignItems: 'center',
+            padding: `0 ${isMobile ? '8px' : '12px'}`,
+            fontSize: isMobile ? '13px' : '14px',
+            fontWeight: 500,
+            color: '#333',
+          }}
+        >
           <span>{getMapTitle()}</span>
-          <span style={{
-            marginLeft: '8px',
-            fontSize: isMobile ? '11px' : '12px',
-            color: '#666',
-            fontWeight: 'normal',
-          }}>
-            ({footprintsData.tracks.reduce((sum, track) => sum + track.waypoints.length, 0)} 个轨迹点)
+          <span
+            style={{
+              marginLeft: '8px',
+              fontSize: isMobile ? '11px' : '12px',
+              color: '#666',
+              fontWeight: 'normal',
+            }}
+          >
+            ({footprintsData.tracks.reduce((sum, track) => sum + track.waypoints.length, 0)}{' '}
+            个轨迹点)
           </span>
         </div>
 
         {/* 地图容器 */}
-        <div style={{
-          height: isFullscreen ? `calc(100% - ${isMobile ? '36px' : '40px'})` : '400px',
-          position: 'relative',
-          flex: isFullscreen ? 1 : undefined,
-        }}>
+        <div
+          style={{
+            height: isFullscreen ? `calc(100% - ${isMobile ? '36px' : '40px'})` : '400px',
+            position: 'relative',
+            flex: isFullscreen ? 1 : undefined,
+          }}
+        >
           <MapContainer
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
-            zoomControl={false}  // 禁用默认的缩放控件
+            zoomControl={false} // 禁用默认的缩放控件
             bounds={mapBounds}
             boundsOptions={{
               padding: [50, 50],
@@ -553,27 +583,27 @@ export const TrackMap: React.FC<TrackMapProps> = ({
             <RefitBounds bounds={mapBounds} trigger={isFullscreen} />
 
             {/* 添加自定义控制按钮 */}
-            <MapControls
-              bounds={mapBounds}
-              onFullscreen={handleFullscreen}
-              isMobile={isMobile}
-            />
+            <MapControls bounds={mapBounds} onFullscreen={handleFullscreen} isMobile={isMobile} />
 
             {footprintsData.tracks.map((track, trackIndex) => (
               <React.Fragment key={track.id}>
                 {/* 轨迹线 */}
                 {track.waypoints.length > 1 && (
                   <Polyline
-                    positions={track.waypoints.map(p => [p.latitude, p.longitude] as LatLngTuple)}
+                    positions={track.waypoints.map((p) => [p.latitude, p.longitude] as LatLngTuple)}
                     color={track.style.color}
                     weight={track.style.weight}
                     opacity={track.style.opacity}
                   >
                     <Popup>
                       <div>
-                        <strong>{track.name || `轨迹 ${trackIndex + 1}`}</strong><br/>
-                        点数: {track.waypoints.length}<br/>
-                        {track.metadata?.totalDistance && `距离: ${(track.metadata.totalDistance / 1000).toFixed(2)} km`}<br/>
+                        <strong>{track.name || `轨迹 ${trackIndex + 1}`}</strong>
+                        <br />
+                        点数: {track.waypoints.length}
+                        <br />
+                        {track.metadata?.totalDistance &&
+                          `距离: ${(track.metadata.totalDistance / 1000).toFixed(2)} km`}
+                        <br />
                         {track.provider && `提供商: ${track.provider}`}
                       </div>
                     </Popup>
@@ -582,11 +612,21 @@ export const TrackMap: React.FC<TrackMapProps> = ({
 
                 {/* 照片标记 */}
                 {track.placemarks?.map((placemark, pmIndex) => (
-                  <Marker key={`pm-${track.id}-${pmIndex}`} position={[placemark.latitude!, placemark.longitude!]}>
+                  <Marker
+                    key={`pm-${track.id}-${pmIndex}`}
+                    position={[placemark.latitude!, placemark.longitude!]}
+                  >
                     <Popup>
                       <div>
-                        <strong>{placemark.name || `照片 ${pmIndex + 1}`}</strong><br/>
-                        {placemark.thumbnailUrl && <img src={placemark.thumbnailUrl} alt={placemark.name} style={{ maxWidth: '200px' }} />}
+                        <strong>{placemark.name || `照片 ${pmIndex + 1}`}</strong>
+                        <br />
+                        {placemark.thumbnailUrl && (
+                          <img
+                            src={placemark.thumbnailUrl}
+                            alt={placemark.name}
+                            style={{ maxWidth: '200px' }}
+                          />
+                        )}
                         {placemark.description && <p>{placemark.description}</p>}
                       </div>
                     </Popup>
@@ -599,17 +639,24 @@ export const TrackMap: React.FC<TrackMapProps> = ({
                     <Marker position={[track.waypoints[0].latitude, track.waypoints[0].longitude]}>
                       <Popup>
                         <div>
-                          <strong>🚩 起点</strong><br/>
+                          <strong>🚩 起点</strong>
+                          <br />
                           {track.name && `轨迹: ${track.name}`}
                         </div>
                       </Popup>
                     </Marker>
 
                     {track.waypoints.length > 1 && (
-                      <Marker position={[track.waypoints[track.waypoints.length - 1].latitude, track.waypoints[track.waypoints.length - 1].longitude]}>
+                      <Marker
+                        position={[
+                          track.waypoints[track.waypoints.length - 1].latitude,
+                          track.waypoints[track.waypoints.length - 1].longitude,
+                        ]}
+                      >
                         <Popup>
                           <div>
-                            <strong>🏁 终点</strong><br/>
+                            <strong>🏁 终点</strong>
+                            <br />
                             {track.name && `轨迹: ${track.name}`}
                           </div>
                         </Popup>

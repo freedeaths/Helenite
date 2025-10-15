@@ -16,7 +16,7 @@ export interface MediaEmbedRendererOptions {
 const DEFAULT_OPTIONS: MediaEmbedRendererOptions = {
   pdfHeight: '600px',
   videoMaxWidth: '100%',
-  audioMaxWidth: '100%'
+  audioMaxWidth: '100%',
 };
 
 /**
@@ -34,7 +34,9 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
         const classNameProp = node.properties.className;
         const className = Array.isArray(classNameProp)
           ? classNameProp.join(' ')
-          : typeof classNameProp === 'string' ? classNameProp : '';
+          : typeof classNameProp === 'string'
+            ? classNameProp
+            : '';
 
         // 处理 PDF 嵌入占位符
         if (className.includes('pdf-embed-placeholder')) {
@@ -46,9 +48,9 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
               type: 'element',
               tagName: 'PDFViewer',
               properties: {
-                url: pdfUrl
+                url: pdfUrl,
               },
-              children: []
+              children: [],
             };
 
             // 更新节点为容器
@@ -63,9 +65,14 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
           const videoType = node.properties['data-video-type'] as string;
 
           if (videoUrl) {
-            const mimeType = videoType === 'mp4' ? 'video/mp4' :
-                           videoType === 'webm' ? 'video/webm' :
-                           videoType === 'ogg' ? 'video/ogg' : 'video/mp4';
+            const mimeType =
+              videoType === 'mp4'
+                ? 'video/mp4'
+                : videoType === 'webm'
+                  ? 'video/webm'
+                  : videoType === 'ogg'
+                    ? 'video/ogg'
+                    : 'video/mp4';
 
             // 创建 source 元素
             const source: HastElement = {
@@ -73,9 +80,9 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
               tagName: 'source',
               properties: {
                 src: videoUrl,
-                type: mimeType
+                type: mimeType,
               },
-              children: []
+              children: [],
             };
 
             // 创建 video 元素
@@ -85,15 +92,15 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
               properties: {
                 controls: true,
                 style: `width: 100%; max-width: ${opts.videoMaxWidth}; height: auto; border: 1px solid var(--background-modifier-border); border-radius: 4px;`,
-                preload: 'metadata'
+                preload: 'metadata',
               },
               children: [
                 source,
                 {
                   type: 'text',
-                  value: '您的浏览器不支持视频播放。'
-                }
-              ]
+                  value: '您的浏览器不支持视频播放。',
+                },
+              ],
             };
 
             // 更新节点为容器
@@ -108,9 +115,14 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
           const audioType = node.properties['data-audio-type'] as string;
 
           if (audioUrl) {
-            const mimeType = audioType === 'mp3' ? 'audio/mpeg' :
-                           audioType === 'ogg' ? 'audio/ogg' :
-                           audioType === 'wav' ? 'audio/wav' : 'audio/mpeg';
+            const mimeType =
+              audioType === 'mp3'
+                ? 'audio/mpeg'
+                : audioType === 'ogg'
+                  ? 'audio/ogg'
+                  : audioType === 'wav'
+                    ? 'audio/wav'
+                    : 'audio/mpeg';
 
             // 创建 source 元素
             const source: HastElement = {
@@ -118,9 +130,9 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
               tagName: 'source',
               properties: {
                 src: audioUrl,
-                type: mimeType
+                type: mimeType,
               },
-              children: []
+              children: [],
             };
 
             // 创建 audio 元素
@@ -130,15 +142,15 @@ export function mediaEmbedRenderer(options: MediaEmbedRendererOptions = {}) {
               properties: {
                 controls: true,
                 style: `width: 100%; max-width: ${opts.audioMaxWidth}; border: 1px solid var(--background-modifier-border); border-radius: 4px;`,
-                preload: 'metadata'
+                preload: 'metadata',
               },
               children: [
                 source,
                 {
                   type: 'text',
-                  value: '您的浏览器不支持音频播放。'
-                }
-              ]
+                  value: '您的浏览器不支持音频播放。',
+                },
+              ],
             };
 
             // 更新节点为容器，添加样式

@@ -4,7 +4,10 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { MarkdownProcessor, type ProcessedMarkdown } from '../../processors/markdown/MarkdownProcessor.js';
+import {
+  MarkdownProcessor,
+  type ProcessedMarkdown,
+} from '../../processors/markdown/MarkdownProcessor.js';
 import type { IVaultService } from '../../services/interfaces/IVaultService.js';
 import { TestTrackMap } from './TestTrackMap.js';
 import { TrackMap } from '../TrackMap/TrackMap.js';
@@ -164,9 +167,7 @@ clustering:
 > 如果地图没有显示，可能是轨迹文件加载失败或组件渲染问题。
 `;
 
-export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
-  vaultService
-}) => {
+export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({ vaultService }) => {
   const { getAPI } = useVaultService();
   const [markdown, setMarkdown] = useState(SAMPLE_MARKDOWN);
   const [processedResult, setProcessedResult] = useState<ProcessedMarkdown | null>(null);
@@ -238,7 +239,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
       getRawDocumentContent,
       getDocumentContent: async (path: string) => {
         return getRawDocumentContent(path);
-      }
+      },
     };
   };
 
@@ -252,19 +253,16 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
       // 使用真实的文件加载服务
       const realVaultService = createRealVaultService();
 
-      const processor = new MarkdownProcessor(
-        vaultService || (realVaultService as IVaultService),
-        {
-          enableTracks: true,
-          enableObsidianLinks: true,
-          enableObsidianTags: true,
-          enableHighlights: true,
-          enableCallouts: true,
-          enableMath: true,
-          enableCodeHighlight: true,
-          enableMermaid: true
-        }
-      );
+      const processor = new MarkdownProcessor(vaultService || (realVaultService as IVaultService), {
+        enableTracks: true,
+        enableObsidianLinks: true,
+        enableObsidianTags: true,
+        enableHighlights: true,
+        enableCallouts: true,
+        enableMath: true,
+        enableCodeHighlight: true,
+        enableMermaid: true,
+      });
 
       const result = await processor.processContent(markdown);
       // console.log('🗺️ Processing result:', result);
@@ -297,23 +295,28 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
   }, [processMarkdown]);
 
   return (
-    <div className="markdown-processor-test" style={{
-      display: 'flex',
-      height: '100vh',
-      gap: '1rem',
-      padding: '1rem',
-      width: '100%',
-      maxWidth: '100vw',
-      overflow: 'hidden'
-    }}>
+    <div
+      className="markdown-processor-test"
+      style={{
+        display: 'flex',
+        height: '100vh',
+        gap: '1rem',
+        padding: '1rem',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'hidden',
+      }}
+    >
       {/* 输入区域 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '0.5rem'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '0.5rem',
+          }}
+        >
           <h3>Markdown 输入</h3>
           <button
             onClick={processMarkdown}
@@ -324,7 +327,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: processing ? 'not-allowed' : 'pointer'
+              cursor: processing ? 'not-allowed' : 'pointer',
             }}
           >
             {processing ? '处理中...' : '重新处理'}
@@ -341,43 +344,49 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
             padding: '1rem',
             border: '1px solid #ddd',
             borderRadius: '4px',
-            resize: 'none'
+            resize: 'none',
           }}
         />
       </div>
 
       {/* 输出区域 */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,  // Important for flex children to shrink properly
-        overflow: 'hidden',
-        height: '100%'
-      }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0, // Important for flex children to shrink properly
+          overflow: 'hidden',
+          height: '100%',
+        }}
+      >
         <h3 style={{ flexShrink: 0, margin: '0 0 1rem 0' }}>处理结果</h3>
 
         {error && (
-          <div style={{
-            padding: '1rem',
-            backgroundColor: '#ffebee',
-            color: '#c62828',
-            borderRadius: '4px',
-            marginBottom: '1rem'
-          }}>
+          <div
+            style={{
+              padding: '1rem',
+              backgroundColor: '#ffebee',
+              color: '#c62828',
+              borderRadius: '4px',
+              marginBottom: '1rem',
+            }}
+          >
             <strong>错误：</strong> {error}
           </div>
         )}
 
         {processedResult && (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            overflow: 'auto',
-            minHeight: 0
-          }}>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              overflow: 'auto',
+              minHeight: 0,
+            }}
+          >
             {/* React 组件预览 */}
             <div>
               <h4>React 组件输出</h4>
@@ -389,7 +398,7 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                   backgroundColor: '#f9f9f9',
                   maxHeight: '300px',
                   overflow: 'auto',
-                  maxWidth: '100%'
+                  maxWidth: '100%',
                 }}
                 className="devtools-html-output"
               >
@@ -402,42 +411,58 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
               <div>
                 <h4>Mermaid 图表渲染 ({processedResult.mermaidDiagrams.length} 个)</h4>
                 <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '2rem' }}>
-                  {processedResult.mermaidDiagrams.map((diagram: { code: string }, index: number) => (
-                    <div key={`mermaid-${index}`} style={{
-                      marginBottom: '1rem',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      padding: '1rem',
-                      overflow: 'auto',
-                      maxWidth: '100%'
-                    }}>
-                      <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666', fontWeight: 'bold' }}>
-                        📊 Mermaid 图表 {index + 1}
+                  {processedResult.mermaidDiagrams.map(
+                    (diagram: { code: string }, index: number) => (
+                      <div
+                        key={`mermaid-${index}`}
+                        style={{
+                          marginBottom: '1rem',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          padding: '1rem',
+                          overflow: 'auto',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        <div
+                          style={{
+                            marginBottom: '0.5rem',
+                            fontSize: '0.9rem',
+                            color: '#666',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          📊 Mermaid 图表 {index + 1}
+                        </div>
+                        <div style={{ overflow: 'auto', maxWidth: '100%' }}>
+                          <MermaidDiagram code={diagram.code} className="mermaid-diagram" />
+                        </div>
                       </div>
-                      <div style={{ overflow: 'auto', maxWidth: '100%' }}>
-                        <MermaidDiagram code={diagram.code} className="mermaid-diagram" />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
             )}
 
             {/* 轨迹地图渲染 */}
             <div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem'
-              }}>
-                <h4>轨迹地图渲染 ({processedResult.trackMaps?.length || 0} 个)</h4>
-                <label style={{
+              <div
+                style={{
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.9rem'
-                }}>
+                  marginBottom: '1rem',
+                }}
+              >
+                <h4>轨迹地图渲染 ({processedResult.trackMaps?.length || 0} 个)</h4>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: '0.9rem',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={showRealMaps}
@@ -452,13 +477,16 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                   {processedResult.trackMaps.map((trackData, index: number) =>
                     showRealMaps ? (
                       <div key={`real-track-${index}`} style={{ marginBottom: '2rem' }}>
-                        <div style={{
-                          marginBottom: '0.5rem',
-                          fontSize: '0.9rem',
-                          color: '#666',
-                          fontWeight: 'bold'
-                        }}>
-                          🗺️ {trackData.id} ({trackData.fileType || 'unknown'}) - {trackData.isFile ? 'file' : 'inline'}
+                        <div
+                          style={{
+                            marginBottom: '0.5rem',
+                            fontSize: '0.9rem',
+                            color: '#666',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          🗺️ {trackData.id} ({trackData.fileType || 'unknown'}) -{' '}
+                          {trackData.isFile ? 'file' : 'inline'}
                         </div>
                         <TrackMap
                           trackId={trackData.id}
@@ -482,13 +510,15 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
                   )}
                 </div>
               ) : (
-                <div style={{
-                  padding: '2rem',
-                  textAlign: 'center',
-                  color: '#666',
-                  border: '2px dashed #ddd',
-                  borderRadius: '8px'
-                }}>
+                <div
+                  style={{
+                    padding: '2rem',
+                    textAlign: 'center',
+                    color: '#666',
+                    border: '2px dashed #ddd',
+                    borderRadius: '8px',
+                  }}
+                >
                   🗺️ 没有检测到轨迹地图语法
                 </div>
               )}
@@ -496,56 +526,70 @@ export const MarkdownProcessorTest: React.FC<MarkdownProcessorTestProps> = ({
 
             {/* 轨迹地图数据（调试用） */}
             <details style={{ marginTop: '1rem' }}>
-              <summary style={{
-                cursor: 'pointer',
-                padding: '0.5rem',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '4px'
-              }}>
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: '4px',
+                }}
+              >
                 🔍 查看原始轨迹数据 (调试用)
               </summary>
-              <pre style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                padding: '1rem',
-                backgroundColor: '#f9f9f9',
-                fontSize: '12px',
-                maxHeight: '200px',
-                overflow: 'auto',
-                marginTop: '0.5rem',
-                maxWidth: '100%',
-                overflowX: 'auto',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}>
-                {JSON.stringify({
-                  trackMaps: processedResult.trackMaps || [],
-                  mermaidDiagrams: processedResult.mermaidDiagrams || []
-                }, null, 2)}
+              <pre
+                style={{
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  padding: '1rem',
+                  backgroundColor: '#f9f9f9',
+                  fontSize: '12px',
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  marginTop: '0.5rem',
+                  maxWidth: '100%',
+                  overflowX: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {JSON.stringify(
+                  {
+                    trackMaps: processedResult.trackMaps || [],
+                    mermaidDiagrams: processedResult.mermaidDiagrams || [],
+                  },
+                  null,
+                  2
+                )}
               </pre>
             </details>
 
             {/* 元数据 */}
             <div>
               <h4>文档元数据</h4>
-              <pre style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                padding: '1rem',
-                backgroundColor: '#f9f9f9',
-                fontSize: '12px',
-                maxHeight: '150px',
-                overflow: 'auto',
-                maxWidth: '100%',
-                overflowX: 'auto',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}>
-                {JSON.stringify({
-                  headings: processedResult.metadata?.headings || [],
-                  links: processedResult.metadata?.links || [],
-                  tags: processedResult.metadata?.tags || []
-                }, null, 2)}
+              <pre
+                style={{
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  padding: '1rem',
+                  backgroundColor: '#f9f9f9',
+                  fontSize: '12px',
+                  maxHeight: '150px',
+                  overflow: 'auto',
+                  maxWidth: '100%',
+                  overflowX: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {JSON.stringify(
+                  {
+                    headings: processedResult.metadata?.headings || [],
+                    links: processedResult.metadata?.links || [],
+                    tags: processedResult.metadata?.tags || [],
+                  },
+                  null,
+                  2
+                )}
               </pre>
             </div>
           </div>

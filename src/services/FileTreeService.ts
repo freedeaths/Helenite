@@ -7,14 +7,20 @@
  * 架构设计：FileTreeService 通过 CacheManager 实现透明缓存
  */
 
-import { createVaultConfig, getVaultConfig, isFolderExcluded, isFileExcluded, isPathInExcludedFolder } from '../config/vaultConfig.js';
+import {
+  createVaultConfig,
+  getVaultConfig,
+  isFolderExcluded,
+  isFileExcluded,
+  isPathInExcludedFolder,
+} from '../config/vaultConfig.js';
 import type { VaultPaths } from '../config/vaultConfig.js';
 import type {
   IFileTreeService,
   FileTreeNode,
   FileNodeMetadata,
   FolderStats,
-  FileTreeOptions
+  FileTreeOptions,
 } from './interfaces/IFileTreeService.js';
 import type { IMetadataService, MetadataArray, Metadata } from './interfaces/IMetadataService.js';
 
@@ -48,7 +54,6 @@ export class FileTreeService implements IFileTreeService {
 
       return this.buildTreeFromMetadata(metadata, options);
     } catch {
-
       return [];
     }
   }
@@ -109,7 +114,7 @@ export class FileTreeService implements IFileTreeService {
    */
   async getRootFolders(): Promise<FileTreeNode[]> {
     const tree = await this.getFileTree();
-    return tree.filter(node => node.type === 'folder');
+    return tree.filter((node) => node.type === 'folder');
   }
 
   // ===============================
@@ -135,7 +140,7 @@ export class FileTreeService implements IFileTreeService {
 
     if (!folderPath) {
       // 返回根级文件
-      return tree.filter(node => node.type === 'file');
+      return tree.filter((node) => node.type === 'file');
     }
 
     const folder = this.findNodeInTree(tree, folderPath);
@@ -143,7 +148,7 @@ export class FileTreeService implements IFileTreeService {
       return [];
     }
 
-    return folder.children?.filter(node => node.type === 'file') || [];
+    return folder.children?.filter((node) => node.type === 'file') || [];
   }
 
   /**
@@ -159,17 +164,19 @@ export class FileTreeService implements IFileTreeService {
       const node = this.findNodeInTree(tree, filePath);
       if (node && node.type === 'file') {
         // 搜索文件名和路径
-        if (node.name.toLowerCase().includes(lowerQuery) ||
-            node.path.toLowerCase().includes(lowerQuery)) {
+        if (
+          node.name.toLowerCase().includes(lowerQuery) ||
+          node.path.toLowerCase().includes(lowerQuery)
+        ) {
           results.push(node);
         }
 
         // 搜索标签和别名
         if (node.metadata) {
-          const matchesTags = node.metadata.tags?.some(tag =>
+          const matchesTags = node.metadata.tags?.some((tag) =>
             tag.toLowerCase().includes(lowerQuery)
           );
-          const matchesAliases = node.metadata.aliases?.some(alias =>
+          const matchesAliases = node.metadata.aliases?.some((alias) =>
             alias.toLowerCase().includes(lowerQuery)
           );
 
@@ -181,7 +188,7 @@ export class FileTreeService implements IFileTreeService {
     }
 
     // 去重并返回
-    return Array.from(new Map(results.map(node => [node.path, node])).values());
+    return Array.from(new Map(results.map((node) => [node.path, node])).values());
   }
 
   // ===============================
@@ -243,7 +250,7 @@ export class FileTreeService implements IFileTreeService {
     return {
       vaultId: this.vaultConfig.id,
       ...stats,
-      metadataStats
+      metadataStats,
     };
   }
 
@@ -265,7 +272,7 @@ export class FileTreeService implements IFileTreeService {
   getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 
@@ -277,7 +284,10 @@ export class FileTreeService implements IFileTreeService {
    * 从 metadata 构建文件树
    * 复刻 LocalFileTreeAPI.buildTreeFromMetadata 的核心逻辑
    */
-  private buildTreeFromMetadata(metadata: MetadataArray, options: FileTreeOptions = {}): FileTreeNode[] {
+  private buildTreeFromMetadata(
+    metadata: MetadataArray,
+    options: FileTreeOptions = {}
+  ): FileTreeNode[] {
     const config = getVaultConfig();
 
     // 1. 提取所有路径并构建路径映射
@@ -285,7 +295,7 @@ export class FileTreeService implements IFileTreeService {
     const allPaths = new Set<string>();
 
     // 添加 metadata.json 中的 markdown 文件
-    metadata.forEach(item => {
+    metadata.forEach((item) => {
       if (item.relativePath) {
         const path = this.normalizePath(item.relativePath);
 
@@ -308,7 +318,6 @@ export class FileTreeService implements IFileTreeService {
       }
     });
 
-
     // 2. 构建树状结构
     const root: FileTreeNode[] = [];
     const folderMap = new Map<string, FileTreeNode>();
@@ -320,15 +329,12 @@ export class FileTreeService implements IFileTreeService {
       if (depthA !== depthB) return depthA - depthB;
 
       // 同深度时使用自定义排序或 PHP 排序
-      return options.customSort ?
-        options.customSort(
-          { name: a, path: a, type: 'file' },
-          { name: b, path: b, type: 'file' }
-        ) :
-        this.phpCustomSort(a, b);
+      return options.customSort
+        ? options.customSort({ name: a, path: a, type: 'file' }, { name: b, path: b, type: 'file' })
+        : this.phpCustomSort(a, b);
     });
 
-    sortedPaths.forEach(path => {
+    sortedPaths.forEach((path) => {
       const isFile = pathMap.has(path);
       const parentPath = this.getParentPath(path);
       const name = this.getNodeName(path);
@@ -338,7 +344,7 @@ export class FileTreeService implements IFileTreeService {
         path: `/${path}`,
         type: isFile ? 'file' : 'folder',
         metadata: pathMap.get(path),
-        children: isFile ? undefined : []
+        children: isFile ? undefined : [],
       };
 
       if (parentPath) {
@@ -376,7 +382,7 @@ export class FileTreeService implements IFileTreeService {
       aliases: item.aliases || [],
       headingCount: item.headings?.length || 0,
       linkCount: item.links?.length || 0,
-      backlinkCount: item.backlinks?.length || 0
+      backlinkCount: item.backlinks?.length || 0,
     };
   }
 
@@ -442,7 +448,7 @@ export class FileTreeService implements IFileTreeService {
     let totalFolders = 0;
 
     const countItems = (nodes: FileTreeNode[]) => {
-      nodes.forEach(node => {
+      nodes.forEach((node) => {
         if (node.type === 'file') {
           totalFiles++;
         } else if (node.type === 'folder') {
@@ -459,7 +465,7 @@ export class FileTreeService implements IFileTreeService {
     return {
       totalFiles,
       totalFolders,
-      lastModified: new Date().toISOString()
+      lastModified: new Date().toISOString(),
     };
   }
 
@@ -467,7 +473,7 @@ export class FileTreeService implements IFileTreeService {
    * 收集所有文件夹路径
    */
   private collectFolders(tree: FileTreeNode[], folders: string[]): void {
-    tree.forEach(node => {
+    tree.forEach((node) => {
       if (node.type === 'folder') {
         folders.push(node.path);
         if (node.children) {
@@ -481,7 +487,7 @@ export class FileTreeService implements IFileTreeService {
    * 收集所有文件路径
    */
   private collectFiles(tree: FileTreeNode[], files: string[]): void {
-    tree.forEach(node => {
+    tree.forEach((node) => {
       if (node.type === 'file') {
         files.push(node.path);
       } else if (node.children) {
@@ -526,7 +532,10 @@ export function getFileTreeService(): FileTreeService | null {
 /**
  * 初始化全局文件树服务
  */
-export function initializeFileTreeService(metadataService: IMetadataService, vaultId?: string): FileTreeService {
+export function initializeFileTreeService(
+  metadataService: IMetadataService,
+  vaultId?: string
+): FileTreeService {
   _globalFileTreeService = new FileTreeService(metadataService, vaultId);
   return _globalFileTreeService;
 }

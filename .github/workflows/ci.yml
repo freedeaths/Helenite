@@ -10,7 +10,7 @@ jobs:
   quality-check:
     name: 'Quality Check'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,9 +27,12 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Lint check
         run: npm run lint
-        continue-on-error: true  # 暂时允许现有 lint 错误，但会显示状态
+        continue-on-error: false
 
       - name: Unit tests
         run: npm test
@@ -40,7 +43,7 @@ jobs:
   e2e-test:
     name: 'E2E Tests'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,7 +74,7 @@ jobs:
     name: 'Lint Regression Check'
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout base branch
         uses: actions/checkout@v4
@@ -108,7 +111,7 @@ jobs:
           baseline=$(cat /tmp/baseline-lint-count.txt)
           pr_count=$(cat /tmp/pr-lint-count.txt)
           echo "Baseline: $baseline, PR: $pr_count"
-          
+
           if [ "$pr_count" -gt "$baseline" ]; then
             echo "❌ PR introduces new lint issues: $pr_count > $baseline"
             echo "Please fix the new lint issues before merging."

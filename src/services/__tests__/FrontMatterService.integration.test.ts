@@ -35,7 +35,9 @@ describe('FrontMatterService Integration Tests', () => {
     // 检查服务器是否已经在运行
     const isServerRunning = async (): Promise<boolean> => {
       try {
-        const response = await fetch(`${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`);
+        const response = await fetch(
+          `${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`
+        );
         return response.ok;
       } catch {
         return false;
@@ -45,12 +47,11 @@ describe('FrontMatterService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -97,7 +98,6 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够获取真实文件的 Front Matter', async () => {
       const frontMatter = await frontMatterService.getFrontMatter('Welcome.md');
 
-
       // Front Matter 可能存在也可能不存在
       if (frontMatter) {
         expect(typeof frontMatter).toBe('object');
@@ -106,7 +106,6 @@ describe('FrontMatterService Integration Tests', () => {
 
     it('应该能够获取所有文件的 Front Matter', async () => {
       const allFrontMatter = await frontMatterService.getAllFrontMatter();
-
 
       expect(Array.isArray(allFrontMatter)).toBe(true);
 
@@ -120,12 +119,10 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够获取统计信息', async () => {
       const stats = await frontMatterService.getStatistics();
 
-
       expect(stats.totalFiles).toBeGreaterThanOrEqual(0);
       expect(stats.filesWithUuid).toBeGreaterThanOrEqual(0);
       expect(stats.publishedFiles).toBeGreaterThanOrEqual(0);
       expect(stats.unpublishedFiles).toBeGreaterThanOrEqual(0);
-
     });
   });
 
@@ -137,13 +134,11 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够获取 UUID 映射', async () => {
       const allUuids = await frontMatterService.getAllUuids();
 
-
       expect(typeof allUuids).toBe('object');
 
       if (Object.keys(allUuids).length > 0) {
         const firstUuid = Object.keys(allUuids)[0];
         const filePath = allUuids[firstUuid];
-
 
         // 验证反向查找
         const foundFile = await frontMatterService.getFileByUuid(firstUuid);
@@ -163,7 +158,6 @@ describe('FrontMatterService Integration Tests', () => {
 
       const exists = await frontMatterService.hasUuid(nonExistentUuid);
       expect(exists).toBe(false);
-
     });
   });
 
@@ -175,7 +169,6 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够管理发布状态', async () => {
       const publishedFiles = await frontMatterService.getPublishedFiles();
       const unpublishedFiles = await frontMatterService.getUnpublishedFiles();
-
 
       expect(Array.isArray(publishedFiles)).toBe(true);
       expect(Array.isArray(unpublishedFiles)).toBe(true);
@@ -191,7 +184,6 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够管理作者信息', async () => {
       const allAuthors = await frontMatterService.getAllAuthors();
 
-
       expect(Array.isArray(allAuthors)).toBe(true);
 
       if (allAuthors.length > 0) {
@@ -201,7 +193,6 @@ describe('FrontMatterService Integration Tests', () => {
         const authorFiles = await frontMatterService.getFilesByAuthor(firstAuthor);
         expect(Array.isArray(authorFiles)).toBe(true);
         expect(authorFiles.length).toBeGreaterThan(0);
-
 
         // 验证第一个文件的作者
         if (authorFiles.length > 0) {
@@ -221,14 +212,13 @@ describe('FrontMatterService Integration Tests', () => {
       // 测试发布状态过滤
       const publishedOnly = await frontMatterService.queryFiles({
         includePublished: true,
-        includeUnpublished: false
+        includeUnpublished: false,
       });
 
       const unpublishedOnly = await frontMatterService.queryFiles({
         includePublished: false,
-        includeUnpublished: true
+        includeUnpublished: true,
       });
-
 
       expect(Array.isArray(publishedOnly)).toBe(true);
       expect(Array.isArray(unpublishedOnly)).toBe(true);
@@ -237,7 +227,6 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该支持 Front Matter 搜索', async () => {
       const searchResults = await frontMatterService.searchFrontMatter('test');
 
-
       expect(Array.isArray(searchResults)).toBe(true);
 
       if (searchResults.length > 0) {
@@ -245,18 +234,17 @@ describe('FrontMatterService Integration Tests', () => {
         expect(firstResult).toHaveProperty('filePath');
         expect(firstResult).toHaveProperty('matches');
         expect(Array.isArray(firstResult.matches)).toBe(true);
-
       }
     });
 
     it('应该支持自定义字段管理', async () => {
       const customFields = await frontMatterService.getAllCustomFields();
 
-
       expect(Array.isArray(customFields)).toBe(true);
 
       // 测试自定义字段查询
-      for (const fieldName of customFields.slice(0, 3)) { // 只测试前3个
+      for (const fieldName of customFields.slice(0, 3)) {
+        // 只测试前3个
         const filesWithField = await frontMatterService.getFilesByCustomField(fieldName);
         expect(Array.isArray(filesWithField)).toBe(true);
       }
@@ -273,7 +261,6 @@ describe('FrontMatterService Integration Tests', () => {
       const stats = await frontMatterService.getStatistics();
       const analysisTime = Date.now() - startTime;
 
-
       // 统计分析应该在 3 秒内完成
       expect(analysisTime).toBeLessThan(3000);
       expect(stats).toBeDefined();
@@ -282,13 +269,11 @@ describe('FrontMatterService Integration Tests', () => {
     it('应该能够分析 Front Matter 使用模式', async () => {
       const patterns = await frontMatterService.analyzeFrontMatterPatterns();
 
-
       expect(patterns).toHaveProperty('commonFields');
       expect(patterns).toHaveProperty('fieldValueDistribution');
       expect(patterns).toHaveProperty('recommendedFields');
       expect(Array.isArray(patterns.commonFields)).toBe(true);
       expect(Array.isArray(patterns.recommendedFields)).toBe(true);
-
     });
   });
 
@@ -303,11 +288,9 @@ describe('FrontMatterService Integration Tests', () => {
       expect(metadata).toBeDefined();
 
       if (metadata && metadata.length > 0) {
-
         // 验证 FrontMatterService 能使用元数据
         const allFrontMatter = await frontMatterService.getAllFrontMatter();
         expect(Array.isArray(allFrontMatter)).toBe(true);
-
       }
     });
 
@@ -319,7 +302,6 @@ describe('FrontMatterService Integration Tests', () => {
       const cacheStats = await frontMatterService.getCacheStats();
       expect(cacheStats).toHaveProperty('vaultId');
       expect(cacheStats).toHaveProperty('frontMatterCacheSize');
-
 
       // 刷新缓存
       await frontMatterService.refreshCache();
@@ -342,7 +324,6 @@ describe('FrontMatterService Integration Tests', () => {
 
       // 恢复原始 vault
       frontMatterService.switchVault(originalVault.id);
-
     });
 
     it('应该返回正确的 vault 信息', () => {
@@ -350,7 +331,6 @@ describe('FrontMatterService Integration Tests', () => {
 
       expect(vaultInfo.id).toBe('Demo');
       expect(vaultInfo.path).toBe('/vaults/Demo');
-
     });
   });
 
@@ -370,7 +350,6 @@ describe('FrontMatterService Integration Tests', () => {
 
       const author = await frontMatterService.getAuthor(nonExistentFile);
       expect(author).toBeNull();
-
     });
 
     it('应该处理空查询', async () => {
@@ -378,10 +357,9 @@ describe('FrontMatterService Integration Tests', () => {
       expect(emptySearchResults).toEqual([]);
 
       const emptyQueryResults = await frontMatterService.queryFiles({
-        author: 'Non-existent Author'
+        author: 'Non-existent Author',
       });
       expect(emptyQueryResults).toEqual([]);
-
     });
   });
 
@@ -391,7 +369,6 @@ describe('FrontMatterService Integration Tests', () => {
 
   describe('业务场景集成', () => {
     it('应该支持评论功能的 UUID 工作流', async () => {
-
       // 1. 获取所有有 UUID 的文件
       const allUuids = await frontMatterService.getAllUuids();
 
@@ -411,11 +388,9 @@ describe('FrontMatterService Integration Tests', () => {
         const uuidExists = await frontMatterService.hasUuid(testUuid);
         expect(uuidExists).toBe(true);
       }
-
     });
 
     it('应该支持内容管理系统工作流', async () => {
-
       // 1. 获取发布统计
       const stats = await frontMatterService.getStatistics();
 
@@ -428,17 +403,16 @@ describe('FrontMatterService Integration Tests', () => {
         let _publishedCount = 0;
         let _unpublishedCount = 0;
 
-        for (const filePath of authorFiles.slice(0, 5)) { // 只检查前5个文件
+        for (const filePath of authorFiles.slice(0, 5)) {
+          // 只检查前5个文件
           const isPublished = await frontMatterService.isPublished(filePath);
           if (isPublished === true) _publishedCount++;
           else if (isPublished === false) _unpublishedCount++;
         }
-
       }
 
       // 4. 自定义字段分析
       await frontMatterService.getAllCustomFields();
-
     });
   });
 });

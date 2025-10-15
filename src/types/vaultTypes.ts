@@ -13,19 +13,14 @@ import type {
   UnifiedSearchOptions,
   UnifiedSearchResult,
   GraphData,
-  LocalGraphOptions
+  LocalGraphOptions,
 } from '../services/interfaces/IVaultService.js';
 
 import type { FileTree } from '../services/interfaces/IFileTreeService.js';
 
-export type {
-  SearchResult
-} from '../services/interfaces/ISearchAPI.js';
+export type { SearchResult } from '../services/interfaces/ISearchAPI.js';
 
-export type {
-  GraphNode,
-  GraphEdge
-} from '../services/interfaces/IGraphService.js';
+export type { GraphNode, GraphEdge } from '../services/interfaces/IGraphService.js';
 
 import type { TagData } from '../services/interfaces/ITagService.js';
 
@@ -40,12 +35,10 @@ export type {
   GraphData,
   LocalGraphOptions,
   FileTree,
-  TagData
+  TagData,
 };
 
-export type {
-  FootprintsData
-} from '../services/interfaces/IFootprintsService.js';
+export type { FootprintsData } from '../services/interfaces/IFootprintsService.js';
 
 // 新架构特有的 UI 状态类型
 export interface UIState {

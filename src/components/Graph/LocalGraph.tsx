@@ -25,7 +25,9 @@ export function LocalGraph() {
   const { activeFile, navigateToFile } = useVaultStore();
   const { vaultService } = useVaultService();
   const svgRef = useRef<SVGSVGElement>(null);
-  const [graphData, setGraphData] = useState<{ nodes: GraphNode[], edges: GraphEdge[] } | null>(null);
+  const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +44,7 @@ export function LocalGraph() {
           // 使用 VaultService 的 getLocalGraph 方法
           const localGraphData = await vaultService.getLocalGraph({
             centerPath: activeFile,
-            depth: 2
+            depth: 2,
           });
 
           // console.log('📊 NewLocalGraph: VaultService 返回的图谱数据:', localGraphData);
@@ -50,12 +52,11 @@ export function LocalGraph() {
           // 转换为组件需要的格式
           const transformedData = {
             nodes: localGraphData.nodes || [],
-            edges: localGraphData.edges || []
+            edges: localGraphData.edges || [],
           };
 
           // console.log('📊 NewLocalGraph: 转换后的图谱数据:', transformedData);
           setGraphData(transformedData);
-
         } catch {
           // console.error('❌ NewLocalGraph: 通过 VaultService 获取局部图谱失败:', err);
           setError('无法获取局部图谱数据');
@@ -76,7 +77,8 @@ export function LocalGraph() {
     if (!graphData || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    let container: d3.Selection<SVGGElement, unknown, null, undefined> = svg.select('.graph-container');
+    let container: d3.Selection<SVGGElement, unknown, null, undefined> =
+      svg.select('.graph-container');
 
     // 清除之前的内容
     svg.selectAll('*').remove();
@@ -84,7 +86,8 @@ export function LocalGraph() {
     // 重新创建容器并添加缩放和平移功能
     container = svg.append('g').attr('class', 'graph-container');
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 4])
       .on('zoom', (event) => {
         container.attr('transform', event.transform);
@@ -96,39 +99,47 @@ export function LocalGraph() {
     const height = 300;
 
     // 准备数据
-    const nodes: D3Node[] = graphData.nodes.map(node => ({ ...node }));
-    const links: D3Link[] = graphData.edges.map(edge => ({
+    const nodes: D3Node[] = graphData.nodes.map((node) => ({ ...node }));
+    const links: D3Link[] = graphData.edges.map((edge) => ({
       ...edge,
       source: edge.from,
-      target: edge.to
+      target: edge.to,
     }));
 
     // 找到当前文件对应的节点（应该是中心节点）
-    const currentFileNode = activeFile ? nodes.find(node => {
-      // 解码 activeFile 以便与节点 title 进行匹配
-      const decodedActiveFile = decodeURIComponent(activeFile);
-      const decodedFileName = decodedActiveFile.replace('.md', '');
+    const currentFileNode = activeFile
+      ? nodes.find((node) => {
+          // 解码 activeFile 以便与节点 title 进行匹配
+          const decodedActiveFile = decodeURIComponent(activeFile);
+          const decodedFileName = decodedActiveFile.replace('.md', '');
 
-      // 去除前导斜杠进行匹配
-      const normalizedDecodedFileName = decodedFileName.startsWith('/') ? decodedFileName.slice(1) : decodedFileName;
-      const normalizedActiveFile = activeFile.startsWith('/') ? activeFile.slice(1) : activeFile;
+          // 去除前导斜杠进行匹配
+          const normalizedDecodedFileName = decodedFileName.startsWith('/')
+            ? decodedFileName.slice(1)
+            : decodedFileName;
+          const normalizedActiveFile = activeFile.startsWith('/')
+            ? activeFile.slice(1)
+            : activeFile;
 
-      // console.log('🔍 Looking for current file node:', {
-      //   activeFile,
-      //   decodedActiveFile,
-      //   decodedFileName,
-      //   normalizedDecodedFileName,
-      //   nodeTitle: node.title,
-      //   match: node.title === normalizedDecodedFileName || node.title === decodedFileName || node.title === decodedActiveFile
-      // });
+          // console.log('🔍 Looking for current file node:', {
+          //   activeFile,
+          //   decodedActiveFile,
+          //   decodedFileName,
+          //   normalizedDecodedFileName,
+          //   nodeTitle: node.title,
+          //   match: node.title === normalizedDecodedFileName || node.title === decodedFileName || node.title === decodedActiveFile
+          // });
 
-      return node.title === normalizedDecodedFileName ||  // 主要匹配逻辑
-             node.title === decodedFileName ||
-             node.title === decodedActiveFile ||
-             node.title === normalizedActiveFile.replace('.md', '') ||
-             node.title === activeFile.replace('.md', '') ||
-             node.title === activeFile;
-    }) : null;
+          return (
+            node.title === normalizedDecodedFileName || // 主要匹配逻辑
+            node.title === decodedFileName ||
+            node.title === decodedActiveFile ||
+            node.title === normalizedActiveFile.replace('.md', '') ||
+            node.title === activeFile.replace('.md', '') ||
+            node.title === activeFile
+          );
+        })
+      : null;
 
     // 如果有当前文件节点，将其固定在中心
     if (currentFileNode) {
@@ -138,33 +149,50 @@ export function LocalGraph() {
 
     // 创建力仿真 - 根据节点数量调整参数
     const nodeCount = nodes.length;
-    const linkDistance = nodeCount <= 3 ? 200 : 80;  // 节点少时增加距离
-    const chargeStrength = nodeCount <= 3 ? -1200 : -400;  // 节点少时增加排斥力
+    const linkDistance = nodeCount <= 3 ? 200 : 80; // 节点少时增加距离
+    const chargeStrength = nodeCount <= 3 ? -1200 : -400; // 节点少时增加排斥力
 
-    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
-      .force('link', d3.forceLink(links).id((d: d3.SimulationNodeDatum) => (d as D3Node).id).distance(linkDistance).strength(0.6))
+    const simulation = d3
+      .forceSimulation(nodes as d3.SimulationNodeDatum[])
+      .force(
+        'link',
+        d3
+          .forceLink(links)
+          .id((d: d3.SimulationNodeDatum) => (d as D3Node).id)
+          .distance(linkDistance)
+          .strength(0.6)
+      )
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
-        const node = d as D3Node;
-        if (node.type === 'tag') return 20;  // 增加碰撞半径
-        if (currentFileNode && node.id === currentFileNode.id) return 40;  // 当前节点更大的碰撞半径
-        return 25;  // 其他节点也增加碰撞半径
-      }));
+      .force(
+        'collision',
+        d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
+          const node = d as D3Node;
+          if (node.type === 'tag') return 20; // 增加碰撞半径
+          if (currentFileNode && node.id === currentFileNode.id) return 40; // 当前节点更大的碰撞半径
+          return 25; // 其他节点也增加碰撞半径
+        })
+      );
 
     // 创建连线
-    const link = container.append('g')
+    const link = container
+      .append('g')
       .attr('class', 'links')
       .selectAll('line')
       .data(links)
-      .enter().append('line')
+      .enter()
+      .append('line')
       .attr('stroke', 'var(--text-muted)')
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 1)
       .attr('stroke-dasharray', (d: D3Link) => {
         // 检查连线的两端是否有标签节点
-        const sourceNode = nodes.find(n => n.id === (typeof d.source === 'string' ? d.source : d.source.id));
-        const targetNode = nodes.find(n => n.id === (typeof d.target === 'string' ? d.target : d.target.id));
+        const sourceNode = nodes.find(
+          (n) => n.id === (typeof d.source === 'string' ? d.source : d.source.id)
+        );
+        const targetNode = nodes.find(
+          (n) => n.id === (typeof d.target === 'string' ? d.target : d.target.id)
+        );
 
         // 如果有一端是标签节点，使用虚线
         if (sourceNode?.type === 'tag' || targetNode?.type === 'tag') {
@@ -174,16 +202,19 @@ export function LocalGraph() {
       });
 
     // 创建节点组
-    const node = container.append('g')
+    const node = container
+      .append('g')
       .attr('class', 'nodes')
       .selectAll('g')
       .data(nodes)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('class', 'node')
       .style('cursor', 'pointer');
 
     // 添加节点圆圈
-    node.append('circle')
+    node
+      .append('circle')
       .attr('r', (d: D3Node) => {
         if (d.type === 'tag') return 8;
         // 当前文件节点更大
@@ -201,13 +232,13 @@ export function LocalGraph() {
         // 区分引用和被引用的节点
         if (currentFileNode && graphData) {
           // 检查是否是当前文件引用的节点（outbound）
-          const isOutboundRef = graphData.edges.some(edge =>
-            edge.from === currentFileNode.id && edge.to === d.id
+          const isOutboundRef = graphData.edges.some(
+            (edge) => edge.from === currentFileNode.id && edge.to === d.id
           );
 
           // 检查是否是引用当前文件的节点（inbound）
-          const isInboundRef = graphData.edges.some(edge =>
-            edge.from === d.id && edge.to === currentFileNode.id
+          const isInboundRef = graphData.edges.some(
+            (edge) => edge.from === d.id && edge.to === currentFileNode.id
           );
 
           if (isOutboundRef) {
@@ -219,7 +250,7 @@ export function LocalGraph() {
 
         return 'var(--interactive-accent)';
       })
-      .on('click', function(event: MouseEvent, d: D3Node) {
+      .on('click', function (event: MouseEvent, d: D3Node) {
         // 阻止事件冒泡
         event.stopPropagation();
 
@@ -236,7 +267,8 @@ export function LocalGraph() {
       });
 
     // 添加节点标签
-    node.append('text')
+    node
+      .append('text')
       .text((d: D3Node) => d.label)
       .attr('font-size', '10px')
       .attr('fill', 'var(--text-normal)')
@@ -245,20 +277,23 @@ export function LocalGraph() {
       .attr('pointer-events', 'none');
 
     // 添加悬停提示
-    node.append('title')
-      .text((d: D3Node) => d.title || d.label);
+    node.append('title').text((d: D3Node) => d.title || d.label);
 
     // 添加拖拽功能到节点组（不会干扰圆圈的点击事件）
-    node.call(d3.drag<SVGGElement, D3Node>()
-      .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended));
+    node.call(
+      d3
+        .drag<SVGGElement, D3Node>()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended)
+    );
 
     // 更新位置
     simulation.on('tick', () => {
       // 添加边界约束，确保所有节点都在视口内
       nodes.forEach((d: D3Node) => {
-        const radius = d.type === 'tag' ? 15 : (currentFileNode && d.id === currentFileNode.id ? 25 : 20); // 节点半径
+        const radius =
+          d.type === 'tag' ? 15 : currentFileNode && d.id === currentFileNode.id ? 25 : 20; // 节点半径
         d.x = Math.max(radius, Math.min(width - radius, d.x!));
         d.y = Math.max(radius, Math.min(height - radius, d.y!));
       });
@@ -269,8 +304,7 @@ export function LocalGraph() {
         .attr('x2', (d: D3Link) => (d.target as D3Node).x || 0)
         .attr('y2', (d: D3Link) => (d.target as D3Node).y || 0);
 
-      node
-        .attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
+      node.attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
     });
 
     // 拖拽功能
@@ -316,9 +350,7 @@ export function LocalGraph() {
   if (loading) {
     return (
       <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
+        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">Local Graph</div>
         <div className="flex items-center justify-center h-48">
           <div className="text-[var(--text-muted)]">加载中...</div>
         </div>
@@ -329,9 +361,7 @@ export function LocalGraph() {
   if (error) {
     return (
       <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
+        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">Local Graph</div>
         <div className="flex items-center justify-center h-48">
           <div className="text-red-500 text-sm">{error}</div>
         </div>
@@ -342,9 +372,7 @@ export function LocalGraph() {
   if (!activeFile) {
     return (
       <div className="h-full p-4">
-        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-          Local Graph
-        </div>
+        <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">Local Graph</div>
         <div className="flex items-center justify-center h-48">
           <div className="text-center text-[var(--text-muted)]">
             <div className="text-2xl mb-2">📄</div>
@@ -357,14 +385,19 @@ export function LocalGraph() {
 
   return (
     <div className="h-full p-4">
-      <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">
-        直接关系图
-      </div>
+      <div className="text-sm font-medium mb-4 text-[var(--text-normal)]">直接关系图</div>
 
       {graphData && (
         <div className="text-xs text-[var(--text-muted)] mb-2 space-y-2">
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', fontSize: '12px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '4px 12px',
+                fontSize: '12px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div
                   style={{
@@ -373,7 +406,7 @@ export function LocalGraph() {
                     borderRadius: '50%',
                     backgroundColor: '#2563eb',
                     border: '1px solid #ccc',
-                    flexShrink: 0
+                    flexShrink: 0,
                   }}
                 ></div>
                 <span>当前文件</span>
@@ -386,7 +419,7 @@ export function LocalGraph() {
                     borderRadius: '50%',
                     backgroundColor: '#f59e0b',
                     border: '1px solid #ccc',
-                    flexShrink: 0
+                    flexShrink: 0,
                   }}
                 ></div>
                 <span>引用文件</span>
@@ -399,7 +432,7 @@ export function LocalGraph() {
                     borderRadius: '50%',
                     backgroundColor: '#8b5cf6',
                     border: '1px solid #ccc',
-                    flexShrink: 0
+                    flexShrink: 0,
                   }}
                 ></div>
                 <span>被引用文件</span>
@@ -412,7 +445,7 @@ export function LocalGraph() {
                     borderRadius: '50%',
                     backgroundColor: '#dc2626',
                     border: '1px solid #ccc',
-                    flexShrink: 0
+                    flexShrink: 0,
                   }}
                 ></div>
                 <span>标签</span>
@@ -423,13 +456,7 @@ export function LocalGraph() {
       )}
 
       <div className="border border-[var(--background-modifier-border)] rounded">
-        <svg
-          ref={svgRef}
-          width="400"
-          height="300"
-          viewBox="0 0 400 300"
-          className="w-full h-full"
-        >
+        <svg ref={svgRef} width="400" height="300" viewBox="0 0 400 300" className="w-full h-full">
           <g className="graph-container"></g>
         </svg>
       </div>

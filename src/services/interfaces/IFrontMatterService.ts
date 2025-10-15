@@ -1,6 +1,6 @@
 /**
  * FrontMatterService 接口定义
- * 
+ *
  * 负责处理 Markdown 文件的 Front Matter 数据
  * - 基于 MetadataService 提供的元数据
  * - 支持 UUID 管理 (评论功能依赖)
@@ -169,10 +169,15 @@ export interface IFrontMatterService {
   /**
    * 搜索 Front Matter 字段
    */
-  searchFrontMatter(query: string, fields?: string[]): Promise<Array<{
-    filePath: string;
-    matches: Array<{ field: string; value: unknown }>;
-  }>>;
+  searchFrontMatter(
+    query: string,
+    fields?: string[]
+  ): Promise<
+    Array<{
+      filePath: string;
+      matches: Array<{ field: string; value: unknown }>;
+    }>
+  >;
 
   /**
    * 获取自定义字段值

@@ -56,12 +56,11 @@ describe('ExifService Real Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -89,7 +88,7 @@ describe('ExifService Real Integration Tests', () => {
     const config: StorageConfig = {
       basePath: `${serverUrl}/vaults/Demo`,
       timeout: 10000,
-      cache: false // 禁用缓存确保测试准确性
+      cache: false, // 禁用缓存确保测试准确性
     };
 
     storageService = new StorageService(config);
@@ -146,7 +145,7 @@ describe('ExifService Real Integration Tests', () => {
         { file: 'picture.webp', expected: true },
         { file: 'document.pdf', expected: false },
         { file: 'text.txt', expected: false },
-        { file: 'video.mp4', expected: false }
+        { file: 'video.mp4', expected: false },
       ];
 
       testCases.forEach(({ file, expected }) => {
@@ -157,7 +156,6 @@ describe('ExifService Real Integration Tests', () => {
 
   describe('真实 EXIF 数据解析', () => {
     it('应该能够处理包含 GPS 信息的真实图片', async () => {
-
       // Act - 通过真实的 HTTP 请求解析真实的 inversed mt fuji.png 文件
       const result = await exifService.parseExif('Attachments/inversed mt fuji.png');
 
@@ -202,7 +200,7 @@ describe('ExifService Real Integration Tests', () => {
       // Arrange - 已知的图片文件列表（HTTP 存储无法列举目录，所以手动指定）
       const knownImageFiles = [
         'Attachments/inversed mt fuji.png',
-        'Attachments/Pasted image 20250902131727.png'
+        'Attachments/Pasted image 20250902131727.png',
       ];
 
       // Act - 批量解析已知图片文件
@@ -213,16 +211,17 @@ describe('ExifService Real Integration Tests', () => {
       expect(results.length).toBe(knownImageFiles.length);
 
       // 应该包含我们的测试文件
-      const mtFujiResult = results.find(r => r.filePath.includes('inversed mt fuji.png'));
+      const mtFujiResult = results.find((r) => r.filePath.includes('inversed mt fuji.png'));
       expect(mtFujiResult).toBeDefined();
-
     });
   });
 
   describe('与 StorageService 真实集成', () => {
     it('应该能够通过 HTTP 读取真实图片文件', async () => {
       // Act - 通过 StorageService 真实 HTTP 请求读取文件
-      const imageData = await storageService.readFile('Attachments/inversed mt fuji.png', { binary: true });
+      const imageData = await storageService.readFile('Attachments/inversed mt fuji.png', {
+        binary: true,
+      });
 
       // Assert
       expect(imageData).toBeDefined();
@@ -232,11 +231,10 @@ describe('ExifService Real Integration Tests', () => {
 
     it('应该能够处理文件不存在的情况', async () => {
       // Act & Assert
-      await expect(exifService.parseExif('Attachments/non-existent.jpg'))
-        .resolves.toMatchObject({
-          hasExif: false,
-          filePath: 'Attachments/non-existent.jpg'
-        });
+      await expect(exifService.parseExif('Attachments/non-existent.jpg')).resolves.toMatchObject({
+        hasExif: false,
+        filePath: 'Attachments/non-existent.jpg',
+      });
     });
 
     it('应该能够获取基于已知文件的统计信息', async () => {
@@ -248,8 +246,6 @@ describe('ExifService Real Integration Tests', () => {
 
       // Assert - 验证 EXIF 解析功能正常
       expect(result).not.toBeNull();
-
-
     });
   });
 
@@ -307,7 +303,7 @@ describe('ExifService Real Integration Tests', () => {
 
       // Assert
       expect(distance).toBeGreaterThan(100000); // 应该超过100公里
-      expect(distance).toBeLessThan(150000);    // 但少于150公里
+      expect(distance).toBeLessThan(150000); // 但少于150公里
     });
   });
 

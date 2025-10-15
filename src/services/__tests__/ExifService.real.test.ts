@@ -18,7 +18,9 @@ describe('ExifService Real Data Tests', () => {
 
   beforeEach(() => {
     // 创建真实的服务实例，不使用 mock
-    storageService = new StorageService({ basePath: '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo' });
+    storageService = new StorageService({
+      basePath: '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo',
+    });
     exifService = new ExifService(storageService, 'Demo');
   });
 

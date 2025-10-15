@@ -20,7 +20,7 @@ export function AppLayout() {
     setIsTablet,
     setLeftSidebarWidth,
     setRightSidebarWidth,
-    theme
+    theme,
   } = useUIStore();
 
   const leftSidebarRef = useRef<HTMLDivElement>(null);
@@ -63,80 +63,79 @@ export function AppLayout() {
   }, [theme]);
 
   return (
-    <div data-testid="app-layout" className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--background-primary)] text-[var(--text-normal)]">
-
+    <div
+      data-testid="app-layout"
+      className="h-screen w-screen flex flex-col overflow-hidden bg-[var(--background-primary)] text-[var(--text-normal)]"
+    >
       {/* Main workspace - Flex layout */}
       <div className="flex-1 overflow-hidden flex">
         <div className="flex w-full max-w-[1828px] mx-auto">
-        {/* Left Ribbon - show on desktop and tablet only */}
-        {!isMobile && (
-          <div className="flex-shrink-0 w-12 overflow-hidden">
-            <LeftRibbon />
-          </div>
-        )}
+          {/* Left Ribbon - show on desktop and tablet only */}
+          {!isMobile && (
+            <div className="flex-shrink-0 w-12 overflow-hidden">
+              <LeftRibbon />
+            </div>
+          )}
 
-        {/* Left Sidebar - show on desktop and tablet when open */}
-        <div
-          ref={leftSidebarRef}
-          className={`
+          {/* Left Sidebar - show on desktop and tablet when open */}
+          <div
+            ref={leftSidebarRef}
+            className={`
             relative overflow-hidden sidebar-transition gpu-accelerated
             ${leftSidebarOpen && !isMobile ? 'flex-shrink-0' : 'w-0'}
           `}
-          style={{
-            width: leftSidebarOpen && !isMobile
-              ? isTablet ? '300px' : `${leftSidebarWidth}px`
-              : '0px'
-          }}
-        >
-          {leftSidebarOpen && !isMobile && (
-            <LeftSidebar />
+            style={{
+              width:
+                leftSidebarOpen && !isMobile
+                  ? isTablet
+                    ? '300px'
+                    : `${leftSidebarWidth}px`
+                  : '0px',
+            }}
+          >
+            {leftSidebarOpen && !isMobile && <LeftSidebar />}
+          </div>
+
+          {/* Left Resize handle for desktop - between left sidebar and main content */}
+          {leftSidebarOpen && !isMobile && !isTablet && (
+            <ResizeHandle
+              direction="left"
+              onResize={setLeftSidebarWidth}
+              minWidth={200}
+              maxWidth={360}
+              sidebarRef={leftSidebarRef}
+            />
           )}
-        </div>
 
-        {/* Left Resize handle for desktop - between left sidebar and main content */}
-        {leftSidebarOpen && !isMobile && !isTablet && (
-          <ResizeHandle
-            direction="left"
-            onResize={setLeftSidebarWidth}
-            minWidth={200}
-            maxWidth={360}
-            sidebarRef={leftSidebarRef}
-          />
-        )}
+          {/* Main Content */}
+          <div className={`relative overflow-hidden ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}>
+            <MainContent />
+          </div>
 
-        {/* Main Content */}
-        <div className={`relative overflow-hidden ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}>
-          <MainContent />
-        </div>
+          {/* Right Resize handle for desktop - between main content and right sidebar */}
+          {rightSidebarOpen && !isMobile && !isTablet && (
+            <ResizeHandle
+              direction="right"
+              onResize={setRightSidebarWidth}
+              minWidth={200}
+              maxWidth={360}
+              sidebarRef={rightSidebarRef}
+            />
+          )}
 
-        {/* Right Resize handle for desktop - between main content and right sidebar */}
-        {rightSidebarOpen && !isMobile && !isTablet && (
-          <ResizeHandle
-            direction="right"
-            onResize={setRightSidebarWidth}
-            minWidth={200}
-            maxWidth={360}
-            sidebarRef={rightSidebarRef}
-          />
-        )}
-
-        {/* Right Sidebar - only show on desktop (not tablet or mobile) */}
-        <div
-          ref={rightSidebarRef}
-          className={`
+          {/* Right Sidebar - only show on desktop (not tablet or mobile) */}
+          <div
+            ref={rightSidebarRef}
+            className={`
             relative overflow-hidden sidebar-transition gpu-accelerated hide-tablet hide-mobile
             ${rightSidebarOpen && !isMobile && !isTablet ? 'flex-shrink-0' : 'w-0'}
           `}
-          style={{
-            width: rightSidebarOpen && !isMobile && !isTablet
-              ? `${rightSidebarWidth}px`
-              : '0px'
-          }}
-        >
-          {rightSidebarOpen && !isMobile && !isTablet && (
-            <RightSidebar />
-          )}
-        </div>
+            style={{
+              width: rightSidebarOpen && !isMobile && !isTablet ? `${rightSidebarWidth}px` : '0px',
+            }}
+          >
+            {rightSidebarOpen && !isMobile && !isTablet && <RightSidebar />}
+          </div>
         </div>
       </div>
 
@@ -146,7 +145,6 @@ export function AppLayout() {
 
       {/* Mobile Navigation - 使用老版本风格的下拉菜单 */}
       {isMobile && <MobileDropdownMenu />}
-
     </div>
   );
 }

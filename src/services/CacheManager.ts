@@ -20,14 +20,21 @@ import type { CacheConfig } from './infra/CacheProxyFactory.js';
 import type { CacheMetadata } from './interfaces/ICacheService.js';
 
 // Utility functions to handle type casting for cache config
-const condition = <T extends (...args: never[]) => boolean>(fn: T): ((...args: unknown[]) => boolean) => {
-  return (...args: unknown[]) => ((fn as unknown) as (...args: unknown[]) => boolean)(...args);
+const condition = <T extends (...args: never[]) => boolean>(
+  fn: T
+): ((...args: unknown[]) => boolean) => {
+  return (...args: unknown[]) => (fn as unknown as (...args: unknown[]) => boolean)(...args);
 };
-const keyGen = <T extends (...args: never[]) => string>(fn: T): ((...args: unknown[]) => string) => {
-  return (...args: unknown[]) => ((fn as unknown) as (...args: unknown[]) => string)(...args);
+const keyGen = <T extends (...args: never[]) => string>(
+  fn: T
+): ((...args: unknown[]) => string) => {
+  return (...args: unknown[]) => (fn as unknown as (...args: unknown[]) => string)(...args);
 };
-const metaGen = <T extends (...args: never[]) => CacheMetadata | undefined>(fn: T): ((...args: unknown[]) => CacheMetadata | undefined) => {
-  return (...args: unknown[]) => ((fn as unknown) as (...args: unknown[]) => CacheMetadata | undefined)(...args);
+const metaGen = <T extends (...args: never[]) => CacheMetadata | undefined>(
+  fn: T
+): ((...args: unknown[]) => CacheMetadata | undefined) => {
+  return (...args: unknown[]) =>
+    (fn as unknown as (...args: unknown[]) => CacheMetadata | undefined)(...args);
 };
 
 // 扩展接口定义，用于类型安全的方法调用
@@ -40,7 +47,10 @@ interface ExtendedCacheService extends ICacheService {
   enablePolling?: (baseUrl?: string) => void;
   disablePolling?: () => void;
   checkForUpdates?: () => Promise<void>;
-  updateTierConfig?: (tier: 'persistent' | 'lru', config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }) => void;
+  updateTierConfig?: (
+    tier: 'persistent' | 'lru',
+    config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }
+  ) => void;
   clearPersistent?: (confirmMessage?: string) => Promise<number>;
   getExpiredPersistentData?: () => Promise<string[]>;
   forceCleanupExpiredPersistent?: () => Promise<number>;
@@ -89,7 +99,7 @@ export class CacheManager {
       dbName: config.dbName,
       tiers: config.tiers,
       polling: config.polling,
-      cleanup: config.cleanup
+      cleanup: config.cleanup,
     });
   }
 
@@ -297,15 +307,10 @@ export class CacheManager {
     return cachedService;
   }
 
-
   /**
    * 通用服务缓存代理创建方法
    */
-  createCachedService<T extends object>(
-    service: T,
-    namespace: string,
-    config: CacheConfig<T>
-  ): T {
+  createCachedService<T extends object>(service: T, namespace: string, config: CacheConfig<T>): T {
     const cacheKey = namespace;
 
     if (this._cachedServices.has(cacheKey)) {
@@ -327,41 +332,57 @@ export class CacheManager {
   private createStorageServiceCacheConfig(): CacheConfig<IStorageService> {
     return cacheConfig<IStorageService>()
       .method('readFile')
-        .ttl(600000) // 10分钟
-        .condition(condition((path: string) =>
-          // 只缓存文本文件，排除二进制大文件
-          path.endsWith('.md') || path.endsWith('.json') || path.endsWith('.txt') || path.endsWith('.css')
-        ))
-        .keyGenerator(keyGen((path: string, options?: Record<string, unknown>) =>
-          `file:${path}:${JSON.stringify(options || {})}`
-        ))
-        .metadataGenerator(metaGen((path: string) => {
+      .ttl(600000) // 10分钟
+      .condition(
+        condition(
+          (path: string) =>
+            // 只缓存文本文件，排除二进制大文件
+            path.endsWith('.md') ||
+            path.endsWith('.json') ||
+            path.endsWith('.txt') ||
+            path.endsWith('.css')
+        )
+      )
+      .keyGenerator(
+        keyGen(
+          (path: string, options?: Record<string, unknown>) =>
+            `file:${path}:${JSON.stringify(options || {})}`
+        )
+      )
+      .metadataGenerator(
+        metaGen((path: string) => {
           // 为所有缓存的文件添加 sourceUrl 以启用内容哈希轮询（SHA-256）
           return {
-            sourceUrl: path // 存储相对路径，实际使用时通过 resolvePath 转换
+            sourceUrl: path, // 存储相对路径，实际使用时通过 resolvePath 转换
           };
-        }))
+        })
+      )
       .and()
       .method('getFileInfo')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((path: string) => `info:${path}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((path: string) => `info:${path}`))
       .and()
       .method('exists')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((path: string) => `exists:${path}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(keyGen((path: string) => `exists:${path}`))
       .and()
       .method('readFileWithInfo')
-        .ttl(600000) // 10分钟
-        .condition(condition((path: string) => path.endsWith('.md') || path.endsWith('.json')))
-        .keyGenerator(keyGen((path: string, options?: Record<string, unknown>) =>
-          `file-with-info:${path}:${JSON.stringify(options || {})}`
-        ))
-        .metadataGenerator(metaGen((path: string) => {
+      .ttl(600000) // 10分钟
+      .condition(condition((path: string) => path.endsWith('.md') || path.endsWith('.json')))
+      .keyGenerator(
+        keyGen(
+          (path: string, options?: Record<string, unknown>) =>
+            `file-with-info:${path}:${JSON.stringify(options || {})}`
+        )
+      )
+      .metadataGenerator(
+        metaGen((path: string) => {
           // 为所有缓存的文件添加 sourceUrl 以启用内容哈希轮询（SHA-256）
           return {
-            sourceUrl: path
+            sourceUrl: path,
           };
-        }))
+        })
+      )
       .build();
   }
 
@@ -371,24 +392,24 @@ export class CacheManager {
   private createMetadataServiceCacheConfig(): CacheConfig<IMetadataService> {
     return cacheConfig<IMetadataService>()
       .method('getMetadata')
-        .ttl(1800000) // 30分钟，metadata.json 更新频率低
-        .keyGenerator(keyGen(() => 'metadata:all'))
+      .ttl(1800000) // 30分钟，metadata.json 更新频率低
+      .keyGenerator(keyGen(() => 'metadata:all'))
       .and()
       .method('getFileMetadata')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((filePath: string) => `metadata:file:${filePath}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((filePath: string) => `metadata:file:${filePath}`))
       .and()
       .method('getAllTags')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'metadata:tags:all'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'metadata:tags:all'))
       .and()
       .method('searchInMetadata')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((query: string) => `metadata:search:${query.toLowerCase()}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(keyGen((query: string) => `metadata:search:${query.toLowerCase()}`))
       .and()
       .method('getFilesByTag')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string) => `metadata:tag:${tag}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((tag: string) => `metadata:tag:${tag}`))
       .build();
   }
 
@@ -398,37 +419,42 @@ export class CacheManager {
   private createFileTreeServiceCacheConfig(): CacheConfig<IFileTreeService> {
     return cacheConfig<IFileTreeService>()
       .method('getFileTree')
-        .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
-        .keyGenerator(keyGen((options?: Record<string, unknown>) =>
-          `filetree:tree:${JSON.stringify(options || {})}`))
+      .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
+      .keyGenerator(
+        keyGen(
+          (options?: Record<string, unknown>) => `filetree:tree:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('getChildren')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((path: string) => `filetree:children:${path}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen((path: string) => `filetree:children:${path}`))
       .and()
       .method('findNode')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((path: string) => `filetree:node:${path}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((path: string) => `filetree:node:${path}`))
       .and()
       .method('getFolderStats')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((path?: string) => `filetree:stats:${path || 'root'}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(keyGen((path?: string) => `filetree:stats:${path || 'root'}`))
       .and()
       .method('getAllFolders')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'filetree:folders:all'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'filetree:folders:all'))
       .and()
       .method('getAllFiles')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'filetree:files:all'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'filetree:files:all'))
       .and()
       .method('getFilesByFolder')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((folderPath?: string) => `filetree:folder-files:${folderPath || 'root'}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(
+        keyGen((folderPath?: string) => `filetree:folder-files:${folderPath || 'root'}`)
+      )
       .and()
       .method('searchFiles')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((query: string) => `filetree:search:${query.toLowerCase()}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(keyGen((query: string) => `filetree:search:${query.toLowerCase()}`))
       .build();
   }
 
@@ -438,57 +464,68 @@ export class CacheManager {
   private createGraphServiceCacheConfig(): CacheConfig<IGraphService> {
     return cacheConfig<IGraphService>()
       .method('getGlobalGraph')
-        .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
-        .keyGenerator(keyGen((options?: Record<string, unknown>) =>
-          `graph:global:${JSON.stringify(options || {})}`))
+      .ttl(1800000) // 30分钟，基于 metadata.json，更新频率低
+      .keyGenerator(
+        keyGen(
+          (options?: Record<string, unknown>) => `graph:global:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('getLocalGraph')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((filePath: string, options?: Record<string, unknown>) =>
-          `graph:local:${filePath}:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(
+        keyGen(
+          (filePath: string, options?: Record<string, unknown>) =>
+            `graph:local:${filePath}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('filterByTag')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string, options?: Record<string, unknown>) =>
-          `graph:tag:${tag}:${JSON.stringify(options || {})}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(
+        keyGen(
+          (tag: string, options?: Record<string, unknown>) =>
+            `graph:tag:${tag}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('getGraphStats')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'graph:stats'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'graph:stats'))
       .and()
       .method('findNode')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((identifier: string) => `graph:node:${identifier}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((identifier: string) => `graph:node:${identifier}`))
       .and()
       .method('getNodeNeighbors')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((nodeId: string, depth?: number) =>
-          `graph:neighbors:${nodeId}:${depth || 1}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(
+        keyGen((nodeId: string, depth?: number) => `graph:neighbors:${nodeId}:${depth || 1}`)
+      )
       .and()
       .method('getPathBetweenNodes')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((fromId: string, toId: string) =>
-          `graph:path:${fromId}:${toId}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(keyGen((fromId: string, toId: string) => `graph:path:${fromId}:${toId}`))
       .and()
       .method('getMostConnectedNodes')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((limit?: number) => `graph:hubs:${limit || 10}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen((limit?: number) => `graph:hubs:${limit || 10}`))
       .and()
       .method('getAllTagNodes')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'graph:tags:all'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'graph:tags:all'))
       .and()
       .method('getAllFileNodes')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'graph:files:all'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'graph:files:all'))
       .and()
       .method('getOrphanedNodes')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen(() => 'graph:orphaned'))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen(() => 'graph:orphaned'))
       .and()
       .method('analyzeNodeConnectivity')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((nodeId: string) => `graph:connectivity:${nodeId}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((nodeId: string) => `graph:connectivity:${nodeId}`))
       .build();
   }
 
@@ -498,73 +535,79 @@ export class CacheManager {
   private createTagServiceCacheConfig(): CacheConfig<ITagService> {
     return cacheConfig<ITagService>()
       .method('getAllTags')
-        .ttl(1800000) // 30分钟，从 tags.json 读取，更新频率低
-        .keyGenerator(keyGen((options?: Record<string, unknown>) =>
-          `tag:all:${JSON.stringify(options || {})}`))
+      .ttl(1800000) // 30分钟，从 tags.json 读取，更新频率低
+      .keyGenerator(
+        keyGen((options?: Record<string, unknown>) => `tag:all:${JSON.stringify(options || {})}`)
+      )
       .and()
       .method('getFileTags')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((filePath: string) => `tag:file:${filePath}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen((filePath: string) => `tag:file:${filePath}`))
       .and()
       .method('getFilesByTag')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string) => `tag:files:${tag}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((tag: string) => `tag:files:${tag}`))
       .and()
       .method('getTagStats')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'tag:stats'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'tag:stats'))
       .and()
       .method('searchTags')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((query: string, options?: Record<string, unknown>) =>
-          `tag:search:${query}:${JSON.stringify(options || {})}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(
+        keyGen(
+          (query: string, options?: Record<string, unknown>) =>
+            `tag:search:${query}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('filterTags')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((options: Record<string, unknown>) =>
-          `tag:filter:${JSON.stringify(options)}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(
+        keyGen((options: Record<string, unknown>) => `tag:filter:${JSON.stringify(options)}`)
+      )
       .and()
       .method('getTagDetails')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((tag: string) => `tag:details:${tag}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen((tag: string) => `tag:details:${tag}`))
       .and()
       .method('hasTag')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string) => `tag:exists:${tag}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((tag: string) => `tag:exists:${tag}`))
       .and()
       .method('getMostUsedTags')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((limit?: number) => `tag:most-used:${limit || 10}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((limit?: number) => `tag:most-used:${limit || 10}`))
       .and()
       .method('getLeastUsedTags')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((limit?: number) => `tag:least-used:${limit || 10}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((limit?: number) => `tag:least-used:${limit || 10}`))
       .and()
       .method('getOrphanTags')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen(() => 'tag:orphan'))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen(() => 'tag:orphan'))
       .and()
       .method('getRelatedTags')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string, limit?: number) =>
-          `tag:related:${tag}:${limit || 5}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((tag: string, limit?: number) => `tag:related:${tag}:${limit || 5}`))
       .and()
       .method('analyzeFileTagPattern')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((filePath: string) => `tag:pattern:${filePath}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((filePath: string) => `tag:pattern:${filePath}`))
       .and()
       .method('getTagCooccurrence')
-        .ttl(600000) // 10分钟
-        .keyGenerator(keyGen((tag: string) => `tag:cooccurrence:${tag}`))
+      .ttl(600000) // 10分钟
+      .keyGenerator(keyGen((tag: string) => `tag:cooccurrence:${tag}`))
       .and()
       .method('getFolderTagDistribution')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((folderPath?: string) => `tag:folder:${folderPath || 'root'}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(keyGen((folderPath?: string) => `tag:folder:${folderPath || 'root'}`))
       .and()
       .method('suggestTags')
-        .ttl(300000) // 5分钟
-        .keyGenerator(keyGen((filePath: string, limit?: number) =>
-          `tag:suggest:${filePath}:${limit || 5}`))
+      .ttl(300000) // 5分钟
+      .keyGenerator(
+        keyGen((filePath: string, limit?: number) => `tag:suggest:${filePath}:${limit || 5}`)
+      )
       .and()
       .build();
   }
@@ -575,75 +618,95 @@ export class CacheManager {
   private createExifServiceCacheConfig(): CacheConfig<IExifService> {
     return cacheConfig<IExifService>()
       .method('parseExif')
-        .ttl(3600000) // 60分钟，EXIF 数据很少变化
-        .keyGenerator(keyGen((filePath: string) => `exif:parse:${filePath}`))
+      .ttl(3600000) // 60分钟，EXIF 数据很少变化
+      .keyGenerator(keyGen((filePath: string) => `exif:parse:${filePath}`))
       .and()
       .method('parseMultipleExif')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePaths: string[]) => `exif:batch:${JSON.stringify(filePaths.sort())}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(
+        keyGen((filePaths: string[]) => `exif:batch:${JSON.stringify(filePaths.sort())}`)
+      )
       .and()
       .method('scanDirectoryForExif')
-        .ttl(1800000) // 30分钟，目录扫描结果
-        .keyGenerator(keyGen((dirPath?: string) => `exif:scan:${dirPath || 'Attachments'}`))
+      .ttl(1800000) // 30分钟，目录扫描结果
+      .keyGenerator(keyGen((dirPath?: string) => `exif:scan:${dirPath || 'Attachments'}`))
       .and()
       .method('getGpsCoordinates')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePath: string) => `exif:gps:${filePath}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((filePath: string) => `exif:gps:${filePath}`))
       .and()
       .method('getCameraInfo')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePath: string) => `exif:camera:${filePath}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((filePath: string) => `exif:camera:${filePath}`))
       .and()
       .method('getShootingParams')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePath: string) => `exif:shooting:${filePath}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((filePath: string) => `exif:shooting:${filePath}`))
       .and()
       .method('getDateTimeInfo')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePath: string) => `exif:datetime:${filePath}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((filePath: string) => `exif:datetime:${filePath}`))
       .and()
       .method('searchImagesWithGps')
-        .ttl(900000) // 15分钟，搜索结果
-        .keyGenerator(keyGen((options?: Record<string, unknown>) => `exif:search:gps:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟，搜索结果
+      .keyGenerator(
+        keyGen(
+          (options?: Record<string, unknown>) => `exif:search:gps:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchImagesByCamera')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((make?: string, model?: string, options?: Record<string, unknown>) =>
-          `exif:search:camera:${make || ''}:${model || ''}:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(
+        keyGen(
+          (make?: string, model?: string, options?: Record<string, unknown>) =>
+            `exif:search:camera:${make || ''}:${model || ''}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchImagesByDateRange')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((startDate: Date, endDate: Date, options?: Record<string, unknown>) =>
-          `exif:search:date:${startDate.getTime()}:${endDate.getTime()}:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(
+        keyGen(
+          (startDate: Date, endDate: Date, options?: Record<string, unknown>) =>
+            `exif:search:date:${startDate.getTime()}:${endDate.getTime()}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchImagesByGeoBounds')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((bounds?: Record<string, unknown>, options?: Record<string, unknown>) =>
-          `exif:search:geo:${JSON.stringify(bounds)}:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(
+        keyGen(
+          (bounds?: Record<string, unknown>, options?: Record<string, unknown>) =>
+            `exif:search:geo:${JSON.stringify(bounds)}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchExif')
-        .ttl(900000) // 15分钟
-        .keyGenerator(keyGen((options: Record<string, unknown>) => `exif:search:${JSON.stringify(options)}`))
+      .ttl(900000) // 15分钟
+      .keyGenerator(
+        keyGen((options: Record<string, unknown>) => `exif:search:${JSON.stringify(options)}`)
+      )
       .and()
       .method('getExifStatistics')
-        .ttl(1800000) // 30分钟，统计信息
-        .keyGenerator(keyGen(() => 'exif:stats'))
+      .ttl(1800000) // 30分钟，统计信息
+      .keyGenerator(keyGen(() => 'exif:stats'))
       .and()
       .method('getAllCameraMakes')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'exif:makes'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'exif:makes'))
       .and()
       .method('getAllCameraModels')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'exif:models'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'exif:models'))
       .and()
       .method('getDateTimeRange')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'exif:date-range'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'exif:date-range'))
       .and()
       .method('getGpsBounds')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'exif:gps-bounds'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'exif:gps-bounds'))
       .and()
       .build();
   }
@@ -654,24 +717,40 @@ export class CacheManager {
   private createSearchServiceCacheConfig(): CacheConfig<SearchService> {
     return cacheConfig<SearchService>()
       .method('search')
-        .ttl(300000) // 5分钟，搜索结果变化较快
-        .keyGenerator(keyGen((query: string, options?: Record<string, unknown>) =>
-          `search:unified:${query}:${JSON.stringify(options || {})}`))
+      .ttl(300000) // 5分钟，搜索结果变化较快
+      .keyGenerator(
+        keyGen(
+          (query: string, options?: Record<string, unknown>) =>
+            `search:unified:${query}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchContent')
-        .ttl(600000) // 10分钟，内容搜索相对稳定
-        .keyGenerator(keyGen((query: string, options?: Record<string, unknown>) =>
-          `search:content:${query}:${JSON.stringify(options || {})}`))
+      .ttl(600000) // 10分钟，内容搜索相对稳定
+      .keyGenerator(
+        keyGen(
+          (query: string, options?: Record<string, unknown>) =>
+            `search:content:${query}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('searchByTag')
-        .ttl(900000) // 15分钟，标签搜索更稳定
-        .keyGenerator(keyGen((tag: string, options?: Record<string, unknown>) =>
-          `search:tag:${tag}:${JSON.stringify(options || {})}`))
+      .ttl(900000) // 15分钟，标签搜索更稳定
+      .keyGenerator(
+        keyGen(
+          (tag: string, options?: Record<string, unknown>) =>
+            `search:tag:${tag}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .method('getSearchStatistics')
-        .ttl(300000) // 5分钟，统计信息
-        .keyGenerator(keyGen((query: string, options?: Record<string, unknown>) =>
-          `search:stats:${query}:${JSON.stringify(options || {})}`))
+      .ttl(300000) // 5分钟，统计信息
+      .keyGenerator(
+        keyGen(
+          (query: string, options?: Record<string, unknown>) =>
+            `search:stats:${query}:${JSON.stringify(options || {})}`
+        )
+      )
       .and()
       .build();
   }
@@ -682,104 +761,116 @@ export class CacheManager {
   private createFrontMatterServiceCacheConfig(): CacheConfig<FrontMatterService> {
     return cacheConfig<FrontMatterService>()
       .method('getFrontMatter')
-        .ttl(1800000) // 30分钟，Front Matter 变化较少
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:file:${filePath}`))
+      .ttl(1800000) // 30分钟，Front Matter 变化较少
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:file:${filePath}`))
       .and()
       .method('getAllFrontMatter')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'frontmatter:all'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'frontmatter:all'))
       .and()
       .method('getUuid')
-        .ttl(3600000) // 60分钟，UUID 很少变化
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:uuid:${filePath}`))
+      .ttl(3600000) // 60分钟，UUID 很少变化
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:uuid:${filePath}`))
       .and()
       .method('getFileByUuid')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((uuid: string) => `frontmatter:file-by-uuid:${uuid}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((uuid: string) => `frontmatter:file-by-uuid:${uuid}`))
       .and()
       .method('getAllUuids')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen(() => 'frontmatter:all-uuids'))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen(() => 'frontmatter:all-uuids'))
       .and()
       .method('hasUuid')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((uuid: string) => `frontmatter:has-uuid:${uuid}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen((uuid: string) => `frontmatter:has-uuid:${uuid}`))
       .and()
       .method('isPublished')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:published:${filePath}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:published:${filePath}`))
       .and()
       .method('getPublishedFiles')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'frontmatter:published-files'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'frontmatter:published-files'))
       .and()
       .method('getUnpublishedFiles')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen(() => 'frontmatter:unpublished-files'))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen(() => 'frontmatter:unpublished-files'))
       .and()
       .method('getAuthor')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:author:${filePath}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:author:${filePath}`))
       .and()
       .method('getFilesByAuthor')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((author: string) => `frontmatter:files-by-author:${author}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((author: string) => `frontmatter:files-by-author:${author}`))
       .and()
       .method('getAllAuthors')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen(() => 'frontmatter:all-authors'))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen(() => 'frontmatter:all-authors'))
       .and()
       .method('getDescription')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:description:${filePath}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:description:${filePath}`))
       .and()
       .method('getCssClass')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:css-class:${filePath}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:css-class:${filePath}`))
       .and()
       .method('getFilesByCssClass')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((cssClass: string) => `frontmatter:files-by-css:${cssClass}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(keyGen((cssClass: string) => `frontmatter:files-by-css:${cssClass}`))
       .and()
       .method('getCreatedDate')
-        .ttl(3600000) // 60分钟，创建时间不变
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:created:${filePath}`))
+      .ttl(3600000) // 60分钟，创建时间不变
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:created:${filePath}`))
       .and()
       .method('getModifiedDate')
-        .ttl(1800000) // 30分钟，修改时间可能变化
-        .keyGenerator(keyGen((filePath: string) => `frontmatter:modified:${filePath}`))
+      .ttl(1800000) // 30分钟，修改时间可能变化
+      .keyGenerator(keyGen((filePath: string) => `frontmatter:modified:${filePath}`))
       .and()
       .method('queryFiles')
-        .ttl(900000) // 15分钟，查询结果
-        .keyGenerator(keyGen((options: Record<string, unknown>) =>
-          `frontmatter:query:${JSON.stringify(options)}`))
+      .ttl(900000) // 15分钟，查询结果
+      .keyGenerator(
+        keyGen((options: Record<string, unknown>) => `frontmatter:query:${JSON.stringify(options)}`)
+      )
       .and()
       .method('searchFrontMatter')
-        .ttl(600000) // 10分钟，搜索结果
-        .keyGenerator(keyGen((query: string, fields?: string[]) =>
-          `frontmatter:search:${query}:${JSON.stringify(fields || [])}`))
+      .ttl(600000) // 10分钟，搜索结果
+      .keyGenerator(
+        keyGen(
+          (query: string, fields?: string[]) =>
+            `frontmatter:search:${query}:${JSON.stringify(fields || [])}`
+        )
+      )
       .and()
       .method('getCustomField')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((filePath: string, fieldName: string) =>
-          `frontmatter:custom:${filePath}:${fieldName}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(
+        keyGen(
+          (filePath: string, fieldName: string) => `frontmatter:custom:${filePath}:${fieldName}`
+        )
+      )
       .and()
       .method('getFilesByCustomField')
-        .ttl(1800000) // 30分钟
-        .keyGenerator(keyGen((fieldName: string, value?: unknown) =>
-          `frontmatter:files-by-custom:${fieldName}:${JSON.stringify(value)}`))
+      .ttl(1800000) // 30分钟
+      .keyGenerator(
+        keyGen(
+          (fieldName: string, value?: unknown) =>
+            `frontmatter:files-by-custom:${fieldName}:${JSON.stringify(value)}`
+        )
+      )
       .and()
       .method('getAllCustomFields')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen(() => 'frontmatter:all-custom-fields'))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(keyGen(() => 'frontmatter:all-custom-fields'))
       .and()
       .method('getStatistics')
-        .ttl(1800000) // 30分钟，统计信息
-        .keyGenerator(keyGen(() => 'frontmatter:statistics'))
+      .ttl(1800000) // 30分钟，统计信息
+      .keyGenerator(keyGen(() => 'frontmatter:statistics'))
       .and()
       .method('analyzeFrontMatterPatterns')
-        .ttl(3600000) // 60分钟，分析结果变化较少
-        .keyGenerator(keyGen(() => 'frontmatter:patterns'))
+      .ttl(3600000) // 60分钟，分析结果变化较少
+      .keyGenerator(keyGen(() => 'frontmatter:patterns'))
       .and()
       .build();
   }
@@ -790,66 +881,82 @@ export class CacheManager {
   private createFootprintsServiceCacheConfig(): CacheConfig<FootprintsService> {
     return cacheConfig<FootprintsService>()
       .method('parseSingleTrack')
-        .ttl(3600000) // 60分钟，轨迹文件解析结果很少变化
-        .keyGenerator(keyGen((filePath: string) => `footprints:single:${filePath}`))
+      .ttl(3600000) // 60分钟，轨迹文件解析结果很少变化
+      .keyGenerator(keyGen((filePath: string) => `footprints:single:${filePath}`))
       .and()
       .method('parseMultipleTracks')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((filePaths: string[]) =>
-          `footprints:multiple:${JSON.stringify(filePaths.sort())}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(
+        keyGen((filePaths: string[]) => `footprints:multiple:${JSON.stringify(filePaths.sort())}`)
+      )
       .and()
       .method('aggregateFootprints')
-        .ttl(1800000) // 30分钟，聚合结果可能因配置变化
-        .keyGenerator(keyGen((config: Record<string, unknown>) =>
-          `footprints:aggregate:${JSON.stringify(config)}`))
+      .ttl(1800000) // 30分钟，聚合结果可能因配置变化
+      .keyGenerator(
+        keyGen(
+          (config: Record<string, unknown>) => `footprints:aggregate:${JSON.stringify(config)}`
+        )
+      )
       .and()
       .method('scanTrackFiles')
-        .ttl(900000) // 15分钟，目录扫描结果
-        .keyGenerator(keyGen((dirPath: string) => `footprints:scan:${dirPath}`))
+      .ttl(900000) // 15分钟，目录扫描结果
+      .keyGenerator(keyGen((dirPath: string) => `footprints:scan:${dirPath}`))
       .and()
       .method('detectProvider')
-        .ttl(3600000) // 60分钟，厂商检测结果不变
-        .keyGenerator(keyGen((filePath: string) => `footprints:provider:${filePath}`))
+      .ttl(3600000) // 60分钟，厂商检测结果不变
+      .keyGenerator(keyGen((filePath: string) => `footprints:provider:${filePath}`))
       .and()
       .method('validateTrackFile')
-        .ttl(3600000) // 60分钟，文件验证结果不变
-        .keyGenerator(keyGen((filePath: string) => `footprints:validate:${filePath}`))
+      .ttl(3600000) // 60分钟，文件验证结果不变
+      .keyGenerator(keyGen((filePath: string) => `footprints:validate:${filePath}`))
       .and()
       .method('processUserInputs')
-        .ttl(1800000) // 30分钟，用户输入处理
-        .keyGenerator(keyGen((userInputs: string[]) =>
-          `footprints:user-inputs:${JSON.stringify(userInputs.sort())}`))
+      .ttl(1800000) // 30分钟，用户输入处理
+      .keyGenerator(
+        keyGen(
+          (userInputs: string[]) => `footprints:user-inputs:${JSON.stringify(userInputs.sort())}`
+        )
+      )
       .and()
       .method('processPhotoExif')
-        .ttl(1800000) // 30分钟，照片 EXIF 处理
-        .keyGenerator(keyGen((photosPath: string) => `footprints:photo-exif:${photosPath}`))
+      .ttl(1800000) // 30分钟，照片 EXIF 处理
+      .keyGenerator(keyGen((photosPath: string) => `footprints:photo-exif:${photosPath}`))
       .and()
       .method('geocodeLocation')
-        .ttl(2592000000) // 30天，地理编码结果长期有效
-        .keyGenerator(keyGen((locationName: string) => `footprints:geocode:${locationName}`))
+      .ttl(2592000000) // 30天，地理编码结果长期有效
+      .keyGenerator(keyGen((locationName: string) => `footprints:geocode:${locationName}`))
       .and()
       .method('calculateTracksBounds')
-        .ttl(3600000) // 60分钟，边界计算结果稳定
-        .keyGenerator(keyGen((tracks: Array<{ id: string }>) =>
-          `footprints:tracks-bounds:${JSON.stringify(tracks.map(t => t.id).sort())}`))
+      .ttl(3600000) // 60分钟，边界计算结果稳定
+      .keyGenerator(
+        keyGen(
+          (tracks: Array<{ id: string }>) =>
+            `footprints:tracks-bounds:${JSON.stringify(tracks.map((t) => t.id).sort())}`
+        )
+      )
       .and()
       .method('calculateLocationsBounds')
-        .ttl(3600000) // 60分钟
-        .keyGenerator(keyGen((locations: Array<{ id: string }>) =>
-          `footprints:locations-bounds:${JSON.stringify(locations.map(l => l.id).sort())}`))
+      .ttl(3600000) // 60分钟
+      .keyGenerator(
+        keyGen(
+          (locations: Array<{ id: string }>) =>
+            `footprints:locations-bounds:${JSON.stringify(locations.map((l) => l.id).sort())}`
+        )
+      )
       .and()
       .method('getTrackStatistics')
-        .ttl(3600000) // 60分钟，轨迹统计稳定
-        .keyGenerator(keyGen((track: Record<string, unknown>) =>
-          `footprints:track-stats:${track.id}`))
+      .ttl(3600000) // 60分钟，轨迹统计稳定
+      .keyGenerator(
+        keyGen((track: Record<string, unknown>) => `footprints:track-stats:${track.id}`)
+      )
       .and()
       .method('getCacheStats')
-        .ttl(300000) // 5分钟，缓存统计实时性
-        .keyGenerator(keyGen(() => 'footprints:cache-stats'))
+      .ttl(300000) // 5分钟，缓存统计实时性
+      .keyGenerator(keyGen(() => 'footprints:cache-stats'))
       .and()
       .method('getCurrentVault')
-        .ttl(1800000) // 30分钟，vault 信息相对稳定
-        .keyGenerator(keyGen(() => 'footprints:current-vault'))
+      .ttl(1800000) // 30分钟，vault 信息相对稳定
+      .keyGenerator(keyGen(() => 'footprints:current-vault'))
       .and()
       .build();
   }
@@ -876,7 +983,7 @@ export class CacheManager {
       ...stats,
       namespaces,
       namespaceStats,
-      cachedServicesCount: this._cachedServices.size
+      cachedServicesCount: this._cachedServices.size,
     };
   }
 
@@ -895,12 +1002,8 @@ export class CacheManager {
   /**
    * 预热缓存
    */
-  async warmupCache(
-    storageService: IStorageService,
-    commonFiles: string[]
-  ): Promise<void> {
+  async warmupCache(storageService: IStorageService, commonFiles: string[]): Promise<void> {
     const cachedStorage = this.createCachedStorageService(storageService);
-
 
     // 为每个文件创建独立的预热任务
     const warmupTasks = commonFiles.map((filePath) => {
@@ -918,15 +1021,15 @@ export class CacheManager {
     try {
       // 并行预热所有相关操作
       await Promise.allSettled([
-        cachedStorage.readFile(filePath).catch(_error => {
+        cachedStorage.readFile(filePath).catch((_error) => {
           // 忽略预热错误，继续其他操作
         }),
-        cachedStorage.getFileInfo(filePath).catch(_error => {
+        cachedStorage.getFileInfo(filePath).catch((_error) => {
           // 忽略预热错误，继续其他操作
         }),
-        cachedStorage.exists(filePath).catch(_error => {
+        cachedStorage.exists(filePath).catch((_error) => {
           // 忽略预热错误，继续其他操作
-        })
+        }),
       ]);
     } catch {
       // 忽略预热过程中的错误
@@ -945,9 +1048,7 @@ export class CacheManager {
       const retrieved = await this._cache.get(testKey);
       await this._cache.delete(testKey);
 
-      return retrieved !== null &&
-             typeof retrieved === 'object' &&
-             'timestamp' in retrieved;
+      return retrieved !== null && typeof retrieved === 'object' && 'timestamp' in retrieved;
     } catch {
       return false;
     }
@@ -982,14 +1083,16 @@ export class CacheManager {
     lru: { count: number; sizeMB: number };
   }> {
     if (this._cache instanceof IndexedDBCache) {
-      return this._cache.getTierStatistics?.() ?? {
-        persistent: { count: 0, sizeMB: 0 },
-        lru: { count: 0, sizeMB: 0 }
-      };
+      return (
+        this._cache.getTierStatistics?.() ?? {
+          persistent: { count: 0, sizeMB: 0 },
+          lru: { count: 0, sizeMB: 0 },
+        }
+      );
     }
     return {
       persistent: { count: 0, sizeMB: 0 },
-      lru: { count: 0, sizeMB: 0 }
+      lru: { count: 0, sizeMB: 0 },
     };
   }
 
@@ -1023,7 +1126,10 @@ export class CacheManager {
   /**
    * 更新层级配置
    */
-  updateTierConfig(tier: 'persistent' | 'lru', config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }): void {
+  updateTierConfig(
+    tier: 'persistent' | 'lru',
+    config: { maxCount?: number; maxSizeMB?: number; defaultTTL?: number }
+  ): void {
     if (this._cache instanceof IndexedDBCache) {
       this._cache.updateTierConfig?.(tier, config);
     }

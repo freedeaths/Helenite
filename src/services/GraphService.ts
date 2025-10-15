@@ -16,7 +16,7 @@ import type {
   GraphData,
   GraphStats,
   GraphOptions,
-  LocalGraphOptions
+  LocalGraphOptions,
 } from './interfaces/IGraphService.js';
 import type { IMetadataService, MetadataArray } from './interfaces/IMetadataService.js';
 
@@ -68,20 +68,19 @@ export class GraphService implements IGraphService {
     const normalizedPath = this.removeExtension(decodedFilePath);
     const fileName = normalizedPath.split('/').pop() || normalizedPath;
 
-
     // Find the center node - try multiple matching strategies
-    const centerNode = globalGraph.nodes.find(node =>
-      node.title === normalizedPath ||           // 完整路径匹配
-      node.title === fileName ||                 // 文件名匹配
-      node.label === fileName ||                 // 标签匹配
-      node.title === decodedFilePath ||          // 解码后的原始路径匹配
-      node.title === this.removeExtension(decodedFilePath) // 解码后去扩展名匹配
+    const centerNode = globalGraph.nodes.find(
+      (node) =>
+        node.title === normalizedPath || // 完整路径匹配
+        node.title === fileName || // 文件名匹配
+        node.label === fileName || // 标签匹配
+        node.title === decodedFilePath || // 解码后的原始路径匹配
+        node.title === this.removeExtension(decodedFilePath) // 解码后去扩展名匹配
     );
 
     if (!centerNode) {
       return { nodes: [], edges: [] };
     }
-
 
     // Collect connected nodes within specified depth using BFS
     const connectedNodeIds = new Set<string>([centerNode.id]);
@@ -103,10 +102,13 @@ export class GraphService implements IGraphService {
             relevantEdges.push(edge);
           } else if (connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)) {
             // Edge between already included nodes
-            if (!relevantEdges.some(e =>
-              (e.from === edge.from && e.to === edge.to) ||
-              (e.from === edge.to && e.to === edge.from)
-            )) {
+            if (
+              !relevantEdges.some(
+                (e) =>
+                  (e.from === edge.from && e.to === edge.to) ||
+                  (e.from === edge.to && e.to === edge.from)
+              )
+            ) {
               relevantEdges.push(edge);
             }
           }
@@ -117,7 +119,7 @@ export class GraphService implements IGraphService {
     }
 
     // Filter nodes and edges
-    const localNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
+    const localNodes = globalGraph.nodes.filter((node) => connectedNodeIds.has(node.id));
 
     return { nodes: localNodes, edges: relevantEdges };
   }
@@ -131,7 +133,7 @@ export class GraphService implements IGraphService {
     const tagLabel = tag.startsWith('#') ? tag : '#' + tag;
 
     // Find the tag node
-    const tagNode = globalGraph.nodes.find(node => node.label === tagLabel);
+    const tagNode = globalGraph.nodes.find((node) => node.label === tagLabel);
     if (!tagNode) {
       return { nodes: [], edges: [] };
     }
@@ -154,22 +156,25 @@ export class GraphService implements IGraphService {
     // Include edges between connected file nodes
     for (const edge of globalGraph.edges) {
       if (connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)) {
-        const sourceNode = globalGraph.nodes.find(n => n.id === edge.from);
-        const targetNode = globalGraph.nodes.find(n => n.id === edge.to);
+        const sourceNode = globalGraph.nodes.find((n) => n.id === edge.from);
+        const targetNode = globalGraph.nodes.find((n) => n.id === edge.to);
 
         // Only include if both are file nodes (not tags)
         if (sourceNode?.type !== 'tag' && targetNode?.type !== 'tag') {
-          if (!relevantEdges.some(e =>
-            (e.from === edge.from && e.to === edge.to) ||
-            (e.from === edge.to && e.to === edge.from)
-          )) {
+          if (
+            !relevantEdges.some(
+              (e) =>
+                (e.from === edge.from && e.to === edge.to) ||
+                (e.from === edge.to && e.to === edge.from)
+            )
+          ) {
             relevantEdges.push(edge);
           }
         }
       }
     }
 
-    const filteredNodes = globalGraph.nodes.filter(node => connectedNodeIds.has(node.id));
+    const filteredNodes = globalGraph.nodes.filter((node) => connectedNodeIds.has(node.id));
 
     return { nodes: filteredNodes, edges: relevantEdges };
   }
@@ -183,7 +188,7 @@ export class GraphService implements IGraphService {
 
     const totalNodes = graph.nodes.length;
     const totalEdges = graph.edges.length;
-    const totalTags = graph.nodes.filter(node => node.type === 'tag').length;
+    const totalTags = graph.nodes.filter((node) => node.type === 'tag').length;
 
     // Calculate orphaned nodes (nodes with no connections)
     const connectedNodeIds = new Set<string>();
@@ -201,7 +206,7 @@ export class GraphService implements IGraphService {
       totalEdges,
       totalTags,
       orphanedNodes,
-      averageConnections: Number(averageConnections.toFixed(2))
+      averageConnections: Number(averageConnections.toFixed(2)),
     };
   }
 
@@ -215,12 +220,15 @@ export class GraphService implements IGraphService {
   async findNode(identifier: string): Promise<GraphNode | null> {
     const graph = await this.getGlobalGraph();
 
-    return graph.nodes.find(node =>
-      node.id === identifier ||
-      node.label === identifier ||
-      node.title === identifier ||
-      node.title === this.removeExtension(identifier)
-    ) || null;
+    return (
+      graph.nodes.find(
+        (node) =>
+          node.id === identifier ||
+          node.label === identifier ||
+          node.title === identifier ||
+          node.title === this.removeExtension(identifier)
+      ) || null
+    );
   }
 
   /**
@@ -249,7 +257,7 @@ export class GraphService implements IGraphService {
             visited.add(neighborId);
             nextLevel.push(neighborId);
 
-            const neighborNode = graph.nodes.find(n => n.id === neighborId);
+            const neighborNode = graph.nodes.find((n) => n.id === neighborId);
             if (neighborNode) {
               neighbors.push(neighborNode);
             }
@@ -270,7 +278,7 @@ export class GraphService implements IGraphService {
     const graph = await this.getGlobalGraph();
 
     if (fromId === toId) {
-      const node = graph.nodes.find(n => n.id === fromId);
+      const node = graph.nodes.find((n) => n.id === fromId);
       return node ? [node] : [];
     }
 
@@ -296,7 +304,7 @@ export class GraphService implements IGraphService {
 
           if (neighborId === toId) {
             // Found path, convert IDs to nodes
-            return newPath.map(id => graph.nodes.find(n => n.id === id)!).filter(Boolean);
+            return newPath.map((id) => graph.nodes.find((n) => n.id === id)!).filter(Boolean);
           }
 
           visited.add(neighborId);
@@ -324,9 +332,9 @@ export class GraphService implements IGraphService {
 
     // Sort nodes by connection count
     const sortedNodes = graph.nodes
-      .map(node => ({
+      .map((node) => ({
         ...node,
-        connectionCount: connectionCounts.get(node.id) || 0
+        connectionCount: connectionCounts.get(node.id) || 0,
       }))
       .sort((a, b) => b.connectionCount - a.connectionCount)
       .slice(0, limit);
@@ -343,7 +351,7 @@ export class GraphService implements IGraphService {
    */
   async getAllTagNodes(): Promise<GraphNode[]> {
     const graph = await this.getGlobalGraph();
-    return graph.nodes.filter(node => node.type === 'tag');
+    return graph.nodes.filter((node) => node.type === 'tag');
   }
 
   /**
@@ -351,7 +359,7 @@ export class GraphService implements IGraphService {
    */
   async getAllFileNodes(): Promise<GraphNode[]> {
     const graph = await this.getGlobalGraph();
-    return graph.nodes.filter(node => node.type === 'file');
+    return graph.nodes.filter((node) => node.type === 'file');
   }
 
   /**
@@ -366,7 +374,7 @@ export class GraphService implements IGraphService {
       connectedNodeIds.add(edge.to);
     }
 
-    return graph.nodes.filter(node => !connectedNodeIds.has(node.id));
+    return graph.nodes.filter((node) => !connectedNodeIds.has(node.id));
   }
 
   /**
@@ -389,7 +397,7 @@ export class GraphService implements IGraphService {
     for (const edge of graph.edges) {
       if (edge.from === nodeId) {
         outDegree++;
-        const targetNode = graph.nodes.find(n => n.id === edge.to);
+        const targetNode = graph.nodes.find((n) => n.id === edge.to);
         if (targetNode) {
           if (targetNode.type === 'tag') {
             connectedTags.push(targetNode.label);
@@ -401,7 +409,7 @@ export class GraphService implements IGraphService {
 
       if (edge.to === nodeId) {
         inDegree++;
-        const sourceNode = graph.nodes.find(n => n.id === edge.from);
+        const sourceNode = graph.nodes.find((n) => n.id === edge.from);
         if (sourceNode) {
           if (sourceNode.type === 'tag') {
             connectedTags.push(sourceNode.label);
@@ -417,7 +425,7 @@ export class GraphService implements IGraphService {
       outDegree,
       totalDegree: inDegree + outDegree,
       connectedTags: [...new Set(connectedTags)],
-      connectedFiles: [...new Set(connectedFiles)]
+      connectedFiles: [...new Set(connectedFiles)],
     };
   }
 
@@ -443,7 +451,7 @@ export class GraphService implements IGraphService {
     return {
       vaultId: this.vaultConfig.id,
       ...graphStats,
-      metadataStats
+      metadataStats,
     };
   }
 
@@ -465,7 +473,7 @@ export class GraphService implements IGraphService {
   getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 
@@ -481,7 +489,6 @@ export class GraphService implements IGraphService {
     const graphNodes: GraphNode[] = [];
     const graphEdges: GraphEdge[] = [];
     let nodeID = 0;
-
 
     // Step 1: Create file nodes and tag nodes (复刻 PHP 逻辑第一部分)
     for (const node of metadata) {
@@ -499,7 +506,7 @@ export class GraphService implements IGraphService {
           label: node.fileName || nodePath.split('/').pop() || nodePath,
           title: nodePath,
           type: 'file',
-          path: node.relativePath  // 添加完整路径（包含 .md）用于导航
+          path: node.relativePath, // 添加完整路径（包含 .md）用于导航
         });
         nodeID += 1;
 
@@ -527,7 +534,7 @@ export class GraphService implements IGraphService {
                 id: tagID,
                 label: tagLabel,
                 title: tagLabel,
-                type: 'tag'
+                type: 'tag',
                 // 标签节点不需要 path 字段
               });
               nodeID += 1;
@@ -582,8 +589,8 @@ export class GraphService implements IGraphService {
               continue;
             }
 
-            const target = nodePath;  // 当前文件作为目标
-            const source = this.removeExtension(backlink.relativePath);  // 引用方作为源
+            const target = nodePath; // 当前文件作为目标
+            const source = this.removeExtension(backlink.relativePath); // 引用方作为源
 
             if (source && target && this.checkNodeExists(source, metadata)) {
               this.addLinkEdge(graphNodes, graphEdges, source, target);
@@ -613,7 +620,7 @@ export class GraphService implements IGraphService {
         connectedNodeIds.add(edge.from);
         connectedNodeIds.add(edge.to);
       }
-      filteredNodes = graphNodes.filter(node => connectedNodeIds.has(node.id));
+      filteredNodes = graphNodes.filter((node) => connectedNodeIds.has(node.id));
     }
 
     // Apply max nodes limit
@@ -623,10 +630,10 @@ export class GraphService implements IGraphService {
         .sort((a, b) => (b.size || 0) - (a.size || 0))
         .slice(0, options.maxNodes);
 
-      const keptNodeIds = new Set(sortedNodes.map(n => n.id));
+      const keptNodeIds = new Set(sortedNodes.map((n) => n.id));
       filteredNodes = sortedNodes;
-      filteredEdges = graphEdges.filter(edge =>
-        keptNodeIds.has(edge.from) && keptNodeIds.has(edge.to)
+      filteredEdges = graphEdges.filter(
+        (edge) => keptNodeIds.has(edge.from) && keptNodeIds.has(edge.to)
       );
     }
 
@@ -636,7 +643,12 @@ export class GraphService implements IGraphService {
   /**
    * 添加链接边（避免重复）
    */
-  private addLinkEdge(graphNodes: GraphNode[], graphEdges: GraphEdge[], source: string, target: string): void {
+  private addLinkEdge(
+    graphNodes: GraphNode[],
+    graphEdges: GraphEdge[],
+    source: string,
+    target: string
+  ): void {
     // Find source and target node IDs
     let sourceId = '';
     let targetId = '';
@@ -652,9 +664,10 @@ export class GraphService implements IGraphService {
 
     // Check if edge already exists (双向检查)
     if (sourceId && targetId) {
-      const edgeExists = graphEdges.some(edge =>
-        (edge.from === sourceId && edge.to === targetId) ||
-        (edge.from === targetId && edge.to === sourceId)
+      const edgeExists = graphEdges.some(
+        (edge) =>
+          (edge.from === sourceId && edge.to === targetId) ||
+          (edge.from === targetId && edge.to === sourceId)
       );
 
       if (!edgeExists) {
@@ -678,8 +691,8 @@ export class GraphService implements IGraphService {
    * 在服务层中，简化为检查 metadata 中是否存在该文件
    */
   private checkNodeExists(nodePath: string, metadata: MetadataArray): boolean {
-    return metadata.some(item =>
-      item.relativePath && this.removeExtension(item.relativePath) === nodePath
+    return metadata.some(
+      (item) => item.relativePath && this.removeExtension(item.relativePath) === nodePath
     );
   }
 }
@@ -701,7 +714,10 @@ export function getGraphService(): GraphService | null {
 /**
  * 初始化全局图谱服务
  */
-export function initializeGraphService(metadataService: IMetadataService, vaultId?: string): GraphService {
+export function initializeGraphService(
+  metadataService: IMetadataService,
+  vaultId?: string
+): GraphService {
   _globalGraphService = new GraphService(metadataService, vaultId);
   return _globalGraphService;
 }

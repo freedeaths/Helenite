@@ -20,7 +20,7 @@ const DEV_TOOLS: DevTool[] = [
     name: 'Markdown 处理器',
     icon: '📝',
     component: MarkdownProcessorTest,
-    description: '测试新版 Markdown 处理器功能'
+    description: '测试新版 Markdown 处理器功能',
   },
   // 未来可以轻松添加更多工具
   // {
@@ -42,7 +42,7 @@ export function DevToolsPanel() {
   }
 
   const ActiveToolComponent = activeTool
-    ? DEV_TOOLS.find(tool => tool.key === activeTool)?.component
+    ? DEV_TOOLS.find((tool) => tool.key === activeTool)?.component
     : null;
 
   return (
@@ -62,7 +62,7 @@ export function DevToolsPanel() {
             justifyContent: 'center',
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            fontSize: '20px'
+            fontSize: '20px',
           }}
           onClick={() => setIsVisible(true)}
           title="开发者工具"
@@ -88,7 +88,7 @@ export function DevToolsPanel() {
             display: 'flex',
             flexDirection: 'column',
             transition: 'all 0.3s ease',
-            overflow: 'hidden'
+            overflow: 'hidden',
           }}
         >
           {/* 工具栏 */}
@@ -100,20 +100,20 @@ export function DevToolsPanel() {
               alignItems: 'center',
               justifyContent: 'space-between',
               backgroundColor: 'var(--background-secondary)',
-              borderRadius: '8px 8px 0 0'
+              borderRadius: '8px 8px 0 0',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                🛠️ 开发者工具
-              </span>
+              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>🛠️ 开发者工具</span>
               {activeTool && (
-                <span style={{
-                  fontSize: '14px',
-                  color: 'var(--text-muted)',
-                  marginLeft: '8px'
-                }}>
-                  - {DEV_TOOLS.find(t => t.key === activeTool)?.name}
+                <span
+                  style={{
+                    fontSize: '14px',
+                    color: 'var(--text-muted)',
+                    marginLeft: '8px',
+                  }}
+                >
+                  - {DEV_TOOLS.find((t) => t.key === activeTool)?.name}
                 </span>
               )}
             </div>
@@ -127,7 +127,7 @@ export function DevToolsPanel() {
                   cursor: 'pointer',
                   fontSize: '16px',
                   padding: '4px 8px',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
                 }}
                 title={isMinimized ? '展开' : '最小化'}
               >
@@ -145,7 +145,7 @@ export function DevToolsPanel() {
                   cursor: 'pointer',
                   fontSize: '16px',
                   padding: '4px 8px',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
                 }}
                 title="关闭"
               >
@@ -163,10 +163,10 @@ export function DevToolsPanel() {
                     style={{
                       display: 'grid',
                       gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: '16px'
+                      gap: '16px',
                     }}
                   >
-                    {DEV_TOOLS.map(tool => (
+                    {DEV_TOOLS.map((tool) => (
                       <div
                         key={tool.key}
                         onClick={() => setActiveTool(tool.key)}
@@ -176,37 +176,44 @@ export function DevToolsPanel() {
                           borderRadius: '8px',
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
-                          backgroundColor: 'var(--background-secondary)'
+                          backgroundColor: 'var(--background-secondary)',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = 'var(--interactive-accent)';
-                          e.currentTarget.style.backgroundColor = 'var(--background-modifier-hover)';
+                          e.currentTarget.style.backgroundColor =
+                            'var(--background-modifier-hover)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.borderColor = 'var(--background-modifier-border)';
                           e.currentTarget.style.backgroundColor = 'var(--background-secondary)';
                         }}
                       >
-                        <div style={{
-                          fontSize: '24px',
-                          marginBottom: '8px',
-                          textAlign: 'center'
-                        }}>
+                        <div
+                          style={{
+                            fontSize: '24px',
+                            marginBottom: '8px',
+                            textAlign: 'center',
+                          }}
+                        >
                           {tool.icon}
                         </div>
-                        <div style={{
-                          fontWeight: 'bold',
-                          marginBottom: '4px',
-                          textAlign: 'center'
-                        }}>
+                        <div
+                          style={{
+                            fontWeight: 'bold',
+                            marginBottom: '4px',
+                            textAlign: 'center',
+                          }}
+                        >
                           {tool.name}
                         </div>
                         {tool.description && (
-                          <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-muted)',
-                            textAlign: 'center'
-                          }}>
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--text-muted)',
+                              textAlign: 'center',
+                            }}
+                          >
                             {tool.description}
                           </div>
                         )}
@@ -218,19 +225,23 @@ export function DevToolsPanel() {
 
               {/* 工具内容 */}
               {activeTool && ActiveToolComponent && (
-                <div style={{
-                  flex: 1,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}>
-                  <div style={{
-                    padding: '8px 16px',
-                    borderBottom: '1px solid var(--background-modifier-border)',
+                <div
+                  style={{
+                    flex: 1,
+                    overflow: 'hidden',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '8px 16px',
+                      borderBottom: '1px solid var(--background-modifier-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
                     <button
                       onClick={() => setActiveTool(null)}
                       style={{
@@ -239,7 +250,7 @@ export function DevToolsPanel() {
                         cursor: 'pointer',
                         fontSize: '16px',
                         padding: '4px 8px',
-                        borderRadius: '4px'
+                        borderRadius: '4px',
                       }}
                       title="返回工具列表"
                     >

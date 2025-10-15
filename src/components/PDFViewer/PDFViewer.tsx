@@ -15,7 +15,9 @@ interface PDFViewerProps {
 const isMobileOrTablet = () => {
   // 检查用户代理
   const userAgent = navigator.userAgent;
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    userAgent
+  );
 
   // 检查触屏能力
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -96,7 +98,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
       document.head.removeChild(style);
     };
   }, []);
-
 
   useEffect(() => {
     const handleResize = () => {
@@ -203,7 +204,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
           width: '100%',
           height: '800px',
           border: '1px solid var(--background-modifier-border)',
-          borderRadius: '4px'
+          borderRadius: '4px',
         }}
         title="PDF Viewer"
         loading="lazy"
@@ -213,37 +214,45 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
 
   // 移动端：使用 react-pdf
   return (
-    <div ref={containerRef} className="pdf-container" style={{
-      width: '100%',
-      position: 'relative',
-      background: isFullscreen ? 'var(--background-primary)' : 'transparent',
-      // 高度通过 useEffect 动态设置，避免使用 100vh
-      height: 'auto',
-      // 确保 react-pdf 的样式不被覆盖
-      display: 'block'
-    }}>
+    <div
+      ref={containerRef}
+      className="pdf-container"
+      style={{
+        width: '100%',
+        position: 'relative',
+        background: isFullscreen ? 'var(--background-primary)' : 'transparent',
+        // 高度通过 useEffect 动态设置，避免使用 100vh
+        height: 'auto',
+        // 确保 react-pdf 的样式不被覆盖
+        display: 'block',
+      }}
+    >
       <Document
         file={url}
         onLoadSuccess={onDocumentLoadSuccess}
         className="pdf-document"
         loading={
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '2rem',
-            minHeight: '400px',
-            alignItems: 'center'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '2rem',
+              minHeight: '400px',
+              alignItems: 'center',
+            }}
+          >
             <div>正在加载 PDF...</div>
           </div>
         }
         error={
-          <div style={{
-            border: '1px solid var(--background-modifier-border)',
-            borderRadius: '4px',
-            padding: '2rem',
-            textAlign: 'center'
-          }}>
+          <div
+            style={{
+              border: '1px solid var(--background-modifier-border)',
+              borderRadius: '4px',
+              padding: '2rem',
+              textAlign: 'center',
+            }}
+          >
             <p>无法加载 PDF 文件</p>
             <p style={{ fontSize: '0.9em', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               {url.split('/').pop()}
@@ -259,7 +268,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
                 padding: '0.5rem 1rem',
                 border: '1px solid var(--text-accent)',
                 borderRadius: '4px',
-                textDecoration: 'none'
+                textDecoration: 'none',
               }}
             >
               在新窗口中打开
@@ -267,18 +276,20 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
           </div>
         }
       >
-        <div style={{
-          position: 'sticky',
-          top: 0,
-          background: 'var(--background-primary)',
-          borderBottom: '1px solid var(--background-modifier-border)',
-          padding: '0.5rem',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '1rem',
-          zIndex: 10
-        }}>
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            background: 'var(--background-primary)',
+            borderBottom: '1px solid var(--background-modifier-border)',
+            padding: '0.5rem',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '1rem',
+            zIndex: 10,
+          }}
+        >
           <button
             onClick={() => setScale(scale - 0.2)}
             disabled={scale <= 0.5}
@@ -289,7 +300,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
               background: 'var(--background-primary)',
               color: 'var(--text-normal)',
               cursor: scale <= 0.5 ? 'not-allowed' : 'pointer',
-              opacity: scale <= 0.5 ? 0.5 : 1
+              opacity: scale <= 0.5 ? 0.5 : 1,
             }}
           >
             缩小
@@ -305,7 +316,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
               background: 'var(--background-primary)',
               color: 'var(--text-normal)',
               cursor: scale >= 2 ? 'not-allowed' : 'pointer',
-              opacity: scale >= 2 ? 0.5 : 1
+              opacity: scale >= 2 ? 0.5 : 1,
             }}
           >
             放大
@@ -319,22 +330,25 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
               background: 'var(--background-primary)',
               color: 'var(--text-normal)',
               cursor: 'pointer',
-              marginLeft: 'auto'
+              marginLeft: 'auto',
             }}
           >
             {isFullscreen ? '退出全屏' : '全屏'}
           </button>
         </div>
 
-        <div ref={pdfContainerRef} style={{
-          padding: '1rem',
-          width: '100%',
-          // 全屏模式下需要限制高度，否则让内容自然流动
-          // maxHeight 通过 useEffect 动态设置，避免使用固定的 vh
-          ...(isFullscreen && {
-            overflow: 'auto'
-          })
-        }}>
+        <div
+          ref={pdfContainerRef}
+          style={{
+            padding: '1rem',
+            width: '100%',
+            // 全屏模式下需要限制高度，否则让内容自然流动
+            // maxHeight 通过 useEffect 动态设置，避免使用固定的 vh
+            ...(isFullscreen && {
+              overflow: 'auto',
+            }),
+          }}
+        >
           {Array.from(new Array(numPages || 0), (_, index) => {
             // 移动端横屏时，使用 scale 而不是固定 width/height
             if (!isDesktop && isLandscape) {

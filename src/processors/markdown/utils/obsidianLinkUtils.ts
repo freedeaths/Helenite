@@ -31,7 +31,7 @@ export function parseObsidianLink(linkText: string): ParsedObsidianLink | null {
 
   // 提取链接内容
   const content = isEmbed
-    ? linkText.slice(3, -2)  // 移除 ![[]]
+    ? linkText.slice(3, -2) // 移除 ![[]]
     : linkText.slice(2, -2); // 移除 [[]]
 
   // 解析显示文本 filename|display text
@@ -58,7 +58,7 @@ export function parseObsidianLink(linkText: string): ParsedObsidianLink | null {
     type,
     filePath: filePath.trim(),
     displayText: displayText?.trim(),
-    isRelativePath
+    isRelativePath,
   };
 }
 
@@ -86,21 +86,19 @@ export function resolveFilePath(
   const fileName = linkPath.includes('.') ? linkPath : `${linkPath}.md`;
 
   // 优先精确匹配
-  let foundFile = vaultFiles.find(f => f.name === fileName);
+  let foundFile = vaultFiles.find((f) => f.name === fileName);
   if (foundFile) {
     return foundFile.path;
   }
 
   // 模糊匹配（不区分大小写）
-  foundFile = vaultFiles.find(f =>
-    f.name.toLowerCase() === fileName.toLowerCase()
-  );
+  foundFile = vaultFiles.find((f) => f.name.toLowerCase() === fileName.toLowerCase());
   if (foundFile) {
     return foundFile.path;
   }
 
   // 部分匹配
-  foundFile = vaultFiles.find(f =>
+  foundFile = vaultFiles.find((f) =>
     f.name.toLowerCase().includes(fileName.toLowerCase().replace('.md', ''))
   );
   if (foundFile) {
@@ -116,7 +114,7 @@ export function resolveFilePath(
 export function createFileIndex(files: Array<{ path: string; type: string }>) {
   const fileIndex = new Map<string, string>();
 
-  files.forEach(file => {
+  files.forEach((file) => {
     if (file.type === 'file') {
       const fileName = file.path.split('/').pop() || '';
 
@@ -125,7 +123,8 @@ export function createFileIndex(files: Array<{ path: string; type: string }>) {
 
       // 索引不带扩展名的文件名（支持 md/txt/gpx/kml 文件）
       const nameWithoutExt = fileName.replace(/\.(md|txt|gpx|kml)$/i, '');
-      if (nameWithoutExt !== fileName) { // 只有当确实移除了扩展名时才索引
+      if (nameWithoutExt !== fileName) {
+        // 只有当确实移除了扩展名时才索引
         fileIndex.set(nameWithoutExt.toLowerCase(), file.path);
       }
 
@@ -157,7 +156,6 @@ export function findFilePath(
   fileIndex: Map<string, string>,
   currentFileDir?: string
 ): string | null {
-
   // 处理相对路径
   if (currentFileDir && (linkPath.startsWith('../') || linkPath.startsWith('./'))) {
     try {

@@ -6,7 +6,12 @@
 import 'fake-indexeddb/auto';
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { MetadataService, getMetadataService, initializeMetadataService, disposeMetadataService } from '../MetadataService.js';
+import {
+  MetadataService,
+  getMetadataService,
+  initializeMetadataService,
+  disposeMetadataService,
+} from '../MetadataService.js';
 import type { MetadataArray } from '../interfaces/IMetadataService.js';
 
 // Mock 数据 - 基于 metadata-extractor 插件格式
@@ -18,16 +23,14 @@ const mockMetadata: MetadataArray = [
     aliases: ['Home', 'Index'],
     frontmatter: {
       title: 'Welcome to Vault',
-      created: '2022-01-01'
+      created: '2022-01-01',
     },
     headings: [
       { heading: 'Welcome', level: 1 },
-      { heading: 'Getting Started', level: 2 }
+      { heading: 'Getting Started', level: 2 },
     ],
-    links: [
-      { link: 'About.md', displayText: 'About' }
-    ],
-    backlinks: []
+    links: [{ link: 'About.md', displayText: 'About' }],
+    backlinks: [],
   },
   {
     fileName: 'About',
@@ -35,16 +38,21 @@ const mockMetadata: MetadataArray = [
     tags: ['about'],
     links: [],
     backlinks: [
-      { fileName: 'Welcome', link: 'Welcome.md', relativePath: 'Welcome.md', displayText: 'Welcome' }
-    ]
+      {
+        fileName: 'Welcome',
+        link: 'Welcome.md',
+        relativePath: 'Welcome.md',
+        displayText: 'Welcome',
+      },
+    ],
   },
   {
     fileName: 'Daily',
     relativePath: 'Notes/Daily.md',
     tags: ['daily', 'notes'],
     links: [],
-    backlinks: []
-  }
+    backlinks: [],
+  },
 ];
 
 // 标签数据从 metadata 中提取，不需要单独定义
@@ -104,20 +112,22 @@ describe('MetadataService', () => {
       // Mock successful fetch
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
 
       const metadata = await metadataService.getMetadata();
 
       expect(metadata).toEqual(mockMetadata);
-      expect(global.fetch).toHaveBeenCalledWith('/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json'
+      );
     });
 
     it('should handle metadata loading failure gracefully', async () => {
       // Mock failed fetch
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
-        status: 404
+        status: 404,
       });
 
       const metadata = await metadataService.getMetadata();
@@ -138,7 +148,7 @@ describe('MetadataService', () => {
       // Mock successful fetch
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
 
       // First call - should fetch
@@ -161,7 +171,7 @@ describe('MetadataService', () => {
       // Setup mock metadata
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
     });
 
@@ -192,9 +202,9 @@ describe('MetadataService', () => {
       const allFiles = await metadataService.getAllFiles();
 
       expect(allFiles).toHaveLength(3);
-      expect(allFiles.map(f => f.relativePath)).toContain('Welcome.md');
-      expect(allFiles.map(f => f.relativePath)).toContain('About.md');
-      expect(allFiles.map(f => f.relativePath)).toContain('Notes/Daily.md');
+      expect(allFiles.map((f) => f.relativePath)).toContain('Welcome.md');
+      expect(allFiles.map((f) => f.relativePath)).toContain('About.md');
+      expect(allFiles.map((f) => f.relativePath)).toContain('Notes/Daily.md');
     });
 
     it('should search files by name in metadata', async () => {
@@ -231,7 +241,7 @@ describe('MetadataService', () => {
       // Setup mock metadata
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
     });
 
@@ -245,7 +255,6 @@ describe('MetadataService', () => {
       expect(tags).toContain('daily');
       expect(tags).toContain('notes');
     });
-
 
     it('should get files by tag', async () => {
       const files = await metadataService.getFilesByTag('welcome');
@@ -266,7 +275,7 @@ describe('MetadataService', () => {
       // Setup mock metadata
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
     });
 
@@ -308,7 +317,7 @@ describe('MetadataService', () => {
       // Load metadata for Demo vault
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockMetadata
+        json: async () => mockMetadata,
       });
 
       await metadataService.getMetadata();
@@ -321,13 +330,15 @@ describe('MetadataService', () => {
       const publishMetadata = { ...mockMetadata, timestamp: Date.now() + 1000 };
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => publishMetadata
+        json: async () => publishMetadata,
       });
 
       // Should fetch new metadata
       await metadataService.getMetadata();
       expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(global.fetch).toHaveBeenLastCalledWith('/vaults/Publish/.obsidian/plugins/metadata-extractor/metadata.json');
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        '/vaults/Publish/.obsidian/plugins/metadata-extractor/metadata.json'
+      );
     });
   });
 
@@ -365,7 +376,7 @@ describe('MetadataService', () => {
       // Mock empty metadata array
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: async () => []
+        json: async () => [],
       });
 
       const allFiles = await metadataService.getAllFiles();
@@ -381,7 +392,7 @@ describe('MetadataService', () => {
         ok: true,
         json: async () => {
           throw new Error('Invalid JSON');
-        }
+        },
       });
 
       const metadata = await metadataService.getMetadata();

@@ -13,7 +13,8 @@ describe('Direct EXIF Parsing Tests', () => {
   describe('真实文件 EXIF 解析', () => {
     it('应该直接解析 inversed mt fuji.png 的 EXIF 数据', async () => {
       // Arrange - 直接读取文件
-      const filePath = '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo/Attachments/inversed_mt_fuji.png';
+      const filePath =
+        '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo/Attachments/inversed_mt_fuji.png';
 
       const fileBuffer = readFileSync(filePath);
 
@@ -29,7 +30,7 @@ describe('Direct EXIF Parsing Tests', () => {
         userComment: false,
         translateKeys: true,
         translateValues: true,
-        reviveValues: true
+        reviveValues: true,
       });
 
       // 这个文件实际上是 JPEG 格式（虽然扩展名是 .png）
@@ -42,14 +43,14 @@ describe('Direct EXIF Parsing Tests', () => {
     });
 
     it('应该测试目录中的其他图片文件', async () => {
-      const attachmentsPath = '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo/Attachments';
+      const attachmentsPath =
+        '/Users/sunyishen/Personal/repos/Helenite/public/vaults/Demo/Attachments';
       const { readdirSync } = await import('fs');
 
       const files = readdirSync(attachmentsPath);
-      const imageFiles = files.filter(file =>
+      const imageFiles = files.filter((file) =>
         file.toLowerCase().match(/\.(jpg|jpeg|png|tiff|tif|webp|avif|heic|heif)$/)
       );
-
 
       // 测试每个图片文件
       for (const file of imageFiles) {
@@ -65,7 +66,6 @@ describe('Direct EXIF Parsing Tests', () => {
       }
 
       expect(imageFiles.length).toBeGreaterThan(0);
-
     });
   });
 });

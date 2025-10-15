@@ -24,7 +24,7 @@ export function parseFrontMatter(rawContent: string): ParsedContent {
   if (!match) {
     return {
       frontMatter: {},
-      content: rawContent
+      content: rawContent,
     };
   }
 
@@ -36,13 +36,13 @@ export function parseFrontMatter(rawContent: string): ParsedContent {
 
     return {
       frontMatter,
-      content: markdownContent
+      content: markdownContent,
     };
   } catch {
     // console.warn('Front Matter 解析失败:', error);
     return {
       frontMatter: {},
-      content: rawContent
+      content: rawContent,
     };
   }
 }
@@ -109,8 +109,10 @@ function parseSimpleYaml(yamlContent: string): FrontMatterData {
  */
 function parseValue(value: string): unknown {
   // 移除引号
-  if ((value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
     return value.slice(1, -1);
   }
 

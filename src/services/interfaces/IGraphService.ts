@@ -99,25 +99,25 @@ export interface IGraphService {
   // ===============================
   // 核心图谱操作
   // ===============================
-  
+
   /**
    * 获取全局知识图谱
    * 复刻 LocalGraphAPI.getGlobalGraph 的逻辑
    */
   getGlobalGraph(options?: GraphOptions): Promise<GraphData>;
-  
+
   /**
    * 获取局部图谱（以指定文件为中心）
    * 复刻 LocalGraphAPI.getLocalGraph 的逻辑
    */
   getLocalGraph(filePath: string, options?: LocalGraphOptions): Promise<GraphData>;
-  
+
   /**
    * 根据标签过滤图谱
    * 复刻 LocalGraphAPI.filterByTag 的逻辑
    */
   filterByTag(tag: string, options?: GraphOptions): Promise<GraphData>;
-  
+
   /**
    * 获取图谱统计信息
    * 复刻 LocalGraphAPI.getGraphStats 的逻辑
@@ -127,22 +127,22 @@ export interface IGraphService {
   // ===============================
   // 图谱查询操作
   // ===============================
-  
+
   /**
    * 查找节点
    */
   findNode(identifier: string): Promise<GraphNode | null>;
-  
+
   /**
    * 获取节点的邻居
    */
   getNodeNeighbors(nodeId: string, depth?: number): Promise<GraphNode[]>;
-  
+
   /**
    * 获取两个节点之间的路径
    */
   getPathBetweenNodes(fromId: string, toId: string): Promise<GraphNode[]>;
-  
+
   /**
    * 获取最连接的节点（Hub 节点）
    */
@@ -151,22 +151,22 @@ export interface IGraphService {
   // ===============================
   // 图谱分析操作
   // ===============================
-  
+
   /**
    * 获取所有标签节点
    */
   getAllTagNodes(): Promise<GraphNode[]>;
-  
+
   /**
    * 获取所有文件节点
    */
   getAllFileNodes(): Promise<GraphNode[]>;
-  
+
   /**
    * 获取孤立节点（无连接的节点）
    */
   getOrphanedNodes(): Promise<GraphNode[]>;
-  
+
   /**
    * 分析节点连接度
    */
@@ -181,12 +181,12 @@ export interface IGraphService {
   // ===============================
   // 缓存管理
   // ===============================
-  
+
   /**
    * 刷新图谱缓存
    */
   refreshCache(): Promise<void>;
-  
+
   /**
    * 获取缓存统计
    */
@@ -195,12 +195,12 @@ export interface IGraphService {
   // ===============================
   // Vault 管理
   // ===============================
-  
+
   /**
    * 切换到不同的 vault
    */
   switchVault(vaultId: string): void;
-  
+
   /**
    * 获取当前 vault 信息
    */

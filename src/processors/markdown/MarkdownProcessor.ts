@@ -43,7 +43,7 @@ import {
   type ObsidianTagsOptions,
   type ObsidianHighlightsOptions,
   type ObsidianCalloutsOptions,
-  type TableWrapperOptions
+  type TableWrapperOptions,
 } from './plugins/index.js';
 
 // 导入TrackData类型（由于TypeScript模块系统限制，需要单独导入）
@@ -111,10 +111,7 @@ export class MarkdownProcessor {
   private vaultService: IVaultService;
   private options: MarkdownProcessingOptions;
 
-  constructor(
-    vaultService: IVaultService,
-    options: MarkdownProcessingOptions = DEFAULT_OPTIONS
-  ) {
+  constructor(vaultService: IVaultService, options: MarkdownProcessingOptions = DEFAULT_OPTIONS) {
     this.vaultService = vaultService;
     this.options = options;
     this.processor = this.createProcessor();
@@ -129,7 +126,7 @@ export class MarkdownProcessor {
     const processor = unified()
       .use(remarkParse)
       .use(remarkGfm) // GitHub Flavored Markdown (表格、checkbox、引用等)
-      .use(remarkMath) // 数学公式支持
+      .use(remarkMath); // 数学公式支持
 
     // 添加 Obsidian 插件（remark 阶段 - 处理 markdown AST）
     // IMPORTANT: trackMapsPlugin must run BEFORE obsidianLinksPlugin
@@ -137,14 +134,14 @@ export class MarkdownProcessor {
     if (mergedOptions.enableTracks) {
       processor.use(trackMapsPlugin, {
         baseUrl: mergedOptions.baseUrl || VAULT_PATH,
-        currentFilePath: mergedOptions.currentFilePath || ''
+        currentFilePath: mergedOptions.currentFilePath || '',
       } as TrackMapsPluginOptions);
     }
 
     if (mergedOptions.enableObsidianLinks) {
       processor.use(obsidianLinksPlugin, {
         baseUrl: mergedOptions.baseUrl || VAULT_PATH,
-        currentFilePath: mergedOptions.currentFilePath || ''
+        currentFilePath: mergedOptions.currentFilePath || '',
       } as ObsidianLinksPluginOptions);
     }
 
@@ -170,37 +167,46 @@ export class MarkdownProcessor {
       // 添加自定义节点处理器
       handlers: {
         // 处理 PDF 嵌入
-        pdfEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
+        pdfEmbed: (
+          _state: unknown,
+          node: Node & { data?: { hProperties?: Record<string, unknown> } }
+        ) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
             tagName: 'div',
             properties: node.data?.hProperties || {},
-            children: []
+            children: [],
           };
         },
         // 处理视频嵌入
-        videoEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
+        videoEmbed: (
+          _state: unknown,
+          node: Node & { data?: { hProperties?: Record<string, unknown> } }
+        ) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
             tagName: 'div',
             properties: node.data?.hProperties || {},
-            children: []
+            children: [],
           };
         },
         // 处理音频嵌入
-        audioEmbed: (_state: unknown, node: Node & { data?: { hProperties?: Record<string, unknown> } }) => {
+        audioEmbed: (
+          _state: unknown,
+          node: Node & { data?: { hProperties?: Record<string, unknown> } }
+        ) => {
           // 直接返回 HAST 节点
           return {
             type: 'element',
             tagName: 'div',
             properties: node.data?.hProperties || {},
-            children: []
+            children: [],
           };
-        }
+        },
         // 移除了 image handler - 让 rehype-react 自动处理标准 image 节点
-      }
+      },
     });
 
     // 添加 rehype 插件（处理 HTML AST）
@@ -242,147 +248,199 @@ export class MarkdownProcessor {
       components: {
         // PDF Viewer 组件
         PDFViewer: (props: { url: string }) => {
-          const PDFViewer = React.lazy(() => import('../../components/PDFViewer/PDFViewer.js').then(module => ({
-            default: module.PDFViewer
-          })));
-          return React.createElement(React.Suspense, {
-            fallback: React.createElement('div', { style: { padding: '2rem', textAlign: 'center' } }, '正在加载 PDF...')
-          }, React.createElement(PDFViewer, props));
+          const PDFViewer = React.lazy(() =>
+            import('../../components/PDFViewer/PDFViewer.js').then((module) => ({
+              default: module.PDFViewer,
+            }))
+          );
+          return React.createElement(
+            React.Suspense,
+            {
+              fallback: React.createElement(
+                'div',
+                { style: { padding: '2rem', textAlign: 'center' } },
+                '正在加载 PDF...'
+              ),
+            },
+            React.createElement(PDFViewer, props)
+          );
         },
         // 修复 void 元素
         hr: (props: React.HTMLAttributes<HTMLHRElement>) => {
-          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
+          const {
+            children: _children,
+            dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
+            ...restProps
+          } = props;
           return React.createElement('hr', restProps);
         },
         br: (props: React.HTMLAttributes<HTMLBRElement>) => {
-          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
+          const {
+            children: _children,
+            dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
+            ...restProps
+          } = props;
           return React.createElement('br', restProps);
         },
         img: (props: React.ImgHTMLAttributes<HTMLImageElement> & Record<string, unknown>) => {
-          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
+          const {
+            children: _children,
+            dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
+            ...restProps
+          } = props;
           // 使用延迟加载的 ImageWithZoom 组件
-          const ImageWithZoom = React.lazy(() => import('../../components/ImageWithZoom/ImageWithZoom.js').then(module => ({
-            default: module.ImageWithZoom
-          })));
-          return React.createElement(React.Suspense, {
-            fallback: React.createElement('img', restProps)
-          }, React.createElement(ImageWithZoom, { ...restProps, src: restProps.src || '' }));
+          const ImageWithZoom = React.lazy(() =>
+            import('../../components/ImageWithZoom/ImageWithZoom.js').then((module) => ({
+              default: module.ImageWithZoom,
+            }))
+          );
+          return React.createElement(
+            React.Suspense,
+            {
+              fallback: React.createElement('img', restProps),
+            },
+            React.createElement(ImageWithZoom, { ...restProps, src: restProps.src || '' })
+          );
         },
         input: (props: React.InputHTMLAttributes<HTMLInputElement>) => {
-          const { children: _children, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...restProps } = props;
+          const {
+            children: _children,
+            dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
+            ...restProps
+          } = props;
           return React.createElement('input', restProps);
         },
         // 处理标签渲染
-        span: (props: React.HTMLAttributes<HTMLSpanElement> & { children?: React.ReactNode; 'data-tag'?: string }) => {
+        span: (
+          props: React.HTMLAttributes<HTMLSpanElement> & {
+            children?: React.ReactNode;
+            'data-tag'?: string;
+          }
+        ) => {
           const { children, className, ...restProps } = props;
           const tagName = restProps['data-tag'];
           // 检查是否是标签
           if (className && className.includes('tag') && tagName) {
             // 渲染为可点击的标签
-            return React.createElement('span', {
-              ...restProps,
-              className: `${className} cursor-pointer hover:bg-[var(--background-modifier-hover)] px-1 rounded`,
-              onClick: (e: React.MouseEvent) => {
-                e.preventDefault();
-                // 触发标签搜索
-                const tagSearchEvent = new CustomEvent('searchByTag', {
-                  detail: { tag: tagName }
-                });
-                window.dispatchEvent(tagSearchEvent);
-              }
-            }, children);
+            return React.createElement(
+              'span',
+              {
+                ...restProps,
+                className: `${className} cursor-pointer hover:bg-[var(--background-modifier-hover)] px-1 rounded`,
+                onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  // 触发标签搜索
+                  const tagSearchEvent = new CustomEvent('searchByTag', {
+                    detail: { tag: tagName },
+                  });
+                  window.dispatchEvent(tagSearchEvent);
+                },
+              },
+              children
+            );
           }
           // 其他 span 元素正常渲染
           return React.createElement('span', props);
         },
         // 处理内部链接的点击事件
-        a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { 'data-file-path'?: string }) => {
+        a: (
+          props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { 'data-file-path'?: string }
+        ) => {
           const { children, href, className, ...restProps } = props;
           // 检查是否是内部链接
           const isInternalLink = className && className.includes('internal-link');
           const filePath = restProps['data-file-path'];
 
           // 检查是否是脚注链接
-          const isFootnoteLink = href && (
-            href.startsWith('#user-content-fn-') ||
-            href.startsWith('#user-content-fnref-')
-          );
+          const isFootnoteLink =
+            href &&
+            (href.startsWith('#user-content-fn-') || href.startsWith('#user-content-fnref-'));
 
           if (isFootnoteLink) {
             // 脚注链接使用自定义滚动行为
-            return React.createElement('a', {
-              ...props,
-              onClick: (e: React.MouseEvent) => {
-                e.preventDefault();
-                // 获取目标元素 ID
-                const targetId = href.replace('#', '');
-                const targetElement = document.getElementById(targetId);
-                if (!targetElement) return;
+            return React.createElement(
+              'a',
+              {
+                ...props,
+                onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  // 获取目标元素 ID
+                  const targetId = href.replace('#', '');
+                  const targetElement = document.getElementById(targetId);
+                  if (!targetElement) return;
 
-                // 使用类似 TOC 的方法查找滚动容器
-                const findScrollContainer = (element: HTMLElement): HTMLElement | null => {
-                  let currentElement = element.parentElement;
-                  while (currentElement && currentElement !== document.body) {
-                    const computedStyle = window.getComputedStyle(currentElement);
-                    const hasScroll = computedStyle.overflowY === 'auto' ||
-                                     computedStyle.overflowY === 'scroll' ||
-                                     computedStyle.overflow === 'auto' ||
-                                     computedStyle.overflow === 'scroll';
+                  // 使用类似 TOC 的方法查找滚动容器
+                  const findScrollContainer = (element: HTMLElement): HTMLElement | null => {
+                    let currentElement = element.parentElement;
+                    while (currentElement && currentElement !== document.body) {
+                      const computedStyle = window.getComputedStyle(currentElement);
+                      const hasScroll =
+                        computedStyle.overflowY === 'auto' ||
+                        computedStyle.overflowY === 'scroll' ||
+                        computedStyle.overflow === 'auto' ||
+                        computedStyle.overflow === 'scroll';
 
-                    if (hasScroll && currentElement.scrollHeight > currentElement.clientHeight) {
-                      return currentElement;
+                      if (hasScroll && currentElement.scrollHeight > currentElement.clientHeight) {
+                        return currentElement;
+                      }
+                      currentElement = currentElement.parentElement;
                     }
-                    currentElement = currentElement.parentElement;
-                  }
-                  return null;
-                };
+                    return null;
+                  };
 
-                const scrollContainer = findScrollContainer(targetElement);
-                if (!scrollContainer) return;
+                  const scrollContainer = findScrollContainer(targetElement);
+                  if (!scrollContainer) return;
 
-                // 使用 requestAnimationFrame 确保 DOM 更新后再计算
-                requestAnimationFrame(() => {
-                  const containerRect = scrollContainer.getBoundingClientRect();
-                  const elementRect = targetElement.getBoundingClientRect();
-
-                  // 计算相对位置，类似 TOC 的实现
-                  const elementRelativeTop = elementRect.top - containerRect.top + scrollContainer.scrollTop;
-                  const scrollOffset = 10; // 留一点间距，不要紧贴顶部
-                  const targetScrollTop = Math.max(0, elementRelativeTop - scrollOffset);
-
-                  // 先使用 instant 滚动到位置，然后再使用 smooth
-                  scrollContainer.scrollTo({
-                    top: targetScrollTop,
-                    behavior: 'instant'
-                  });
-
-                  // 再次使用 requestAnimationFrame 确保第一次滚动完成
+                  // 使用 requestAnimationFrame 确保 DOM 更新后再计算
                   requestAnimationFrame(() => {
+                    const containerRect = scrollContainer.getBoundingClientRect();
+                    const elementRect = targetElement.getBoundingClientRect();
+
+                    // 计算相对位置，类似 TOC 的实现
+                    const elementRelativeTop =
+                      elementRect.top - containerRect.top + scrollContainer.scrollTop;
+                    const scrollOffset = 10; // 留一点间距，不要紧贴顶部
+                    const targetScrollTop = Math.max(0, elementRelativeTop - scrollOffset);
+
+                    // 先使用 instant 滚动到位置，然后再使用 smooth
                     scrollContainer.scrollTo({
                       top: targetScrollTop,
-                      behavior: 'smooth'
+                      behavior: 'instant',
+                    });
+
+                    // 再次使用 requestAnimationFrame 确保第一次滚动完成
+                    requestAnimationFrame(() => {
+                      scrollContainer.scrollTo({
+                        top: targetScrollTop,
+                        behavior: 'smooth',
+                      });
                     });
                   });
-                });
-              }
-            }, children);
+                },
+              },
+              children
+            );
           }
 
           if (isInternalLink && filePath) {
             // 内部链接使用自定义处理
-            return React.createElement('a', {
-              ...restProps,
-              href,
-              className,
-              onClick: (e: React.MouseEvent) => {
-                e.preventDefault();
-                // 触发导航到文件
-                const navigateEvent = new CustomEvent('navigateToFile', {
-                  detail: { filePath }
-                });
-                window.dispatchEvent(navigateEvent);
-              }
-            }, children);
+            return React.createElement(
+              'a',
+              {
+                ...restProps,
+                href,
+                className,
+                onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  // 触发导航到文件
+                  const navigateEvent = new CustomEvent('navigateToFile', {
+                    detail: { filePath },
+                  });
+                  window.dispatchEvent(navigateEvent);
+                },
+              },
+              children
+            );
           }
 
           // 外部链接保持默认行为
@@ -391,8 +449,8 @@ export class MarkdownProcessor {
         // 处理 TrackMap 组件 - 直接映射
         TrackMap: TrackMap,
         // 处理 MermaidDiagram 组件 - 直接映射
-        MermaidDiagram: MermaidDiagram
-      }
+        MermaidDiagram: MermaidDiagram,
+      },
     });
 
     return processor;
@@ -422,11 +480,13 @@ export class MarkdownProcessor {
     const metadata = {
       headings: [] as Array<{ level: number; text: string; id: string }>,
       links: [] as Array<{ href: string; text: string }>,
-      tags: [] as string[]
+      tags: [] as string[],
     };
 
     // 如果有 currentFilePath，创建一个新的 processor 实例，传递正确的路径
-    const processor = currentFilePath ? this.createProcessor({ ...this.options, currentFilePath }) : this.processor;
+    const processor = currentFilePath
+      ? this.createProcessor({ ...this.options, currentFilePath })
+      : this.processor;
 
     // 处理 Markdown - 使用 process() 一次性完成所有处理
     // 先解析为 markdown AST
@@ -478,20 +538,39 @@ export class MarkdownProcessor {
       metadata,
       frontMatter,
       mermaidDiagrams,
-      trackMaps
+      trackMaps,
     };
   }
 
   /**
    * 从 AST 中提取文档元数据
    */
-  private extractMetadataFromAst(ast: Node, metadata: { headings: Array<{ level: number; text: string; id: string }>; links: Array<{ href: string; text: string }>; tags: string[] }): void {
-    const visit = (node: Node & { type?: string; tagName?: string; properties?: Record<string, unknown>; children?: Node[] }) => {
+  private extractMetadataFromAst(
+    ast: Node,
+    metadata: {
+      headings: Array<{ level: number; text: string; id: string }>;
+      links: Array<{ href: string; text: string }>;
+      tags: string[];
+    }
+  ): void {
+    const visit = (
+      node: Node & {
+        type?: string;
+        tagName?: string;
+        properties?: Record<string, unknown>;
+        children?: Node[];
+      }
+    ) => {
       // 提取标题
       if (node.type === 'element' && node.tagName && /^h[1-6]$/.test(node.tagName)) {
         const level = parseInt(node.tagName.charAt(1));
         const text = this.extractTextFromNode(node);
-        const id = String(node.properties?.id || '') || text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const id =
+          String(node.properties?.id || '') ||
+          text
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
 
         metadata.headings.push({ level, text, id });
       }
@@ -524,13 +603,21 @@ export class MarkdownProcessor {
   /**
    * 从节点中提取纯文本
    */
-  private extractTextFromNode(node: Node & { type?: string; value?: string; children?: Node[] }): string {
+  private extractTextFromNode(
+    node: Node & { type?: string; value?: string; children?: Node[] }
+  ): string {
     if (node.type === 'text') {
       return node.value || '';
     }
 
     if (node.children) {
-      return node.children.map((child) => this.extractTextFromNode(child as Node & { type?: string; value?: string; children?: Node[] })).join('');
+      return node.children
+        .map((child) =>
+          this.extractTextFromNode(
+            child as Node & { type?: string; value?: string; children?: Node[] }
+          )
+        )
+        .join('');
     }
 
     return '';
@@ -540,15 +627,17 @@ export class MarkdownProcessor {
    * 调试用：在 AST 中查找并记录 image 节点
    */
   private logImageNodes(ast: Node, _stage: string): void {
-    const imageNodes: Array<{type: string; url?: string; alt?: string; data?: unknown}> = [];
+    const imageNodes: Array<{ type: string; url?: string; alt?: string; data?: unknown }> = [];
 
-    const visit = (node: Node & {type: string; url?: string; alt?: string; data?: unknown; children?: Node[]}) => {
+    const visit = (
+      node: Node & { type: string; url?: string; alt?: string; data?: unknown; children?: Node[] }
+    ) => {
       if (node.type === 'image') {
         imageNodes.push({
           type: node.type,
           url: node.url,
           alt: node.alt,
-          data: node.data
+          data: node.data,
         });
       }
 
@@ -559,7 +648,6 @@ export class MarkdownProcessor {
 
     visit(ast);
   }
-
 
   /**
    * 快速处理（只生成 React 元素）

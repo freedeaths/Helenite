@@ -60,7 +60,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                 if (beforeText) {
                   currentParagraphChildren.push({
                     type: 'text',
-                    value: beforeText
+                    value: beforeText,
                   } as MdastNode);
                 }
               }
@@ -72,12 +72,25 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                   const fileExt = parsedLink.filePath.split('.').pop()?.toLowerCase();
 
                   // 检查是否是块级嵌入
-                  if (['pdf', 'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'm4a', 'gpx', 'kml'].includes(fileExt || '')) {
+                  if (
+                    [
+                      'pdf',
+                      'mp4',
+                      'webm',
+                      'ogg',
+                      'mov',
+                      'mp3',
+                      'wav',
+                      'm4a',
+                      'gpx',
+                      'kml',
+                    ].includes(fileExt || '')
+                  ) {
                     // 如果当前段落有内容，先结束它
                     if (currentParagraphChildren.length > 0) {
                       newNodes.push({
                         type: 'paragraph',
-                        children: [...currentParagraphChildren]
+                        children: [...currentParagraphChildren],
                       } as MdastNode);
                       currentParagraphChildren = [];
                     }
@@ -99,7 +112,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
                 // 解析失败，保持原文
                 currentParagraphChildren.push({
                   type: 'text',
-                  value: match[0]
+                  value: match[0],
                 } as MdastNode);
               }
 
@@ -112,7 +125,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
               if (remainingText) {
                 currentParagraphChildren.push({
                   type: 'text',
-                  value: remainingText
+                  value: remainingText,
                 } as MdastNode);
               }
             }
@@ -130,7 +143,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       if (currentParagraphChildren.length > 0) {
         newNodes.push({
           type: 'paragraph',
-          children: currentParagraphChildren
+          children: currentParagraphChildren,
         } as MdastNode);
       }
 
@@ -179,7 +192,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
       const newNodes: MdastNode[] = [];
       let lastIndex = 0;
 
-      matches.forEach(match => {
+      matches.forEach((match) => {
         const matchStart = match.index!;
         const matchEnd = matchStart + match[0].length;
 
@@ -189,7 +202,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           if (beforeText) {
             newNodes.push({
               type: 'text',
-              value: beforeText
+              value: beforeText,
             } as MdastNode);
           }
         }
@@ -204,7 +217,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           // 如果解析失败，保持原文
           newNodes.push({
             type: 'text',
-            value: match[0]
+            value: match[0],
           } as MdastNode);
         }
 
@@ -217,7 +230,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
         if (remainingText) {
           newNodes.push({
             type: 'text',
-            value: remainingText
+            value: remainingText,
           } as MdastNode);
         }
       }
@@ -228,7 +241,7 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
           node,
           parent,
           index,
-          newNodes
+          newNodes,
         });
       }
     });
@@ -243,12 +256,14 @@ export function obsidianLinksPlugin(options: ObsidianLinksPluginOptions = {}) {
 /**
  * 检查节点是否包含图片
  */
-function hasImageNodes(node: MdastNode & {type: string; children?: MdastNode[]}): boolean {
+function hasImageNodes(node: MdastNode & { type: string; children?: MdastNode[] }): boolean {
   if (node.type === 'image') {
     return true;
   }
   if (node.children) {
-    return node.children.some((child: MdastNode & {type: string; children?: MdastNode[]}) => hasImageNodes(child));
+    return node.children.some((child: MdastNode & { type: string; children?: MdastNode[] }) =>
+      hasImageNodes(child)
+    );
   }
   return false;
 }
@@ -301,7 +316,7 @@ function createLinkNode(parsedLink: ParsedLink, options: ObsidianLinksPluginOpti
     default:
       result = {
         type: 'text',
-        value: `[[${parsedLink.filePath}]]`
+        value: `[[${parsedLink.filePath}]]`,
       };
   }
 
@@ -312,7 +327,11 @@ function createLinkNode(parsedLink: ParsedLink, options: ObsidianLinksPluginOpti
  * 智能的路径构造函数
  * 优先使用 metadata.json 查找文件，降级到直接路径构造，支持相对路径解析
  */
-function constructDirectPath(linkPath: string, currentFilePath?: string, metadata?: FileMetadata[]): string {
+function constructDirectPath(
+  linkPath: string,
+  currentFilePath?: string,
+  metadata?: FileMetadata[]
+): string {
   let filePath = linkPath.trim();
 
   // 第一步：尝试使用 metadata.json 查找文件
@@ -320,15 +339,17 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
     // 查找文件名匹配的条目（不包括扩展名）
     const targetFileName = filePath.replace(/\.md$/, ''); // 去掉可能的 .md 后缀
 
-    const matchedFile = metadata.find(item => {
+    const matchedFile = metadata.find((item) => {
       const itemFileName = item.fileName || '';
       const itemRelativePath = item.relativePath || '';
 
       // 尝试多种匹配方式
-      return itemFileName === targetFileName || // 直接文件名匹配
-             itemFileName === `${targetFileName}.md` || // 文件名加扩展名匹配
-             itemRelativePath.endsWith(`/${targetFileName}.md`) || // 路径结尾匹配
-             itemRelativePath === `${targetFileName}.md`; // 完整路径匹配
+      return (
+        itemFileName === targetFileName || // 直接文件名匹配
+        itemFileName === `${targetFileName}.md` || // 文件名加扩展名匹配
+        itemRelativePath.endsWith(`/${targetFileName}.md`) || // 路径结尾匹配
+        itemRelativePath === `${targetFileName}.md`
+      ); // 完整路径匹配
     });
 
     if (matchedFile && matchedFile.relativePath) {
@@ -386,7 +407,8 @@ function constructDirectPath(linkPath: string, currentFilePath?: string, metadat
  * 创建文件链接节点
  */
 function createFileLink(parsedLink: ParsedLink, resolvedPath: string): Link {
-  const displayText = parsedLink.displayText ||
+  const displayText =
+    parsedLink.displayText ||
     parsedLink.filePath.split('/').pop()?.replace(/\.md$/, '') ||
     parsedLink.filePath;
 
@@ -396,17 +418,19 @@ function createFileLink(parsedLink: ParsedLink, resolvedPath: string): Link {
   return {
     type: 'link',
     url: `#${urlPath}`, // 使用 hash 路由，不包含 .md 扩展名
-    children: [{
-      type: 'text',
-      value: displayText
-    }],
+    children: [
+      {
+        type: 'text',
+        value: displayText,
+      },
+    ],
     data: {
       hProperties: {
         className: ['internal-link'],
-        'data-file-path': resolvedPath // 保留完整路径用于导航
+        'data-file-path': resolvedPath, // 保留完整路径用于导航
         // onClick 应该在 React 组件中处理，而不是在这里设置
-      }
-    }
+      },
+    },
   };
 }
 
@@ -423,9 +447,7 @@ function createImageEmbed(parsedLink: ParsedLink, resolvedPath: string, _baseUrl
   }
 
   // 构建完整的图片 URL
-  const fullImageUrl = imagePath.startsWith('http')
-    ? imagePath
-    : `${VAULT_PATH}${imagePath}`;
+  const fullImageUrl = imagePath.startsWith('http') ? imagePath : `${VAULT_PATH}${imagePath}`;
 
   return {
     type: 'image',
@@ -436,9 +458,9 @@ function createImageEmbed(parsedLink: ParsedLink, resolvedPath: string, _baseUrl
         className: ['obsidian-image'],
         loading: 'lazy',
         // 添加自定义属性，让前端组件知道这是 vault 图片
-        'data-vault-image': 'true'
-      }
-    }
+        'data-vault-image': 'true',
+      },
+    },
   };
 }
 
@@ -458,7 +480,7 @@ function createTrackEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl:
 
   return {
     type: 'html',
-    value: `<div class="track-embed" data-track-type="${ext}" data-track-url="${fullTrackUrl}" data-placeholder="${placeholder}"></div>`
+    value: `<div class="track-embed" data-track-type="${ext}" data-track-url="${fullTrackUrl}" data-placeholder="${placeholder}"></div>`,
   };
 }
 
@@ -478,10 +500,10 @@ function createPdfEmbed(resolvedPath: string, baseUrl: string) {
       hName: 'div',
       hProperties: {
         className: ['pdf-embed-placeholder'],
-        'data-pdf-url': fullPdfUrl
-      }
+        'data-pdf-url': fullPdfUrl,
+      },
     },
-    children: []
+    children: [],
   };
 }
 
@@ -504,10 +526,10 @@ function createVideoEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl:
       hProperties: {
         className: ['video-embed-placeholder'],
         'data-video-url': fullVideoUrl,
-        'data-video-type': ext
-      }
+        'data-video-type': ext,
+      },
     },
-    children: []
+    children: [],
   };
 }
 
@@ -530,10 +552,10 @@ function createAudioEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl:
       hProperties: {
         className: ['audio-embed-placeholder'],
         'data-audio-url': fullAudioUrl,
-        'data-audio-type': ext
-      }
+        'data-audio-type': ext,
+      },
     },
-    children: []
+    children: [],
   };
 }
 
@@ -543,6 +565,6 @@ function createAudioEmbed(parsedLink: ParsedLink, resolvedPath: string, baseUrl:
 function createGenericEmbed(parsedLink: ParsedLink, _resolvedPath: string) {
   return {
     type: 'text',
-    value: `![[${parsedLink.filePath}]]`
+    value: `![[${parsedLink.filePath}]]`,
   };
 }

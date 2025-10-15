@@ -1,6 +1,6 @@
 /**
  * Obsidian ==highlights== 语法处理插件
- * 
+ *
  * 处理 ==高亮文本== 语法，转换为带有高亮样式的元素
  */
 
@@ -12,7 +12,7 @@ export interface ObsidianHighlightsOptions {
 }
 
 const DEFAULT_OPTIONS: ObsidianHighlightsOptions = {
-  className: 'cm-highlight'
+  className: 'cm-highlight',
 };
 
 /**
@@ -41,13 +41,13 @@ export function obsidianHighlightsPlugin(options: ObsidianHighlightsOptions = {}
         if (match.index > lastIndex) {
           parts.push({
             type: 'text',
-            value: value.slice(lastIndex, match.index)
+            value: value.slice(lastIndex, match.index),
           });
         }
 
         parts.push({
           type: 'highlight',
-          value: match[1]
+          value: match[1],
         });
 
         lastIndex = match.index + match[0].length;
@@ -57,13 +57,13 @@ export function obsidianHighlightsPlugin(options: ObsidianHighlightsOptions = {}
       if (lastIndex < value.length) {
         parts.push({
           type: 'text',
-          value: value.slice(lastIndex)
+          value: value.slice(lastIndex),
         });
       }
 
       // 替换文本节点
       if (parts.length > 1) {
-        const newNodes: MdastNode[] = parts.map(part => {
+        const newNodes: MdastNode[] = parts.map((part) => {
           if (part.type === 'text') {
             return { type: 'text', value: part.value };
           } else {
@@ -72,9 +72,9 @@ export function obsidianHighlightsPlugin(options: ObsidianHighlightsOptions = {}
               children: [{ type: 'text', value: part.value }],
               data: {
                 hProperties: {
-                  className: [opts.className || 'highlight']
-                }
-              }
+                  className: [opts.className || 'highlight'],
+                },
+              },
             };
           }
         });

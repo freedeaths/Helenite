@@ -303,31 +303,37 @@ export interface IVaultService {
   /**
    * 获取文档的反向链接
    */
-  getBacklinks(filePath: string): Promise<Array<{
-    sourcePath: string;
-    sourceTitle?: string;
-    context: string;
-    line: number;
-  }>>;
+  getBacklinks(filePath: string): Promise<
+    Array<{
+      sourcePath: string;
+      sourceTitle?: string;
+      context: string;
+      line: number;
+    }>
+  >;
 
   /**
    * 获取文档的前向链接
    */
-  getOutgoingLinks(filePath: string): Promise<Array<{
-    targetPath: string;
-    targetTitle?: string;
-    linkText: string;
-    line: number;
-  }>>;
+  getOutgoingLinks(filePath: string): Promise<
+    Array<{
+      targetPath: string;
+      targetTitle?: string;
+      linkText: string;
+      line: number;
+    }>
+  >;
 
   /**
    * 分析文档关键词
    */
-  extractKeywords(filePath: string): Promise<Array<{
-    word: string;
-    frequency: number;
-    weight: number;
-  }>>;
+  extractKeywords(filePath: string): Promise<
+    Array<{
+      word: string;
+      frequency: number;
+      weight: number;
+    }>
+  >;
 
   // ===============================
   // 高级功能
@@ -336,17 +342,25 @@ export interface IVaultService {
   /**
    * 相似文档推荐
    */
-  getSimilarDocuments(filePath: string, limit?: number): Promise<Array<{
-    path: string;
-    title?: string;
-    similarity: number;
-    reasons: string[];
-  }>>;
+  getSimilarDocuments(
+    filePath: string,
+    limit?: number
+  ): Promise<
+    Array<{
+      path: string;
+      title?: string;
+      similarity: number;
+      reasons: string[];
+    }>
+  >;
 
   /**
    * 内容摘要生成
    */
-  generateSummary(filePath: string, maxLength?: number): Promise<{
+  generateSummary(
+    filePath: string,
+    maxLength?: number
+  ): Promise<{
     summary: string;
     keyPoints: string[];
     wordCount: number;
@@ -360,10 +374,12 @@ export interface IVaultService {
   /**
    * 检测断链
    */
-  findBrokenLinks(): Promise<Array<{
-    sourcePath: string;
-    brokenLink: string;
-    line: number;
-    suggestions?: string[];
-  }>>;
+  findBrokenLinks(): Promise<
+    Array<{
+      sourcePath: string;
+      brokenLink: string;
+      line: number;
+      suggestions?: string[];
+    }>
+  >;
 }

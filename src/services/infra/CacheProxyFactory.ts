@@ -53,7 +53,7 @@ export function createCachedService<T extends object>(
       }
 
       return originalMethod;
-    }
+    },
   });
 }
 
@@ -67,7 +67,7 @@ function createCachedMethod(
   config: CacheMethodConfig,
   context: unknown
 ): (...args: unknown[]) => Promise<unknown> {
-  return async function(...args: unknown[]) {
+  return async function (...args: unknown[]) {
     // 检查缓存条件
     if (config.condition && !config.condition(...args)) {
       return originalMethod.apply(context, args);
@@ -79,13 +79,12 @@ function createCachedMethod(
       : generateDefaultCacheKey(methodName, args);
 
     // 生成缓存元数据
-    const metadata = config.metadataGenerator
-      ? config.metadataGenerator(...args)
-      : undefined;
+    const metadata = config.metadataGenerator ? config.metadataGenerator(...args) : undefined;
 
     // 使用getOrSet获取或计算值
-    return cache.getOrSet(cacheKey, () =>
-      originalMethod.apply(context, args),
+    return cache.getOrSet(
+      cacheKey,
+      () => originalMethod.apply(context, args),
       config.ttl,
       metadata
     );
@@ -126,10 +125,7 @@ export class MethodConfigBuilder<T, K extends keyof T> {
   private parent: CacheConfigBuilder<T>;
   private methodName: K;
 
-  constructor(
-    parent: CacheConfigBuilder<T>,
-    methodName: K
-  ) {
+  constructor(parent: CacheConfigBuilder<T>, methodName: K) {
     this.parent = parent;
     this.methodName = methodName;
   }
@@ -193,20 +189,20 @@ export const CachePresets = {
   /** 文件内容缓存 - 10分钟，排除临时文件 */
   FILE_CONTENT: {
     ttl: 600000,
-    condition: (path: string) => !path.includes('.tmp') && !path.includes('temp')
+    condition: (path: string) => !path.includes('.tmp') && !path.includes('temp'),
   },
 
   /** 文件信息缓存 - 5分钟，自定义键生成 */
   FILE_INFO: {
     ttl: 300000,
-    keyGenerator: (path: string) => `info:${path.replace(/[/\\]/g, '_')}`
+    keyGenerator: (path: string) => `info:${path.replace(/[/\\]/g, '_')}`,
   },
 
   /** 搜索结果缓存 - 2分钟，只缓存非空查询 */
   SEARCH: {
     ttl: 120000,
-    condition: (query: string) => query.trim().length > 0
-  }
+    condition: (query: string) => query.trim().length > 0,
+  },
 } as const;
 
 /**

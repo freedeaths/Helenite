@@ -24,9 +24,9 @@ export class ApplicationServices {
       tiers: {
         lru: {
           maxCount: 2000,
-          defaultTTL: 600000 // 10分钟
-        }
-      }
+          defaultTTL: 600000, // 10分钟
+        },
+      },
     });
   }
 
@@ -91,12 +91,11 @@ export class ApplicationServices {
  * 使用示例 1：基础使用
  */
 export async function basicUsage() {
-
   const appServices = new ApplicationServices();
 
   // 创建带缓存的服务
   await appServices.createStorageService({
-    basePath: '/vaults/Demo'
+    basePath: '/vaults/Demo',
   });
 
   const metadataService = await appServices.createMetadataService('Demo');
@@ -105,7 +104,6 @@ export async function basicUsage() {
   await metadataService.getMetadata();
 
   await metadataService.getMetadata();
-
 
   // 查看缓存统计
   await appServices.getCacheStats();
@@ -117,11 +115,10 @@ export async function basicUsage() {
  * 使用示例 2：多服务透明缓存
  */
 export async function multiServiceCaching() {
-
   const appServices = new ApplicationServices();
 
   const storageService = await appServices.createStorageService({
-    basePath: '/vaults/Demo'
+    basePath: '/vaults/Demo',
   });
 
   const metadataService = await appServices.createMetadataService('Demo');
@@ -130,15 +127,14 @@ export async function multiServiceCaching() {
   const [_metadata, _fileContent, _tags] = await Promise.all([
     metadataService.getMetadata(),
     storageService.readFile('Welcome.md').catch(() => 'File not found'),
-    metadataService.getAllTags()
+    metadataService.getAllTags(),
   ]);
-
 
   // 再次调用 - 全部来自缓存
   const [_cachedMetadata, _cachedContent, _cachedTags] = await Promise.all([
     metadataService.getMetadata(),
     storageService.readFile('Welcome.md').catch(() => 'File not found'),
-    metadataService.getAllTags()
+    metadataService.getAllTags(),
   ]);
 
   // const _stats = await appServices.getCacheStats();
@@ -150,7 +146,6 @@ export async function multiServiceCaching() {
  * 使用示例 3：服务间依赖的透明缓存
  */
 export async function serviceComposition() {
-
   const appServices = new ApplicationServices();
 
   // 上层服务使用缓存版本的 MetadataService
@@ -172,10 +167,11 @@ export async function serviceComposition() {
       return {
         nodes: metadata?.length || 0,
         tags: tags.length,
-        edges: metadata?.reduce((sum: number, file: unknown) => {
-          const fileObj = file as { links?: unknown[] };
-          return sum + (fileObj.links?.length || 0);
-        }, 0) || 0
+        edges:
+          metadata?.reduce((sum: number, file: unknown) => {
+            const fileObj = file as { links?: unknown[] };
+            return sum + (fileObj.links?.length || 0);
+          }, 0) || 0,
       };
     }
   }
@@ -183,7 +179,6 @@ export async function serviceComposition() {
   const graphService = new GraphService(metadataService);
 
   await graphService.buildGraph();
-
 
   // GraphService 完全不知道 MetadataService 使用了缓存
   await appServices.getCacheStats();
@@ -195,14 +190,12 @@ export async function serviceComposition() {
  * 完整演示
  */
 export async function fullDemo() {
-
   try {
     await basicUsage();
 
     await multiServiceCaching();
 
     await serviceComposition();
-
   } catch {
     // TODO: 处理错误
   }

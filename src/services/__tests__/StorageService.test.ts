@@ -19,7 +19,7 @@ describe('StorageService', () => {
     config = {
       basePath: 'https://example.com/vault',
       timeout: 5000,
-      cache: true
+      cache: true,
     };
 
     storageService = new StorageService(config);
@@ -35,7 +35,7 @@ describe('StorageService', () => {
       expect(storageService.config).toEqual({
         basePath: 'https://example.com/vault',
         timeout: 5000,
-        cache: true
+        cache: true,
       });
     });
 
@@ -58,8 +58,12 @@ describe('StorageService', () => {
     });
 
     test('resolvePath - 应该生成正确的路径', () => {
-      expect(storageService.resolvePath('docs/file.md')).toBe('https://example.com/vault/docs/file.md');
-      expect(storageService.resolvePath('/docs/file.md')).toBe('https://example.com/vault/docs/file.md');
+      expect(storageService.resolvePath('docs/file.md')).toBe(
+        'https://example.com/vault/docs/file.md'
+      );
+      expect(storageService.resolvePath('/docs/file.md')).toBe(
+        'https://example.com/vault/docs/file.md'
+      );
     });
 
     test('resolvePath - 应该处理basePath末尾斜杠', () => {
@@ -119,7 +123,7 @@ describe('StorageService', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'https://example.com/vault/test.txt',
         expect.objectContaining({
-          signal: expect.any(AbortSignal)
+          signal: expect.any(AbortSignal),
         })
       );
     });
@@ -150,13 +154,15 @@ describe('StorageService', () => {
     });
 
     test('exists - 文件存在时应该返回true', async () => {
-      mockFetch.mockResolvedValueOnce(new Response('', {
-        status: 200,
-        headers: new Headers({
-          'content-length': '100',
-          'content-type': 'text/plain'
+      mockFetch.mockResolvedValueOnce(
+        new Response('', {
+          status: 200,
+          headers: new Headers({
+            'content-length': '100',
+            'content-type': 'text/plain',
+          }),
         })
-      }));
+      );
 
       const exists = await storageService.exists('test.txt');
       expect(exists).toBe(true);
@@ -174,13 +180,15 @@ describe('StorageService', () => {
         'content-length': '1234',
         'content-type': 'text/markdown',
         'last-modified': 'Wed, 01 Jan 2025 00:00:00 GMT',
-        'etag': '"abc123"'
+        etag: '"abc123"',
       });
 
-      mockFetch.mockResolvedValueOnce(new Response('', {
-        status: 200,
-        headers: mockHeaders
-      }));
+      mockFetch.mockResolvedValueOnce(
+        new Response('', {
+          status: 200,
+          headers: mockHeaders,
+        })
+      );
 
       const fileInfo = await storageService.getFileInfo('test.md');
 
@@ -190,7 +198,7 @@ describe('StorageService', () => {
         mimeType: 'text/markdown',
         lastModified: new Date('Wed, 01 Jan 2025 00:00:00 GMT'),
         exists: true,
-        etag: '"abc123"'
+        etag: '"abc123"',
       });
     });
 
@@ -199,11 +207,11 @@ describe('StorageService', () => {
       const mockHeaders = new Headers({
         'content-length': '12',
         'content-type': 'text/plain',
-        'last-modified': 'Wed, 01 Jan 2025 00:00:00 GMT'
+        'last-modified': 'Wed, 01 Jan 2025 00:00:00 GMT',
       });
 
       mockFetch
-        .mockResolvedValueOnce(new Response(mockContent))  // readFile
+        .mockResolvedValueOnce(new Response(mockContent)) // readFile
         .mockResolvedValueOnce(new Response('', { status: 200, headers: mockHeaders })); // getFileInfo
 
       const result = await storageService.readFileWithInfo('test.txt');
@@ -214,9 +222,7 @@ describe('StorageService', () => {
     });
 
     test('listFiles - 在非本地静态存储应该抛出错误', async () => {
-      await expect(storageService.listFiles())
-        .rejects
-        .toThrow(StorageError);
+      await expect(storageService.listFiles()).rejects.toThrow(StorageError);
     });
   });
 
@@ -231,7 +237,7 @@ describe('StorageService', () => {
 
       // 为每次fetch调用创建新的Response对象
       mockFetch
-        .mockResolvedValueOnce(new Response(mockContent))  // 第一次读取
+        .mockResolvedValueOnce(new Response(mockContent)) // 第一次读取
         .mockResolvedValueOnce(new Response(mockContent)); // 第二次读取（如果缓存被禁用）
 
       // 第一次读取
@@ -251,7 +257,7 @@ describe('StorageService', () => {
 
       // 为每次fetch调用创建新的Response对象
       mockFetch
-        .mockResolvedValueOnce(new Response(mockContent))  // 首次读取
+        .mockResolvedValueOnce(new Response(mockContent)) // 首次读取
         .mockResolvedValueOnce(new Response(mockContent)); // 缓存清除后读取
 
       // 读取文件
@@ -286,7 +292,7 @@ describe('StorageService', () => {
         'https://example.com/vault/',
         expect.objectContaining({
           method: 'HEAD',
-          signal: expect.any(AbortSignal)
+          signal: expect.any(AbortSignal),
         })
       );
     });
@@ -294,9 +300,7 @@ describe('StorageService', () => {
     test('initialize - 健康检查失败时应该抛出错误', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(storageService.initialize())
-        .rejects
-        .toThrow(StorageError);
+      await expect(storageService.initialize()).rejects.toThrow(StorageError);
     });
 
     test('healthCheck - 应该正确检查服务状态', async () => {
@@ -323,9 +327,7 @@ describe('StorageService', () => {
     test('未初始化时操作应该抛出错误', async () => {
       const uninitializedService = new StorageService(config);
 
-      await expect(uninitializedService.readFile('test.txt'))
-        .rejects
-        .toThrow(StorageError);
+      await expect(uninitializedService.readFile('test.txt')).rejects.toThrow(StorageError);
     });
 
     test('dispose - 应该清理资源', async () => {
@@ -335,9 +337,7 @@ describe('StorageService', () => {
       await storageService.dispose();
 
       // 销毁后应该无法使用
-      await expect(storageService.readFile('test.txt'))
-        .rejects
-        .toThrow(StorageError);
+      await expect(storageService.readFile('test.txt')).rejects.toThrow(StorageError);
     });
   });
 
@@ -346,9 +346,7 @@ describe('StorageService', () => {
       mockFetch.mockResolvedValueOnce(new Response('', { status: 200 }));
       await storageService.initialize();
 
-      await expect(storageService.readFile('../../../etc/passwd'))
-        .rejects
-        .toThrow(StorageError);
+      await expect(storageService.readFile('../../../etc/passwd')).rejects.toThrow(StorageError);
     });
 
     test('应该处理网络超时', async () => {
@@ -357,9 +355,7 @@ describe('StorageService', () => {
 
       mockFetch.mockRejectedValueOnce(new DOMException('Timeout', 'AbortError'));
 
-      await expect(storageService.readFile('test.txt'))
-        .rejects
-        .toThrow(StorageError);
+      await expect(storageService.readFile('test.txt')).rejects.toThrow(StorageError);
     });
   });
 });

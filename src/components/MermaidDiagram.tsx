@@ -103,67 +103,76 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
   // 移除未使用的 handleMouseDown 函数
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
-    setPosition({ x: newX, y: newY });
-  }, [isDragging, dragStart]);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return;
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      setPosition({ x: newX, y: newY });
+    },
+    [isDragging, dragStart]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
 
   // 触摸事件处理
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (e.touches.length === 1) {
-      // 单指拖拽
-      const touch = e.touches[0];
-      setIsDragging(true);
-      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
-      e.preventDefault();
-      if (svgRef.current) {
-        svgRef.current.style.cursor = 'grabbing';
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        // 单指拖拽
+        const touch = e.touches[0];
+        setIsDragging(true);
+        setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+        e.preventDefault();
+        if (svgRef.current) {
+          svgRef.current.style.cursor = 'grabbing';
+        }
+      } else if (e.touches.length === 2) {
+        // 双指缩放
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        setDragStart({ x: distance, y: 0 }); // 复用 dragStart 存储初始距离
+        e.preventDefault();
       }
-    } else if (e.touches.length === 2) {
-      // 双指缩放
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      setDragStart({ x: distance, y: 0 }); // 复用 dragStart 存储初始距离
-      e.preventDefault();
-    }
-  }, [position]);
+    },
+    [position]
+  );
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (e.touches.length === 1 && isDragging) {
-      // 单指拖拽
-      const touch = e.touches[0];
-      const newX = touch.clientX - dragStart.x;
-      const newY = touch.clientY - dragStart.y;
-      setPosition({ x: newX, y: newY });
-      e.preventDefault();
-    } else if (e.touches.length === 2) {
-      // 双指缩放
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-      const initialDistance = dragStart.x;
-      if (initialDistance > 0) {
-        const scaleChange = distance / initialDistance;
-        const newZoom = Math.min(Math.max(zoomLevel * scaleChange, 0.5), 3);
-        setZoomLevel(newZoom);
-        setDragStart({ x: distance, y: 0 }); // 更新基准距离
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (e.touches.length === 1 && isDragging) {
+        // 单指拖拽
+        const touch = e.touches[0];
+        const newX = touch.clientX - dragStart.x;
+        const newY = touch.clientY - dragStart.y;
+        setPosition({ x: newX, y: newY });
+        e.preventDefault();
+      } else if (e.touches.length === 2) {
+        // 双指缩放
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        const initialDistance = dragStart.x;
+        if (initialDistance > 0) {
+          const scaleChange = distance / initialDistance;
+          const newZoom = Math.min(Math.max(zoomLevel * scaleChange, 0.5), 3);
+          setZoomLevel(newZoom);
+          setDragStart({ x: distance, y: 0 }); // 更新基准距离
+        }
+        e.preventDefault();
       }
-      e.preventDefault();
-    }
-  }, [isDragging, dragStart, zoomLevel]);
+    },
+    [isDragging, dragStart, zoomLevel]
+  );
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
     if (e.touches.length === 0) {
@@ -234,7 +243,7 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
           mermaid.initialize({
             startOnLoad: false,
-            theme: 'base',  // 使用 base 主题以便更好地控制样式
+            theme: 'base', // 使用 base 主题以便更好地控制样式
             securityLevel: 'loose',
             fontFamily: 'inherit',
             logLevel: 'error', // 减少控制台输出
@@ -242,29 +251,29 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             flowchart: {
               useMaxWidth: false, // 关闭自动最大宽度，手动控制
               htmlLabels: true,
-              curve: 'basis'
+              curve: 'basis',
             },
             sequence: {
               useMaxWidth: false,
               wrap: true,
-              width: 150
+              width: 150,
             },
             gantt: {
               useMaxWidth: false,
               fontSize: 12,
-              gridLineStartPadding: 350
+              gridLineStartPadding: 350,
             },
             pie: {
-              useMaxWidth: false
+              useMaxWidth: false,
             },
             journey: {
-              useMaxWidth: false
+              useMaxWidth: false,
             },
             timeline: {
-              useMaxWidth: false
+              useMaxWidth: false,
             },
             mindmap: {
-              useMaxWidth: false
+              useMaxWidth: false,
             },
             // 自定义主题变量以实现平滑主题切换
             themeVariables: {
@@ -277,8 +286,8 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               background: mermaidTheme === 'dark' ? '#1a1a1a' : '#ffffff',
               mainBkg: mermaidTheme === 'dark' ? '#2d2d2d' : '#f9f9f9',
               secondBkg: mermaidTheme === 'dark' ? '#444444' : '#efefef',
-              fontSize: '14px'
-            }
+              fontSize: '14px',
+            },
           });
           mermaidInitialized = true;
           currentTheme = mermaidTheme;
@@ -329,7 +338,6 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
             newSvgElement.style.margin = '0';
             newSvgElement.style.cursor = 'grab';
             newSvgElement.style.userSelect = 'none';
-
           } catch {
             // console.warn('Could not process SVG, using as-is:', e);
             // 出错时也保持简单样式
@@ -381,11 +389,14 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
         // 延迟清除主题变化状态，确保动画完成
         if (isThemeChanging) {
-          setTimeout(() => {
-            if (isMounted) {
-              setIsThemeChanging(false);
-            }
-          }, themeChanged ? 200 : 0); // 主题切换时延迟200ms
+          setTimeout(
+            () => {
+              if (isMounted) {
+                setIsThemeChanging(false);
+              }
+            },
+            themeChanged ? 200 : 0
+          ); // 主题切换时延迟200ms
         }
       } catch (err) {
         if (!isMounted) return;
@@ -438,7 +449,16 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [code, diagramId, theme, isThemeChanging, handleTouchStart, position.x, position.y, updateSVGTransform]);
+  }, [
+    code,
+    diagramId,
+    theme,
+    isThemeChanging,
+    handleTouchStart,
+    position.x,
+    position.y,
+    updateSVGTransform,
+  ]);
 
   return (
     <div
@@ -462,43 +482,52 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           height: '100vh',
           margin: 0,
           zIndex: 9999,
-          backgroundColor: theme === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backgroundColor:
+            theme === 'dark' ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(5px)',
-        })
+        }),
       }}
-      onClick={isExpanded ? (e) => {
-        // 点击背景区域关闭放大，但不影响图表内容的点击
-        if (e.target === e.currentTarget) {
-          toggleExpanded();
-        }
-      } : undefined}
+      onClick={
+        isExpanded
+          ? (e) => {
+              // 点击背景区域关闭放大，但不影响图表内容的点击
+              if (e.target === e.currentTarget) {
+                toggleExpanded();
+              }
+            }
+          : undefined
+      }
     >
-      {(isLoading && !isThemeChanging) && (
-        <div style={{
-          padding: '2rem',
-          color: 'var(--text-muted)',
-          fontSize: '14px'
-        }}>
+      {isLoading && !isThemeChanging && (
+        <div
+          style={{
+            padding: '2rem',
+            color: 'var(--text-muted)',
+            fontSize: '14px',
+          }}
+        >
           Rendering diagram...
         </div>
       )}
       {isThemeChanging && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'transparent', // 透明背景减少闪烁
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 5, // 降低 z-index
-          fontSize: '12px',
-          color: 'var(--text-muted)',
-          opacity: 0.7,
-          pointerEvents: 'none' // 不阻止交互
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'transparent', // 透明背景减少闪烁
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 5, // 降低 z-index
+            fontSize: '12px',
+            color: 'var(--text-muted)',
+            opacity: 0.7,
+            pointerEvents: 'none', // 不阻止交互
+          }}
+        >
           🎨
         </div>
       )}
@@ -517,27 +546,32 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'flex-start', // 上对齐而不是居中
-          transition: isThemeChanging ? 'none' : 'background-color 0.2s ease, border-color 0.2s ease'
+          transition: isThemeChanging
+            ? 'none'
+            : 'background-color 0.2s ease, border-color 0.2s ease',
         }}
       />
 
       {/* 浮动工具栏 */}
       {!isLoading && !error && (
-        <div style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          backgroundColor: theme === 'dark' ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '8px',
-          padding: '6px',
-          boxShadow: theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
-          backdropFilter: 'blur(10px)',
-          border: `1px solid ${theme === 'dark' ? 'rgba(68, 68, 68, 0.5)' : 'rgba(224, 224, 224, 0.5)'}`,
-          zIndex: 10
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            backgroundColor:
+              theme === 'dark' ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '8px',
+            padding: '6px',
+            boxShadow: theme === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${theme === 'dark' ? 'rgba(68, 68, 68, 0.5)' : 'rgba(224, 224, 224, 0.5)'}`,
+            zIndex: 10,
+          }}
+        >
           <button
             onClick={handleZoomOut}
             disabled={zoomLevel <= 0.5}
@@ -546,33 +580,45 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
               borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
-              background: zoomLevel <= 0.5
-                ? (theme === 'dark' ? '#333' : '#f0f0f0')
-                : (theme === 'dark' ? '#404040' : '#ffffff'),
-              color: zoomLevel <= 0.5
-                ? (theme === 'dark' ? '#666' : '#ccc')
-                : (theme === 'dark' ? '#e0e0e0' : '#333'),
+              background:
+                zoomLevel <= 0.5
+                  ? theme === 'dark'
+                    ? '#333'
+                    : '#f0f0f0'
+                  : theme === 'dark'
+                    ? '#404040'
+                    : '#ffffff',
+              color:
+                zoomLevel <= 0.5
+                  ? theme === 'dark'
+                    ? '#666'
+                    : '#ccc'
+                  : theme === 'dark'
+                    ? '#e0e0e0'
+                    : '#333',
               cursor: zoomLevel <= 0.5 ? 'not-allowed' : 'pointer',
               fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
             title="缩小"
           >
             −
           </button>
 
-          <div style={{
-            minWidth: window.innerWidth <= 768 ? '32px' : '42px', // 移动端更小
-            textAlign: 'center',
-            fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
-            fontWeight: '500',
-            color: theme === 'dark' ? '#e0e0e0' : '#666',
-            padding: window.innerWidth <= 768 ? '0 2px' : '0 4px' // 移动端更小内边距
-          }}>
+          <div
+            style={{
+              minWidth: window.innerWidth <= 768 ? '32px' : '42px', // 移动端更小
+              textAlign: 'center',
+              fontSize: window.innerWidth <= 768 ? '10px' : '12px', // 移动端更小字体
+              fontWeight: '500',
+              color: theme === 'dark' ? '#e0e0e0' : '#666',
+              padding: window.innerWidth <= 768 ? '0 2px' : '0 4px', // 移动端更小内边距
+            }}
+          >
             {Math.round(zoomLevel * 100)}%
           </div>
 
@@ -584,31 +630,43 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               height: window.innerWidth <= 768 ? '22px' : '28px', // 移动端更小
               border: 'none',
               borderRadius: window.innerWidth <= 768 ? '4px' : '6px', // 移动端更小圆角
-              background: zoomLevel >= 3
-                ? (theme === 'dark' ? '#333' : '#f0f0f0')
-                : (theme === 'dark' ? '#404040' : '#ffffff'),
-              color: zoomLevel >= 3
-                ? (theme === 'dark' ? '#666' : '#ccc')
-                : (theme === 'dark' ? '#e0e0e0' : '#333'),
+              background:
+                zoomLevel >= 3
+                  ? theme === 'dark'
+                    ? '#333'
+                    : '#f0f0f0'
+                  : theme === 'dark'
+                    ? '#404040'
+                    : '#ffffff',
+              color:
+                zoomLevel >= 3
+                  ? theme === 'dark'
+                    ? '#666'
+                    : '#ccc'
+                  : theme === 'dark'
+                    ? '#e0e0e0'
+                    : '#333',
               cursor: zoomLevel >= 3 ? 'not-allowed' : 'pointer',
               fontSize: window.innerWidth <= 768 ? '12px' : '14px', // 移动端更小字体
               fontWeight: '500',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
             title="放大"
           >
             +
           </button>
 
-          <div style={{
-            width: '1px',
-            height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
-            backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
-            margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
-          }} />
+          <div
+            style={{
+              width: '1px',
+              height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
+              backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
+              margin: window.innerWidth <= 768 ? '0 1px' : '0 2px', // 移动端更小间距
+            }}
+          />
 
           <button
             onClick={handleResetZoom}
@@ -625,19 +683,21 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
             title="重置视图"
           >
             ↻
           </button>
 
-          <div style={{
-            width: '1px',
-            height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
-            backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
-            margin: window.innerWidth <= 768 ? '0 1px' : '0 2px' // 移动端更小间距
-          }} />
+          <div
+            style={{
+              width: '1px',
+              height: window.innerWidth <= 768 ? '16px' : '20px', // 移动端更小分隔线
+              backgroundColor: theme === 'dark' ? '#444' : '#e0e0e0',
+              margin: window.innerWidth <= 768 ? '0 1px' : '0 2px', // 移动端更小间距
+            }}
+          />
 
           <button
             onClick={toggleExpanded}
@@ -654,9 +714,9 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
-            title={isExpanded ? "缩小" : "放大"}
+            title={isExpanded ? '缩小' : '放大'}
           >
             {isExpanded ? '⤵' : '⤴'}
           </button>
@@ -665,19 +725,22 @@ export function MermaidDiagram({ code, className = '' }: MermaidDiagramProps) {
 
       {/* 拖拽提示 */}
       {!isLoading && !error && zoomLevel > 1 && (
-        <div style={{
-          position: 'absolute',
-          bottom: '10px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontSize: '12px',
-          color: theme === 'dark' ? 'rgba(224, 224, 224, 0.6)' : 'rgba(102, 102, 102, 0.6)',
-          backgroundColor: theme === 'dark' ? 'rgba(26, 26, 26, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          backdropFilter: 'blur(5px)',
-          pointerEvents: 'none'
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: '12px',
+            color: theme === 'dark' ? 'rgba(224, 224, 224, 0.6)' : 'rgba(102, 102, 102, 0.6)',
+            backgroundColor:
+              theme === 'dark' ? 'rgba(26, 26, 26, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            backdropFilter: 'blur(5px)',
+            pointerEvents: 'none',
+          }}
+        >
           拖拽移动视图
         </div>
       )}

@@ -1,6 +1,6 @@
 /**
  * ExifService 单元测试
- * 
+ *
  * 测试 ExifService 的核心功能，包括：
  * - EXIF 数据解析
  * - GPS 坐标提取
@@ -32,8 +32,8 @@ vi.mock('exifr', () => ({
     ihdr: vi.fn(),
     makerNote: vi.fn(),
     userComment: vi.fn(),
-    Exifr: vi.fn()
-  }
+    Exifr: vi.fn(),
+  },
 }));
 
 // ===============================
@@ -58,7 +58,7 @@ const createMockStorageService = (): IStorageService => ({
   initialize: vi.fn(),
   dispose: vi.fn(),
   healthCheck: vi.fn(),
-  config: { basePath: '/test' }
+  config: { basePath: '/test' },
 });
 
 // ===============================
@@ -69,7 +69,7 @@ const mockImageFiles = [
   'inversed mt fuji.png',
   'Pasted image 20250902131727.png',
   'Pasted image 20250902132222.png',
-  'document.pdf' // 非图片文件，应该被过滤
+  'document.pdf', // 非图片文件，应该被过滤
 ];
 
 const mockExifWithGps = {
@@ -92,7 +92,7 @@ const mockExifWithGps = {
   XResolution: 72,
   YResolution: 72,
   ResolutionUnit: 'inches',
-  Software: 'iOS 17.2.1'
+  Software: 'iOS 17.2.1',
 };
 
 const mockExifWithoutGps = {
@@ -106,7 +106,7 @@ const mockExifWithoutGps = {
   FocalLength: 85,
   ImageWidth: 8192,
   ImageHeight: 5464,
-  Software: 'Canon EOS R5 Firmware 1.3.1'
+  Software: 'Canon EOS R5 Firmware 1.3.1',
 };
 
 const mockBinaryImageData = 'fake-binary-image-data';
@@ -119,7 +119,7 @@ describe('ExifService', () => {
   beforeEach(async () => {
     mockStorageService = createMockStorageService();
     exifService = new ExifService(mockStorageService, 'TestVault');
-    
+
     // Reset exifr mock
     const exifrModule = await import('exifr');
     mockExifr = vi.mocked(exifrModule.default) as unknown as Record<string, Mock>;
@@ -131,7 +131,7 @@ describe('ExifService', () => {
       expect(exifService).toBeInstanceOf(ExifService);
       expect(exifService.getCurrentVault()).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
 
@@ -152,10 +152,10 @@ describe('ExifService', () => {
         'image.webp',
         'image.avif',
         'image.heic',
-        'image.heif'
+        'image.heif',
       ];
 
-      supportedFormats.forEach(filename => {
+      supportedFormats.forEach((filename) => {
         expect(exifService.isExifSupported(filename)).toBe(true);
       });
     });
@@ -166,10 +166,10 @@ describe('ExifService', () => {
         'text.txt',
         'video.mp4',
         'audio.mp3',
-        'archive.zip'
+        'archive.zip',
       ];
 
-      unsupportedFormats.forEach(filename => {
+      unsupportedFormats.forEach((filename) => {
         expect(exifService.isExifSupported(filename)).toBe(false);
       });
     });
@@ -193,13 +193,13 @@ describe('ExifService', () => {
       expect(result).not.toBeNull();
       expect(result!.hasExif).toBe(true);
       expect(result!.filePath).toBe('inversed mt fuji.png');
-      
+
       // 验证 GPS 数据
       expect(result!.gps).toEqual({
         latitude: 35.3606,
         longitude: 138.7274,
         altitude: 776.5,
-        accuracy: undefined
+        accuracy: undefined,
       });
 
       // 验证相机信息
@@ -207,7 +207,7 @@ describe('ExifService', () => {
         make: 'Apple',
         model: 'iPhone 13 Pro',
         lensModel: undefined,
-        software: 'iOS 17.2.1'
+        software: 'iOS 17.2.1',
       });
 
       // 验证拍摄参数
@@ -219,12 +219,12 @@ describe('ExifService', () => {
         flash: undefined,
         whiteBalance: undefined,
         meteringMode: undefined,
-        exposureMode: undefined
+        exposureMode: undefined,
       });
 
       // 验证时间信息
       expect(result!.dateTime?.dateTimeOriginal).toEqual(new Date('2024-01-15T14:30:25'));
-      
+
       // 验证图片信息
       expect(result!.image).toEqual({
         width: 4032,
@@ -233,10 +233,12 @@ describe('ExifService', () => {
         orientation: 1,
         xResolution: 72,
         yResolution: 72,
-        resolutionUnit: 'inches'
+        resolutionUnit: 'inches',
       });
 
-      expect(mockStorageService.readFile).toHaveBeenCalledWith('inversed mt fuji.png', { binary: true });
+      expect(mockStorageService.readFile).toHaveBeenCalledWith('inversed mt fuji.png', {
+        binary: true,
+      });
       expect(mockExifr.parse).toHaveBeenCalled();
     });
 
@@ -315,7 +317,7 @@ describe('ExifService', () => {
 
       // Act - 第一次调用
       const result1 = await exifService.parseExif('cached.jpg');
-      
+
       // Act - 第二次调用（应该使用缓存）
       const result2 = await exifService.parseExif('cached.jpg');
 
@@ -331,7 +333,7 @@ describe('ExifService', () => {
       // Arrange
       const filePaths = ['image1.jpg', 'image2.png', 'image3.jpg'];
       (mockStorageService.readFile as Mock).mockResolvedValue(mockBinaryImageData);
-      
+
       // 由于 mockBinaryImageData 是字符串，不会进入 Buffer 分支
       // 直接从 ArrayBuffer 开始尝试
       mockExifr.parse
@@ -387,7 +389,7 @@ describe('ExifService', () => {
       // Assert
       expect(mockStorageService.listFiles).toHaveBeenCalledWith('Attachments');
       expect(results).toHaveLength(3); // 3个图片文件，排除 PDF
-      expect(results.every(r => r.hasExif)).toBe(true);
+      expect(results.every((r) => r.hasExif)).toBe(true);
     });
 
     it('应该处理空目录', async () => {
@@ -430,7 +432,7 @@ describe('ExifService', () => {
         latitude: 35.3606,
         longitude: 138.7274,
         altitude: 776.5,
-        accuracy: undefined
+        accuracy: undefined,
       });
     });
 
@@ -446,7 +448,7 @@ describe('ExifService', () => {
         make: 'Apple',
         model: 'iPhone 13 Pro',
         lensModel: undefined,
-        software: 'iOS 17.2.1'
+        software: 'iOS 17.2.1',
       });
     });
 
@@ -466,7 +468,7 @@ describe('ExifService', () => {
         flash: undefined,
         whiteBalance: undefined,
         meteringMode: undefined,
-        exposureMode: undefined
+        exposureMode: undefined,
       });
     });
 
@@ -561,7 +563,7 @@ describe('ExifService', () => {
         north: 36,
         south: 35,
         east: 139,
-        west: 138
+        west: 138,
       };
 
       // Act
@@ -574,7 +576,11 @@ describe('ExifService', () => {
 
     it('应该支持结果限制', async () => {
       // Arrange
-      (mockStorageService.listFiles as Mock).mockResolvedValue(['img1.jpg', 'img2.jpg', 'img3.jpg']);
+      (mockStorageService.listFiles as Mock).mockResolvedValue([
+        'img1.jpg',
+        'img2.jpg',
+        'img3.jpg',
+      ]);
       mockExifr.parse.mockResolvedValue(mockExifWithGps);
 
       // Act
@@ -752,7 +758,7 @@ describe('ExifService', () => {
       // Assert
       expect(exifService.getCurrentVault()).toEqual({
         id: 'NewVault',
-        path: '/vaults/NewVault'
+        path: '/vaults/NewVault',
       });
     });
 
@@ -763,7 +769,7 @@ describe('ExifService', () => {
       // Assert
       expect(result).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
   });
@@ -783,7 +789,7 @@ describe('ExifService', () => {
         imagesWithGps: 0,
         imagesWithShootingParams: 0,
         topCameraMakes: [],
-        topCameraModels: []
+        topCameraModels: [],
       });
     });
 

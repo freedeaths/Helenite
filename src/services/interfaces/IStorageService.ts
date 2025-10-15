@@ -5,7 +5,13 @@
  * 包含文件类型识别、MIME 检测等功能
  */
 
-import type { FileInfo, ReadOptions, StorageConfig, ReadResult, FileContent } from '../types/StorageTypes.js';
+import type {
+  FileInfo,
+  ReadOptions,
+  StorageConfig,
+  ReadResult,
+  FileContent,
+} from '../types/StorageTypes.js';
 
 export interface IStorageService {
   /** 服务配置 */
@@ -14,7 +20,7 @@ export interface IStorageService {
   // ===============================
   // 核心文件操作 (只读)
   // ===============================
-  
+
   /**
    * 读取文件内容
    * @param path 文件路径
@@ -98,7 +104,7 @@ export interface IStorageService {
 
   /**
    * 检查是否为轨迹文件 (GPX/KML)
-   * @param path 文件路径  
+   * @param path 文件路径
    * @returns 是否为轨迹文件
    */
   isTrackFile(path: string): boolean;

@@ -19,7 +19,6 @@ import { promisify } from 'util';
 
 const sleep = promisify(setTimeout);
 
-
 // 简单的 StorageService 实现用于集成测试
 class IntegrationTestStorageService implements IStorageService {
   async readFile(path: string): Promise<string | Uint8Array> {
@@ -47,8 +46,8 @@ class IntegrationTestStorageService implements IStorageService {
         size: typeof content === 'string' ? content.length : content.byteLength,
         mimeType: 'text/plain',
         lastModified: new Date(),
-        exists: true
-      }
+        exists: true,
+      },
     };
   }
 
@@ -67,7 +66,7 @@ class IntegrationTestStorageService implements IStorageService {
       size: 0,
       mimeType: 'text/plain',
       lastModified: new Date(),
-      exists: true
+      exists: true,
     };
   }
 
@@ -120,7 +119,6 @@ class IntegrationTestStorageService implements IStorageService {
   }
 }
 
-
 describe('FootprintsService Integration Tests', () => {
   let service: FootprintsService;
   let storageService: IStorageService;
@@ -148,12 +146,11 @@ describe('FootprintsService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -197,12 +194,16 @@ describe('FootprintsService Integration Tests', () => {
 
   describe('Real File Processing', () => {
     it('should parse YAMAP GPX file from Demo vault', async () => {
-      const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`);
+      const response = await fetch(
+        `${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`
+      );
       if (!response.ok) {
         return;
       }
 
-      const result = await service.parseSingleTrack(`${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`);
+      const result = await service.parseSingleTrack(
+        `${serverUrl}/vaults/Demo/Attachments/yamap_2025-04-02_08_48.gpx`
+      );
 
       expect(result.tracks).toHaveLength(1);
       expect(result.locations).toHaveLength(0);
@@ -213,23 +214,23 @@ describe('FootprintsService Integration Tests', () => {
       expect(track.provider).toBe('yamap');
       expect(track.style.color).toBe('#ff6b35'); // YAMAP 颜色
       expect(track.waypoints.length).toBeGreaterThan(0);
-
     }, 15000);
 
     it('should parse Chinese GPX files from Demo vault', async () => {
-      const chineseGpxFiles = [
-        '红叶尚湖.gpx',
-        '金牛道拦马墙到普安镇.gpx'
-      ];
+      const chineseGpxFiles = ['红叶尚湖.gpx', '金牛道拦马墙到普安镇.gpx'];
 
       for (const filename of chineseGpxFiles) {
         try {
-          const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`);
+          const response = await fetch(
+            `${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`
+          );
           if (!response.ok) {
             continue;
           }
 
-          const result = await service.parseSingleTrack(`${serverUrl}/vaults/Demo/Attachments/${filename}`);
+          const result = await service.parseSingleTrack(
+            `${serverUrl}/vaults/Demo/Attachments/${filename}`
+          );
 
           expect(result.tracks).toHaveLength(1);
           expect(result.locations).toHaveLength(0);
@@ -237,7 +238,6 @@ describe('FootprintsService Integration Tests', () => {
           const track = result.tracks[0];
           expect(track.name).toBeDefined();
           expect(track.waypoints.length).toBeGreaterThan(0);
-
         } catch {
           // TODO: 处理错误
         }
@@ -245,19 +245,20 @@ describe('FootprintsService Integration Tests', () => {
     }, 30000);
 
     it('should parse KML files from Demo vault', async () => {
-      const kmlFiles = [
-        '东西佘山含地铁绿道.kml',
-        '金牛道拦马墙到普安镇.kml'
-      ];
+      const kmlFiles = ['东西佘山含地铁绿道.kml', '金牛道拦马墙到普安镇.kml'];
 
       for (const filename of kmlFiles) {
         try {
-          const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`);
+          const response = await fetch(
+            `${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`
+          );
           if (!response.ok) {
             continue;
           }
 
-          const result = await service.parseSingleTrack(`${serverUrl}/vaults/Demo/Attachments/${filename}`);
+          const result = await service.parseSingleTrack(
+            `${serverUrl}/vaults/Demo/Attachments/${filename}`
+          );
 
           expect(result.tracks).toHaveLength(1);
           expect(result.locations).toHaveLength(0);
@@ -265,7 +266,6 @@ describe('FootprintsService Integration Tests', () => {
           const track = result.tracks[0];
           expect(track.name).toBeDefined();
           expect(track.waypoints.length).toBeGreaterThan(0);
-
         } catch {
           // TODO: 处理错误
         }
@@ -278,7 +278,7 @@ describe('FootprintsService Integration Tests', () => {
         '红叶尚湖.gpx',
         '金牛道拦马墙到普安镇.gpx',
         '东西佘山含地铁绿道.kml',
-        '金牛道拦马墙到普安镇.kml'
+        '金牛道拦马墙到普安镇.kml',
       ];
 
       const availableFiles: string[] = [];
@@ -286,7 +286,9 @@ describe('FootprintsService Integration Tests', () => {
       // 检查哪些文件可用
       for (const filename of allFiles) {
         try {
-          const response = await fetch(`${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`);
+          const response = await fetch(
+            `${serverUrl}/vaults/Demo/Attachments/${encodeURIComponent(filename)}`
+          );
           if (response.ok) {
             availableFiles.push(`${serverUrl}/vaults/Demo/Attachments/${filename}`);
           }
@@ -299,7 +301,6 @@ describe('FootprintsService Integration Tests', () => {
         return;
       }
 
-
       const result = await service.parseMultipleTracks(availableFiles);
 
       expect(result.tracks.length).toBeGreaterThan(0);
@@ -307,7 +308,7 @@ describe('FootprintsService Integration Tests', () => {
       expect(result.locations).toHaveLength(0);
 
       // 验证不同厂商的轨迹都被正确处理
-      const providers = [...new Set(result.tracks.map(track => track.provider))];
+      const providers = [...new Set(result.tracks.map((track) => track.provider))];
       expect(providers.length).toBeGreaterThan(0);
 
       // 验证每个轨迹都有基本数据
@@ -365,7 +366,7 @@ describe('FootprintsService Integration Tests', () => {
       global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           ok: true,
-          text: () => Promise.resolve(yamapGpxContent)
+          text: () => Promise.resolve(yamapGpxContent),
         });
       });
 
@@ -402,7 +403,7 @@ describe('FootprintsService Integration Tests', () => {
       global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           ok: true,
-          text: () => Promise.resolve(garminGpxContent)
+          text: () => Promise.resolve(garminGpxContent),
         });
       });
 
@@ -438,7 +439,7 @@ describe('FootprintsService Integration Tests', () => {
       global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           ok: true,
-          text: () => Promise.resolve(twobuluKmlContent)
+          text: () => Promise.resolve(twobuluKmlContent),
         });
       });
 
@@ -469,13 +470,13 @@ describe('FootprintsService Integration Tests', () => {
           clustering: {
             enabled: true,
             maxDistance: 50,
-            minPoints: 2
-          }
+            minPoints: 2,
+          },
         },
         timeFilter: {
           start: new Date('2024-01-01'),
-          end: new Date('2024-12-31')
-        }
+          end: new Date('2024-12-31'),
+        },
       };
 
       const result = await service.aggregateFootprints(config);
@@ -487,8 +488,8 @@ describe('FootprintsService Integration Tests', () => {
           totalTracks: expect.any(Number) as number,
           totalLocations: expect.any(Number) as number,
           processingTime: expect.any(Number) as number,
-          errors: expect.any(Array) as unknown[]
-        }
+          errors: expect.any(Array) as unknown[],
+        },
       });
 
       // 验证处理时间合理
@@ -512,10 +513,7 @@ describe('FootprintsService Integration Tests', () => {
       });
 
       try {
-        const result = await service.parseMultipleTracks([
-          '/test/track1.gpx',
-          '/test/track2.kml'
-        ]);
+        const result = await service.parseMultipleTracks(['/test/track1.gpx', '/test/track2.kml']);
 
         expect(result.tracks).toHaveLength(2);
         expect(result.metadata.errors).toHaveLength(0);
@@ -539,16 +537,14 @@ describe('FootprintsService Integration Tests', () => {
 
   describe('Performance and Stability', () => {
     it('should handle multiple concurrent requests', async () => {
-      const concurrentRequests = Array.from({ length: 5 }, (_, _i) =>
-        service.getCurrentVault()
-      );
+      const concurrentRequests = Array.from({ length: 5 }, (_, _i) => service.getCurrentVault());
 
       const results = await Promise.all(concurrentRequests);
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toEqual({
           id: 'default',
-          path: '/vault'
+          path: '/vault',
         });
       });
     }, 10000);
@@ -561,14 +557,14 @@ describe('FootprintsService Integration Tests', () => {
         id: 'large-track',
         name: 'Large Track',
         waypoints: Array.from({ length: 1000 }, (_, i) => ({
-          latitude: 35.6762 + (i * 0.0001),
-          longitude: 139.6503 + (i * 0.0001),
-          elevation: 100 + (i * 0.1)
+          latitude: 35.6762 + i * 0.0001,
+          longitude: 139.6503 + i * 0.0001,
+          elevation: 100 + i * 0.1,
         })),
         placemarks: [],
         provider: 'yamap' as const,
         style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-        metadata: { source: 'gpx' as const }
+        metadata: { source: 'gpx' as const },
       };
 
       const bounds = service.calculateTracksBounds([largeTrackData]);
@@ -593,24 +589,25 @@ describe('FootprintsService Integration Tests', () => {
       expect(typeof stats).toBe('object');
       expect(finalVault).toMatchObject({
         id: expect.any(String) as string,
-        path: expect.any(String) as string
+        path: expect.any(String) as string,
       });
     }, 10000);
 
     it.skip('should handle network timeout gracefully', async () => {
       // 模拟慢网络响应
       const originalFetch = global.fetch;
-      const mockFetch = vi.fn().mockImplementation(() =>
-        new Promise((resolve) => {
-          setTimeout(() => {
-            resolve({
-              ok: false,
-              status: 408,
-              statusText: 'Request Timeout',
-              text: () => Promise.resolve('')
-            });
-          }, 100); // 减少延迟时间，避免测试太慢
-        })
+      const mockFetch = vi.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({
+                ok: false,
+                status: 408,
+                statusText: 'Request Timeout',
+                text: () => Promise.resolve(''),
+              });
+            }, 100); // 减少延迟时间，避免测试太慢
+          })
       );
 
       // 确保 mock 替换成功
@@ -646,13 +643,13 @@ describe('FootprintsService Integration Tests', () => {
           waypoints: [
             { latitude: 35.6762, longitude: 139.6503 }, // 东京站
             { latitude: 35.6896, longitude: 139.6917 }, // 东京天空树
-            { latitude: 35.6586, longitude: 139.7454 }  // 东京塔
+            { latitude: 35.6586, longitude: 139.7454 }, // 东京塔
           ],
           placemarks: [],
           provider: 'yamap' as const,
           style: { color: '#ff6b35', weight: 3, opacity: 0.8 },
-          metadata: { source: 'gpx' as const }
-        }
+          metadata: { source: 'gpx' as const },
+        },
       ];
 
       const bounds = service.calculateTracksBounds(tokyoTracks);
@@ -675,10 +672,10 @@ describe('FootprintsService Integration Tests', () => {
       const merged = service.mergeBounds(tokyoBounds, osakaBounds);
 
       expect(merged).toEqual({
-        north: 35.7,  // 东京更北
-        south: 34.6,  // 大阪更南
-        east: 139.8,  // 东京更东
-        west: 135.4   // 大阪更西
+        north: 35.7, // 东京更北
+        south: 34.6, // 大阪更南
+        east: 139.8, // 东京更东
+        west: 135.4, // 大阪更西
       });
     });
   });
@@ -699,7 +696,10 @@ describe('FootprintsService Integration Tests', () => {
         }
         return Promise.resolve({
           ok: true,
-          text: () => Promise.resolve(`<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Recovered</name><trkseg><trkpt lat="35.6762" lon="139.6503"><ele>10</ele></trkpt></trkseg></trk></gpx>`)
+          text: () =>
+            Promise.resolve(
+              `<?xml version="1.0"?><gpx creator="YAMAP"><trk><name>Recovered</name><trkseg><trkpt lat="35.6762" lon="139.6503"><ele>10</ele></trkpt></trkseg></trk></gpx>`
+            ),
         });
       });
 
@@ -736,7 +736,7 @@ describe('FootprintsService Integration Tests', () => {
       const originalFetch = global.fetch;
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
-        text: () => Promise.resolve(malformedXml)
+        text: () => Promise.resolve(malformedXml),
       });
 
       try {

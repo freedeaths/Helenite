@@ -11,13 +11,9 @@ import type {
   FileInfo,
   ReadOptions,
   StorageConfig,
-  ReadResult
+  ReadResult,
 } from '../types/StorageTypes.js';
-import {
-  StorageError,
-  StorageErrorType,
-  StorageType
-} from '../types/StorageTypes.js';
+import { StorageError, StorageErrorType, StorageType } from '../types/StorageTypes.js';
 
 export class StorageService implements IStorageService {
   private _config: StorageConfig;
@@ -29,12 +25,14 @@ export class StorageService implements IStorageService {
     this._config = {
       timeout: 30000,
       cache: true,
-      ...config
+      ...config,
     };
 
     // 检测存储类型
     if (config.basePath.startsWith('http://') || config.basePath.startsWith('https://')) {
-      this._storageType = config.basePath.includes('cdn') ? StorageType.CDN : StorageType.REMOTE_HTTP;
+      this._storageType = config.basePath.includes('cdn')
+        ? StorageType.CDN
+        : StorageType.REMOTE_HTTP;
     } else {
       this._storageType = StorageType.LOCAL_STATIC;
     }
@@ -59,7 +57,8 @@ export class StorageService implements IStorageService {
     // 检查缓存
     if (options.cache !== false && this._config.cache) {
       const cached = this._cache.get(normalizedPath);
-      if (cached && Date.now() - cached.timestamp < 60000) { // 1分钟缓存
+      if (cached && Date.now() - cached.timestamp < 60000) {
+        // 1分钟缓存
         return cached.data;
       }
     }
@@ -77,7 +76,7 @@ export class StorageService implements IStorageService {
       if (this._config.cache && options.cache !== false) {
         this._cache.set(normalizedPath, {
           data: content,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
@@ -99,12 +98,12 @@ export class StorageService implements IStorageService {
 
     const [content, info] = await Promise.all([
       this.readFile(path, options),
-      this.getFileInfo(path)
+      this.getFileInfo(path),
     ]);
 
     return {
       content,
-      info
+      info,
     };
   }
 
@@ -130,14 +129,18 @@ export class StorageService implements IStorageService {
       const response = await fetch(url, {
         method: 'HEAD',
         headers: this._config.headers,
-        signal: AbortSignal.timeout(this._config.timeout!)
+        signal: AbortSignal.timeout(this._config.timeout!),
       });
 
       if (!response.ok) {
         if (response.status === 404) {
           throw new StorageError(`File not found: ${path}`, StorageErrorType.FILE_NOT_FOUND, path);
         }
-        throw new StorageError(`HTTP ${response.status}: ${response.statusText}`, StorageErrorType.NETWORK_ERROR, path);
+        throw new StorageError(
+          `HTTP ${response.status}: ${response.statusText}`,
+          StorageErrorType.NETWORK_ERROR,
+          path
+        );
       }
 
       return {
@@ -146,7 +149,7 @@ export class StorageService implements IStorageService {
         mimeType: response.headers.get('content-type') || this.getMimeType(path),
         lastModified: new Date(response.headers.get('last-modified') || Date.now()),
         exists: true,
-        etag: response.headers.get('etag') || undefined
+        etag: response.headers.get('etag') || undefined,
       };
     } catch (error) {
       if (error instanceof StorageError) {
@@ -162,7 +165,10 @@ export class StorageService implements IStorageService {
 
   async listFiles(): Promise<string[]> {
     if (this._storageType !== StorageType.LOCAL_STATIC) {
-      throw new StorageError('Directory listing only supported for local static storage', StorageErrorType.PERMISSION_DENIED);
+      throw new StorageError(
+        'Directory listing only supported for local static storage',
+        StorageErrorType.PERMISSION_DENIED
+      );
     }
 
     // 浏览器环境不支持目录列举，返回空数组
@@ -179,7 +185,7 @@ export class StorageService implements IStorageService {
     const normalized = path.replace(/^\/+/, '');
 
     // 处理 . 和 ..
-    const parts = normalized.split('/').filter(part => part && part !== '.');
+    const parts = normalized.split('/').filter((part) => part && part !== '.');
     const result: string[] = [];
 
     for (const part of parts) {
@@ -198,7 +204,10 @@ export class StorageService implements IStorageService {
     const basePath = this._config.basePath.replace(/\/+$/, ''); // 移除尾部斜杠
 
     // URL编码路径中的空格等特殊字符
-    const encodedPath = normalizedPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const encodedPath = normalizedPath
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
 
     return `${basePath}/${encodedPath}`;
   }
@@ -226,28 +235,28 @@ export class StorageService implements IStorageService {
 
     const mimeTypes: Record<string, string> = {
       // 文档
-      'md': 'text/markdown',
-      'txt': 'text/plain',
-      'json': 'application/json',
-      'html': 'text/html',
-      'css': 'text/css',
-      'js': 'application/javascript',
+      md: 'text/markdown',
+      txt: 'text/plain',
+      json: 'application/json',
+      html: 'text/html',
+      css: 'text/css',
+      js: 'application/javascript',
 
       // 图片
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'gif': 'image/gif',
-      'webp': 'image/webp',
-      'svg': 'image/svg+xml',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      gif: 'image/gif',
+      webp: 'image/webp',
+      svg: 'image/svg+xml',
 
       // 轨迹文件
-      'gpx': 'application/gpx+xml',
-      'kml': 'application/vnd.google-earth.kml+xml',
+      gpx: 'application/gpx+xml',
+      kml: 'application/vnd.google-earth.kml+xml',
 
       // 其他
-      'pdf': 'application/pdf',
-      'zip': 'application/zip'
+      pdf: 'application/pdf',
+      zip: 'application/zip',
     };
 
     return mimeTypes[ext || ''] || 'application/octet-stream';
@@ -282,10 +291,7 @@ export class StorageService implements IStorageService {
   }
 
   async preloadFiles(paths: string[]): Promise<void> {
-    const promises = paths.map(path =>
-      this.readFile(path).catch(() => {
-      })
-    );
+    const promises = paths.map((path) => this.readFile(path).catch(() => {}));
 
     await Promise.allSettled(promises);
   }
@@ -300,7 +306,10 @@ export class StorageService implements IStorageService {
     // 测试连接
     const isHealthy = await this.healthCheck();
     if (!isHealthy) {
-      throw new StorageError('Failed to initialize storage service', StorageErrorType.NETWORK_ERROR);
+      throw new StorageError(
+        'Failed to initialize storage service',
+        StorageErrorType.NETWORK_ERROR
+      );
     }
 
     this._initialized = true;
@@ -316,7 +325,7 @@ export class StorageService implements IStorageService {
       const testUrl = this.resolvePath('');
       const response = await fetch(testUrl, {
         method: 'HEAD',
-        signal: AbortSignal.timeout(5000) // 5秒超时
+        signal: AbortSignal.timeout(5000), // 5秒超时
       });
       return response.ok || response.status === 404; // 404 也算正常，说明服务可达
     } catch {
@@ -334,7 +343,6 @@ export class StorageService implements IStorageService {
     }
   }
 
-
   private async _readRemoteFile(path: string, options: ReadOptions): Promise<FileContent> {
     const url = this.resolvePath(path);
 
@@ -342,14 +350,18 @@ export class StorageService implements IStorageService {
     const response = await fetch(url, {
       cache: 'no-cache',
       headers: this._config.headers,
-      signal: AbortSignal.timeout(this._config.timeout!)
+      signal: AbortSignal.timeout(this._config.timeout!),
     });
 
     if (!response.ok) {
       if (response.status === 404) {
         throw new StorageError(`File not found: ${path}`, StorageErrorType.FILE_NOT_FOUND, path);
       }
-      throw new StorageError(`HTTP ${response.status}: ${response.statusText}`, StorageErrorType.NETWORK_ERROR, path);
+      throw new StorageError(
+        `HTTP ${response.status}: ${response.statusText}`,
+        StorageErrorType.NETWORK_ERROR,
+        path
+      );
     }
 
     if (options.binary) {

@@ -3,13 +3,12 @@
  * 基于新的 VaultAPI 的统一状态管理
  */
 import { create } from 'zustand';
-import type {
-  VaultState,
-  UIState,
-  RouteState
-} from '../types/vaultTypes.js';
+import type { VaultState, UIState, RouteState } from '../types/vaultTypes.js';
 import type { IVaultService } from '../services/interfaces/IVaultService.js';
-import { navigateToFile as routeNavigateToFile, navigateToGlobalGraph as routeNavigateToGlobalGraph } from '../hooks/routeUtils';
+import {
+  navigateToFile as routeNavigateToFile,
+  navigateToGlobalGraph as routeNavigateToGlobalGraph,
+} from '../hooks/routeUtils';
 import { getVaultConfig } from '../config/vaultConfig.js';
 
 // 组合的应用状态
@@ -88,12 +87,7 @@ export const useVaultStore = create<AppState>((set, get) => ({
 
     try {
       // 并行加载基础数据
-      await Promise.all([
-        get().loadVaultInfo(),
-        get().loadFileTree(),
-        get().loadAllTags()
-      ]);
-
+      await Promise.all([get().loadVaultInfo(), get().loadFileTree(), get().loadAllTags()]);
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '初始化失败' });
     } finally {
@@ -150,16 +144,16 @@ export const useVaultStore = create<AppState>((set, get) => ({
     try {
       const [content, info] = await Promise.all([
         vaultService.getDocumentContent(filePath),
-        vaultService.getDocumentInfo(filePath)
+        vaultService.getDocumentInfo(filePath),
       ]);
 
       set({
         currentDocument: {
           path: filePath,
           content,
-          metadata: info
+          metadata: info,
         },
-        activeFile: filePath
+        activeFile: filePath,
       });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '加载文档失败' });
@@ -252,11 +246,11 @@ export const useVaultStore = create<AppState>((set, get) => ({
 
   // UI 操作
   toggleLeftSidebar: () => {
-    set(state => ({ leftSidebarOpen: !state.leftSidebarOpen }));
+    set((state) => ({ leftSidebarOpen: !state.leftSidebarOpen }));
   },
 
   toggleRightSidebar: () => {
-    set(state => ({ rightSidebarOpen: !state.rightSidebarOpen }));
+    set((state) => ({ rightSidebarOpen: !state.rightSidebarOpen }));
   },
 
   setLeftSidebarWidth: (width: number) => {
@@ -307,5 +301,5 @@ export const useVaultStore = create<AppState>((set, get) => ({
 
   setLoading: (loading: boolean) => {
     set({ loading });
-  }
+  },
 }));

@@ -25,19 +25,19 @@ export const VAULT_CONFIG = {
 
   // 需要过滤的文件夹列表（不显示在文件树中，也不参与搜索）
   excludedFolders: [
-    'Attachments',     // 附件文件夹（用户请求）
-    '.obsidian',       // Obsidian 配置文件夹
-    '.git',           // Git 仓库文件夹
-    '.vscode',        // VSCode 配置文件夹
-    'node_modules'    // Node.js 依赖
+    'Attachments', // 附件文件夹（用户请求）
+    '.obsidian', // Obsidian 配置文件夹
+    '.git', // Git 仓库文件夹
+    '.vscode', // VSCode 配置文件夹
+    'node_modules', // Node.js 依赖
   ],
 
   // 需要过滤的文件扩展名
   excludedExtensions: [
-    '.DS_Store',      // macOS 系统文件
-    '.gitignore',     // Git 忽略文件
-    'desktop.ini',    // Windows 桌面配置
-    'Thumbs.db'       // Windows 缩略图文件
+    '.DS_Store', // macOS 系统文件
+    '.gitignore', // Git 忽略文件
+    'desktop.ini', // Windows 桌面配置
+    'Thumbs.db', // Windows 缩略图文件
   ],
 
   // 功能开关
@@ -61,7 +61,7 @@ export const VAULT_CONFIG = {
   search: {
     debounceMs: 300,
     maxResults: 100,
-    maxMatchesPerFile: 5
+    maxMatchesPerFile: 5,
   },
 
   // UI 配置
@@ -69,7 +69,7 @@ export const VAULT_CONFIG = {
     defaultTheme: 'light' as const,
     enableDevTools: import.meta.env.DEV,
     sidebarDefaultWidth: 320,
-  }
+  },
 } as const;
 
 export type VaultConfig = typeof VAULT_CONFIG;
@@ -112,7 +112,7 @@ export const getVaultConfig = (): VaultConfigInterface => {
     indexFile: VAULT_CONFIG.indexFile,
     excludedFolders: [...VAULT_CONFIG.excludedFolders],
     excludedExtensions: [...VAULT_CONFIG.excludedExtensions],
-    search: VAULT_CONFIG.search
+    search: VAULT_CONFIG.search,
   };
 };
 
@@ -127,15 +127,16 @@ export const isFolderExcluded = (folderName: string): boolean => {
  * 检查文件是否应该被过滤
  */
 export const isFileExcluded = (fileName: string): boolean => {
-  return VAULT_CONFIG.excludedExtensions.some(ext => fileName.endsWith(ext));
+  return VAULT_CONFIG.excludedExtensions.some((ext) => fileName.endsWith(ext));
 };
 
 /**
  * 检查路径是否在被排除的文件夹中
  */
 export const isPathInExcludedFolder = (filePath: string): boolean => {
-  return VAULT_CONFIG.excludedFolders.some(excludedFolder =>
-    filePath.includes(`/${excludedFolder}/`) || filePath.startsWith(`${excludedFolder}/`)
+  return VAULT_CONFIG.excludedFolders.some(
+    (excludedFolder) =>
+      filePath.includes(`/${excludedFolder}/`) || filePath.startsWith(`${excludedFolder}/`)
   );
 };
 
@@ -163,7 +164,7 @@ export function getTagsUrl(): string {
  * 当前可用：Demo, Publish
  */
 export const AVAILABLE_VAULTS = ['Demo', 'Publish'] as const;
-export type VaultId = typeof AVAILABLE_VAULTS[number];
+export type VaultId = (typeof AVAILABLE_VAULTS)[number];
 
 /**
  * Vault 配置接口 - 统一的 vault 操作接口

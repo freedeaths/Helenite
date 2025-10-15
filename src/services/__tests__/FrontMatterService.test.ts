@@ -1,6 +1,6 @@
 /**
  * FrontMatterService 单元测试
- * 
+ *
  * 测试 FrontMatterService 的核心功能，包括：
  * - UUID 管理（评论功能依赖）
  * - Front Matter 字段查询
@@ -14,7 +14,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { FrontMatterService } from '../FrontMatterService.js';
-import type { IMetadataService, MetadataArray, FrontMatter } from '../interfaces/IMetadataService.js';
+import type {
+  IMetadataService,
+  MetadataArray,
+  FrontMatter,
+} from '../interfaces/IMetadataService.js';
 
 // ===============================
 // Mock 依赖服务
@@ -38,7 +42,7 @@ const createMockMetadataService = (): IMetadataService => ({
   refreshCache: vi.fn(),
   getCacheStats: vi.fn(),
   switchVault: vi.fn(),
-  getCurrentVault: vi.fn()
+  getCurrentVault: vi.fn(),
 });
 
 // ===============================
@@ -53,7 +57,7 @@ const mockFrontMatter1: FrontMatter = {
   author: 'John Doe',
   description: 'A test document about React development',
   cssclass: 'article',
-  customField: 'custom-value'
+  customField: 'custom-value',
 };
 
 const mockFrontMatter2: FrontMatter = {
@@ -63,7 +67,7 @@ const mockFrontMatter2: FrontMatter = {
   modified: '2024-02-10T10:00:00Z',
   author: 'Jane Smith',
   description: 'Guide to Vue.js development',
-  cssclass: 'guide'
+  cssclass: 'guide',
 };
 
 const mockFrontMatter3: FrontMatter = {
@@ -71,7 +75,7 @@ const mockFrontMatter3: FrontMatter = {
   publish: true,
   created: '2024-03-01T00:00:00Z',
   author: 'John Doe',
-  description: 'TypeScript best practices'
+  description: 'TypeScript best practices',
 };
 
 const mockMetadata: MetadataArray = [
@@ -79,26 +83,26 @@ const mockMetadata: MetadataArray = [
     fileName: 'react-guide',
     relativePath: 'guides/react-guide.md',
     tags: ['react', 'frontend'],
-    frontmatter: mockFrontMatter1
+    frontmatter: mockFrontMatter1,
   },
   {
     fileName: 'vue-basics',
     relativePath: 'tutorials/vue-basics.md',
     tags: ['vue', 'frontend'],
-    frontmatter: mockFrontMatter2
+    frontmatter: mockFrontMatter2,
   },
   {
     fileName: 'typescript-tips',
     relativePath: 'docs/typescript-tips.md',
     tags: ['typescript', 'programming'],
-    frontmatter: mockFrontMatter3
+    frontmatter: mockFrontMatter3,
   },
   {
     fileName: 'no-frontmatter',
     relativePath: 'misc/no-frontmatter.md',
-    tags: []
+    tags: [],
     // No frontmatter
-  }
+  },
 ];
 
 describe('FrontMatterService', () => {
@@ -108,14 +112,14 @@ describe('FrontMatterService', () => {
   beforeEach(() => {
     mockMetadataService = createMockMetadataService();
     frontMatterService = new FrontMatterService(mockMetadataService, 'TestVault');
-    
+
     // 设置 mock 默认返回值
     (mockMetadataService.getMetadata as Mock).mockResolvedValue(mockMetadata);
     (mockMetadataService.getFileMetadata as Mock).mockImplementation((filePath: string) => {
-      const fileData = mockMetadata.find(f => f.relativePath === filePath);
+      const fileData = mockMetadata.find((f) => f.relativePath === filePath);
       return Promise.resolve(fileData || null);
     });
-    
+
     vi.clearAllMocks();
   });
 
@@ -124,7 +128,7 @@ describe('FrontMatterService', () => {
       expect(frontMatterService).toBeInstanceOf(FrontMatterService);
       expect(frontMatterService.getCurrentVault()).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
 
@@ -137,18 +141,18 @@ describe('FrontMatterService', () => {
   describe('核心数据获取', () => {
     it('应该能够获取文件的 Front Matter', async () => {
       const frontMatter = await frontMatterService.getFrontMatter('guides/react-guide.md');
-      
+
       expect(frontMatter).toEqual(mockFrontMatter1);
       expect(mockMetadataService.getFileMetadata).toHaveBeenCalledWith('guides/react-guide.md');
     });
 
     it('应该能够获取所有文件的 Front Matter', async () => {
       const allFrontMatter = await frontMatterService.getAllFrontMatter();
-      
+
       expect(allFrontMatter).toHaveLength(3); // 只有3个文件有frontmatter
       expect(allFrontMatter[0]).toEqual({
         filePath: 'guides/react-guide.md',
-        frontMatter: mockFrontMatter1
+        frontMatter: mockFrontMatter1,
       });
     });
 
@@ -181,17 +185,17 @@ describe('FrontMatterService', () => {
 
     it('应该能够获取所有 UUID 映射', async () => {
       const allUuids = await frontMatterService.getAllUuids();
-      
+
       expect(allUuids).toEqual({
         'uuid-001': 'guides/react-guide.md',
-        'uuid-002': 'tutorials/vue-basics.md'
+        'uuid-002': 'tutorials/vue-basics.md',
       });
     });
 
     it('应该能够检查 UUID 是否存在', async () => {
       const exists1 = await frontMatterService.hasUuid('uuid-001');
       const exists2 = await frontMatterService.hasUuid('non-existent');
-      
+
       expect(exists1).toBe(true);
       expect(exists2).toBe(false);
     });
@@ -201,14 +205,14 @@ describe('FrontMatterService', () => {
     it('应该能够检查文件是否已发布', async () => {
       const published1 = await frontMatterService.isPublished('guides/react-guide.md');
       const published2 = await frontMatterService.isPublished('tutorials/vue-basics.md');
-      
+
       expect(published1).toBe(true);
       expect(published2).toBe(false);
     });
 
     it('应该能够获取所有已发布的文件', async () => {
       const publishedFiles = await frontMatterService.getPublishedFiles();
-      
+
       expect(publishedFiles).toContain('guides/react-guide.md');
       expect(publishedFiles).toContain('docs/typescript-tips.md');
       expect(publishedFiles).not.toContain('tutorials/vue-basics.md');
@@ -216,7 +220,7 @@ describe('FrontMatterService', () => {
 
     it('应该能够获取所有未发布的文件', async () => {
       const unpublishedFiles = await frontMatterService.getUnpublishedFiles();
-      
+
       expect(unpublishedFiles).toContain('tutorials/vue-basics.md');
       expect(unpublishedFiles).not.toContain('guides/react-guide.md');
     });
@@ -230,7 +234,7 @@ describe('FrontMatterService', () => {
 
     it('应该能够根据作者查找文件', async () => {
       const johnFiles = await frontMatterService.getFilesByAuthor('John Doe');
-      
+
       expect(johnFiles).toContain('guides/react-guide.md');
       expect(johnFiles).toContain('docs/typescript-tips.md');
       expect(johnFiles).not.toContain('tutorials/vue-basics.md');
@@ -238,7 +242,7 @@ describe('FrontMatterService', () => {
 
     it('应该能够获取所有作者列表', async () => {
       const authors = await frontMatterService.getAllAuthors();
-      
+
       expect(authors).toEqual(['Jane Smith', 'John Doe']); // 按字母排序
     });
   });
@@ -274,9 +278,9 @@ describe('FrontMatterService', () => {
     it('应该能够按发布状态过滤文件', async () => {
       const publishedFiles = await frontMatterService.queryFiles({
         includePublished: true,
-        includeUnpublished: false
+        includeUnpublished: false,
       });
-      
+
       expect(publishedFiles).toContain('guides/react-guide.md');
       expect(publishedFiles).toContain('docs/typescript-tips.md');
       expect(publishedFiles).not.toContain('tutorials/vue-basics.md');
@@ -284,9 +288,9 @@ describe('FrontMatterService', () => {
 
     it('应该能够按作者过滤文件', async () => {
       const johnFiles = await frontMatterService.queryFiles({
-        author: 'John Doe'
+        author: 'John Doe',
       });
-      
+
       expect(johnFiles).toContain('guides/react-guide.md');
       expect(johnFiles).toContain('docs/typescript-tips.md');
     });
@@ -296,26 +300,29 @@ describe('FrontMatterService', () => {
         dateRange: {
           field: 'created',
           start: new Date('2024-01-15T00:00:00Z'),
-          end: new Date('2024-02-15T00:00:00Z')
-        }
+          end: new Date('2024-02-15T00:00:00Z'),
+        },
       });
-      
+
       expect(files).toContain('tutorials/vue-basics.md');
       expect(files).not.toContain('guides/react-guide.md');
     });
 
     it('应该能够搜索 Front Matter 字段', async () => {
       const results = await frontMatterService.searchFrontMatter('React');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].filePath).toBe('guides/react-guide.md');
       expect(results[0].matches).toEqual([
-        { field: 'description', value: 'A test document about React development' }
+        { field: 'description', value: 'A test document about React development' },
       ] as Array<{ field: string; value: unknown }>);
     });
 
     it('应该能够获取自定义字段', async () => {
-      const customValue = await frontMatterService.getCustomField('guides/react-guide.md', 'customField');
+      const customValue = await frontMatterService.getCustomField(
+        'guides/react-guide.md',
+        'customField'
+      );
       expect(customValue).toBe('custom-value');
     });
 
@@ -333,28 +340,28 @@ describe('FrontMatterService', () => {
   describe('统计和分析', () => {
     it('应该能够获取统计信息', async () => {
       const stats = await frontMatterService.getStatistics();
-      
+
       expect(stats.totalFiles).toBe(4);
       expect(stats.filesWithUuid).toBe(2);
       expect(stats.publishedFiles).toBe(2);
       expect(stats.unpublishedFiles).toBe(1); // vue-basics (no-frontmatter doesn't have frontmatter so not counted)
       expect(stats.topAuthors).toEqual([
         { author: 'John Doe', count: 2 },
-        { author: 'Jane Smith', count: 1 }
+        { author: 'Jane Smith', count: 1 },
       ]);
     });
 
     it('应该能够分析 Front Matter 使用模式', async () => {
       const patterns = await frontMatterService.analyzeFrontMatterPatterns();
-      
+
       expect(patterns.commonFields).toEqual(
         expect.arrayContaining([
           { field: 'publish', usage: 3 },
           { field: 'created', usage: 3 },
-          { field: 'author', usage: 3 }
+          { field: 'author', usage: 3 },
         ])
       );
-      
+
       // Since all standard fields are used in our test data, no fields are recommended
       expect(Array.isArray(patterns.recommendedFields)).toBe(true);
     });
@@ -363,27 +370,29 @@ describe('FrontMatterService', () => {
   describe('错误处理', () => {
     it('应该处理 MetadataService 错误', async () => {
       (mockMetadataService.getMetadata as Mock).mockRejectedValue(new Error('Metadata error'));
-      
+
       const frontMatter = await frontMatterService.getAllFrontMatter();
       expect(frontMatter).toEqual([]);
     });
 
     it('应该处理文件元数据获取错误', async () => {
       (mockMetadataService.getFileMetadata as Mock).mockRejectedValue(new Error('File error'));
-      
+
       const frontMatter = await frontMatterService.getFrontMatter('test.md');
       expect(frontMatter).toBeNull();
     });
 
     it('应该处理无效日期格式', async () => {
-      const invalidDateMetadata = [{
-        ...mockMetadata[0],
-        frontmatter: { ...mockFrontMatter1, created: 'invalid-date' }
-      }];
-      
+      const invalidDateMetadata = [
+        {
+          ...mockMetadata[0],
+          frontmatter: { ...mockFrontMatter1, created: 'invalid-date' },
+        },
+      ];
+
       (mockMetadataService.getMetadata as Mock).mockResolvedValue(invalidDateMetadata);
       (mockMetadataService.getFileMetadata as Mock).mockResolvedValue(invalidDateMetadata[0]);
-      
+
       const createdDate = await frontMatterService.getCreatedDate('guides/react-guide.md');
       expect(createdDate).toBeNull();
     });
@@ -393,17 +402,17 @@ describe('FrontMatterService', () => {
     it('应该支持刷新缓存', async () => {
       // 先获取一次数据建立缓存
       await frontMatterService.getFrontMatter('guides/react-guide.md');
-      
+
       // 刷新缓存
       await frontMatterService.refreshCache();
-      
+
       // 验证缓存已清除
       expect(mockMetadataService.refreshCache).toHaveBeenCalled();
     });
 
     it('应该返回缓存统计信息', async () => {
       const stats = await frontMatterService.getCacheStats();
-      
+
       expect(stats.vaultId).toBe('TestVault');
       expect(typeof stats.frontMatterCacheSize).toBe('number');
     });
@@ -412,20 +421,20 @@ describe('FrontMatterService', () => {
   describe('Vault 管理', () => {
     it('应该支持切换 vault', () => {
       frontMatterService.switchVault('NewVault');
-      
+
       expect(frontMatterService.getCurrentVault()).toEqual({
         id: 'NewVault',
-        path: '/vaults/NewVault'
+        path: '/vaults/NewVault',
       });
       expect(mockMetadataService.switchVault).toHaveBeenCalledWith('NewVault');
     });
 
     it('应该返回当前 vault 信息', () => {
       const vaultInfo = frontMatterService.getCurrentVault();
-      
+
       expect(vaultInfo).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
   });
@@ -433,21 +442,21 @@ describe('FrontMatterService', () => {
   describe('边界条件', () => {
     it('应该处理空的元数据', async () => {
       (mockMetadataService.getMetadata as Mock).mockResolvedValue([]);
-      
+
       const allFrontMatter = await frontMatterService.getAllFrontMatter();
       expect(allFrontMatter).toEqual([]);
     });
 
     it('应该处理 null 元数据', async () => {
       (mockMetadataService.getMetadata as Mock).mockResolvedValue(null);
-      
+
       const allFrontMatter = await frontMatterService.getAllFrontMatter();
       expect(allFrontMatter).toEqual([]);
     });
 
     it('应该处理没有匹配的查询', async () => {
       const results = await frontMatterService.queryFiles({
-        author: 'Non-existent Author'
+        author: 'Non-existent Author',
       });
       expect(results).toEqual([]);
     });

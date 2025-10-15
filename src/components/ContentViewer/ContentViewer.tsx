@@ -32,9 +32,10 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
     }
 
     // Load appropriate theme based on current theme
-    const themeUrl = theme === 'dark'
-      ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
-      : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+    const themeUrl =
+      theme === 'dark'
+        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
 
     const link = document.createElement('link');
     link.id = 'highlight-theme';
@@ -75,11 +76,13 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
         const documentContent = await vaultService.getDocumentContent(filePath);
 
         // 创建 MarkdownProcessor 实例
-        const { MarkdownProcessor } = await import('../../processors/markdown/MarkdownProcessor.js');
+        const { MarkdownProcessor } = await import(
+          '../../processors/markdown/MarkdownProcessor.js'
+        );
         const processor = new MarkdownProcessor(vaultService, {
           enableObsidianLinks: true,
           baseUrl: VAULT_PATH,
-          currentFilePath: filePath
+          currentFilePath: filePath,
         });
 
         const processed = await processor.processContent(documentContent, filePath);
@@ -94,7 +97,9 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
 
         // 设置标签和标题
         setFileTags(documentInfo.tags || []);
-        setDocumentTitle(documentInfo.title || filePath.split('/').pop()?.replace('.md', '') || 'Untitled');
+        setDocumentTitle(
+          documentInfo.title || filePath.split('/').pop()?.replace('.md', '') || 'Untitled'
+        );
 
         // 更新 store 中的 currentDocument
         setCurrentDocument({
@@ -103,10 +108,9 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
           metadata: {
             ...processed.metadata,
             tags: documentInfo.tags || [],
-            title: documentInfo.title
-          }
+            title: documentInfo.title,
+          },
         });
-
       } catch (err: unknown) {
         // console.error('NewContentViewer: 加载失败', err);
 
@@ -130,10 +134,10 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
       <div className="h-full flex items-center justify-center bg-[var(--background-primary)]">
         <div className="text-center text-[var(--text-muted)] max-w-md mx-auto px-6">
           <div className="text-6xl mb-4">📄</div>
-          <h2 className="text-xl font-semibold mb-4 text-[var(--text-normal)]">选择一个文件开始浏览</h2>
-          <p className="text-sm leading-6">
-            🚀 全新重写的 NewContentViewer 组件
-          </p>
+          <h2 className="text-xl font-semibold mb-4 text-[var(--text-normal)]">
+            选择一个文件开始浏览
+          </h2>
+          <p className="text-sm leading-6">🚀 全新重写的 NewContentViewer 组件</p>
         </div>
       </div>
     );
@@ -141,7 +145,6 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
 
   return (
     <div className="h-full bg-[var(--background-primary)]">
-
       {/* Content - 复制老版本的结构和样式 */}
       <div className="flex-1 overflow-auto">
         {loading ? (
@@ -159,7 +162,9 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
                   style={{ minHeight: '300px' }}
                 />
                 <p className="text-lg md:text-xl text-[var(--text-muted)]">
-                  <code className="inline-block px-3 py-1.5 bg-[var(--background-secondary)] rounded text-sm md:text-base break-all">{filePath} 不存在</code>
+                  <code className="inline-block px-3 py-1.5 bg-[var(--background-secondary)] rounded text-sm md:text-base break-all">
+                    {filePath} 不存在
+                  </code>
                 </p>
               </div>
             ) : (
@@ -180,22 +185,14 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
               <div className="frontmatter-tags">
                 <span className="tags-label">Tags:</span>
                 {fileTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="tag frontmatter-tag"
-                    data-tag={tag.replace('#', '')}
-                  >
+                  <span key={index} className="tag frontmatter-tag" data-tag={tag.replace('#', '')}>
                     {tag.startsWith('#') ? tag : `#${tag}`}
                   </span>
                 ))}
               </div>
             )}
 
-            <div
-              ref={contentRef}
-              className="markdown-viewer"
-              data-testid="markdown-content"
-            >
+            <div ref={contentRef} className="markdown-viewer" data-testid="markdown-content">
               {reactContent}
             </div>
           </div>
@@ -205,7 +202,6 @@ export const ContentViewer = React.memo(function ContentViewer({ filePath }: Con
           </div>
         )}
       </div>
-
     </div>
   );
 });

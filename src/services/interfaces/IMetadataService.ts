@@ -98,7 +98,6 @@ export interface FrontMatter {
   [key: string]: string | number | boolean | string[] | undefined;
 }
 
-
 // ===============================
 // MetadataService 接口
 // ===============================
@@ -144,7 +143,6 @@ export interface IMetadataService {
    * 获取所有唯一标签
    */
   getAllTags(): Promise<string[]>;
-
 
   /**
    * 获取文件的出链

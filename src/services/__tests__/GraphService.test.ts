@@ -26,7 +26,7 @@ const createMockMetadataService = (): IMetadataService => ({
   refreshCache: vi.fn(),
   getCacheStats: vi.fn(),
   switchVault: vi.fn(),
-  getCurrentVault: vi.fn()
+  getCurrentVault: vi.fn(),
 });
 
 // 测试数据
@@ -37,50 +37,38 @@ const mockMetadata: MetadataArray = [
     tags: ['welcome', 'intro'],
     headings: [
       { heading: 'Welcome to Helenite', level: 1 },
-      { heading: 'Getting Started', level: 2 }
+      { heading: 'Getting Started', level: 2 },
     ],
-    links: [
-      { link: 'Abilities', relativePath: 'FolderA/SubFolder/Abilities.md' }
-    ],
-    backlinks: []
+    links: [{ link: 'Abilities', relativePath: 'FolderA/SubFolder/Abilities.md' }],
+    backlinks: [],
   },
   {
     fileName: 'Abilities',
     relativePath: 'FolderA/SubFolder/Abilities.md',
     tags: ['features', 'abilities'],
-    headings: [
-      { heading: 'System Abilities', level: 1 }
-    ],
-    links: [
-      { link: 'Welcome', relativePath: 'Welcome.md' }
-    ],
-    backlinks: [
-      { fileName: 'Welcome', link: 'Abilities', relativePath: 'Welcome.md' }
-    ]
+    headings: [{ heading: 'System Abilities', level: 1 }],
+    links: [{ link: 'Welcome', relativePath: 'Welcome.md' }],
+    backlinks: [{ fileName: 'Welcome', link: 'Abilities', relativePath: 'Welcome.md' }],
   },
   {
     fileName: 'README',
     relativePath: 'docs/README.md',
     tags: ['documentation'],
-    headings: [
-      { heading: 'Documentation', level: 1 }
-    ],
+    headings: [{ heading: 'Documentation', level: 1 }],
     links: [],
-    backlinks: []
+    backlinks: [],
   },
   {
     fileName: 'Graph-Test',
     relativePath: 'Graph-Test.md',
     tags: ['test', 'graph'],
-    headings: [
-      { heading: 'Graph Testing', level: 1 }
-    ],
+    headings: [{ heading: 'Graph Testing', level: 1 }],
     links: [
       { link: 'Welcome', relativePath: 'Welcome.md' },
-      { link: 'Abilities', relativePath: 'FolderA/SubFolder/Abilities.md' }
+      { link: 'Abilities', relativePath: 'FolderA/SubFolder/Abilities.md' },
     ],
-    backlinks: []
-  }
+    backlinks: [],
+  },
 ];
 
 describe('GraphService', () => {
@@ -126,19 +114,18 @@ describe('GraphService', () => {
       expect(Array.isArray(graph.edges)).toBe(true);
 
       // 验证节点：4个文件节点 + 标签节点
-      const fileNodes = graph.nodes.filter(node => node.type === 'file');
-      const tagNodes = graph.nodes.filter(node => node.type === 'tag');
+      const fileNodes = graph.nodes.filter((node) => node.type === 'file');
+      const tagNodes = graph.nodes.filter((node) => node.type === 'tag');
 
       expect(fileNodes.length).toBe(4); // Welcome, Abilities, README, Graph-Test
       expect(tagNodes.length).toBeGreaterThan(0); // 应该有标签节点
 
       // 验证边：文件间链接 + 标签链接
-      const linkEdges = graph.edges.filter(edge => edge.type === 'link');
-      const tagEdges = graph.edges.filter(edge => edge.type === 'tag');
+      const linkEdges = graph.edges.filter((edge) => edge.type === 'link');
+      const tagEdges = graph.edges.filter((edge) => edge.type === 'tag');
 
       expect(linkEdges.length).toBeGreaterThan(0);
       expect(tagEdges.length).toBeGreaterThan(0);
-
     });
 
     it('should handle empty metadata gracefully', async () => {
@@ -169,12 +156,12 @@ describe('GraphService', () => {
   describe('Graph Options', () => {
     it('should exclude tags when includeTags is false', async () => {
       const options: GraphOptions = {
-        includeTags: false
+        includeTags: false,
       };
 
       const graph = await graphService.getGlobalGraph(options);
-      const tagNodes = graph.nodes.filter(node => node.type === 'tag');
-      const tagEdges = graph.edges.filter(edge => edge.type === 'tag');
+      const tagNodes = graph.nodes.filter((node) => node.type === 'tag');
+      const tagEdges = graph.edges.filter((edge) => edge.type === 'tag');
 
       expect(tagNodes.length).toBe(0);
       expect(tagEdges.length).toBe(0);
@@ -182,7 +169,7 @@ describe('GraphService', () => {
 
     it('should exclude orphaned nodes when includeOrphanedNodes is false', async () => {
       const options: GraphOptions = {
-        includeOrphanedNodes: false
+        includeOrphanedNodes: false,
       };
 
       const graph = await graphService.getGlobalGraph(options);
@@ -194,12 +181,12 @@ describe('GraphService', () => {
         connectedNodeIds.add(edge.to);
       }
 
-      expect(graph.nodes.every(node => connectedNodeIds.has(node.id))).toBe(true);
+      expect(graph.nodes.every((node) => connectedNodeIds.has(node.id))).toBe(true);
     });
 
     it('should limit nodes when maxNodes is specified', async () => {
       const options: GraphOptions = {
-        maxNodes: 2
+        maxNodes: 2,
       };
 
       const graph = await graphService.getGlobalGraph(options);
@@ -216,10 +203,9 @@ describe('GraphService', () => {
       expect(graph.edges.length).toBeGreaterThan(0);
 
       // 应该包含中心节点 Welcome
-      const centerNode = graph.nodes.find(node => node.title === 'Welcome');
+      const centerNode = graph.nodes.find((node) => node.title === 'Welcome');
       expect(centerNode).toBeDefined();
       expect(centerNode?.type).toBe('file');
-
     });
 
     it('should handle URL-encoded file paths', async () => {
@@ -229,16 +215,15 @@ describe('GraphService', () => {
       expect(graph.nodes.length).toBeGreaterThan(0);
 
       // 应该找到 Abilities 节点
-      const centerNode = graph.nodes.find(node =>
-        node.title === 'FolderA/SubFolder/Abilities' ||
-        node.title === 'Abilities'
+      const centerNode = graph.nodes.find(
+        (node) => node.title === 'FolderA/SubFolder/Abilities' || node.title === 'Abilities'
       );
       expect(centerNode).toBeDefined();
     });
 
     it('should respect depth parameter', async () => {
       const options: LocalGraphOptions = {
-        depth: 2
+        depth: 2,
       };
 
       const graph1 = await graphService.getLocalGraph('Welcome.md', { depth: 1 });
@@ -264,16 +249,15 @@ describe('GraphService', () => {
       expect(graph.edges.length).toBeGreaterThan(0);
 
       // 应该包含 #welcome 标签节点
-      const tagNode = graph.nodes.find(node => node.label === '#welcome');
+      const tagNode = graph.nodes.find((node) => node.label === '#welcome');
       expect(tagNode).toBeDefined();
       expect(tagNode?.type).toBe('tag');
 
       // 应该包含标记了 welcome 的文件
-      const welcomeFileNode = graph.nodes.find(node =>
-        node.type === 'file' && node.title === 'Welcome'
+      const welcomeFileNode = graph.nodes.find(
+        (node) => node.type === 'file' && node.title === 'Welcome'
       );
       expect(welcomeFileNode).toBeDefined();
-
     });
 
     it('should handle tag with # prefix', async () => {
@@ -281,7 +265,7 @@ describe('GraphService', () => {
 
       expect(graph.nodes.length).toBeGreaterThan(0);
 
-      const tagNode = graph.nodes.find(node => node.label === '#welcome');
+      const tagNode = graph.nodes.find((node) => node.label === '#welcome');
       expect(tagNode).toBeDefined();
     });
 
@@ -308,7 +292,6 @@ describe('GraphService', () => {
       expect(stats.totalEdges).toBeGreaterThan(0);
       expect(stats.totalTags).toBeGreaterThan(0);
       expect(stats.averageConnections).toBeGreaterThan(0);
-
     });
 
     it('should handle empty graph statistics', async () => {
@@ -354,7 +337,6 @@ describe('GraphService', () => {
 
       expect(Array.isArray(neighbors)).toBe(true);
       expect(neighbors.length).toBeGreaterThan(0);
-
     });
 
     it('should respect depth in neighbor search', async () => {
@@ -380,7 +362,6 @@ describe('GraphService', () => {
       expect(path.length).toBeGreaterThan(0);
       expect(path[0].id).toBe(node1!.id);
       expect(path[path.length - 1].id).toBe(node2!.id);
-
     });
 
     it('should return direct path for same node', async () => {
@@ -402,9 +383,9 @@ describe('GraphService', () => {
           tags: [],
           headings: [],
           links: [],
-          backlinks: []
+          backlinks: [],
         },
-        ...mockMetadata
+        ...mockMetadata,
       ];
 
       vi.mocked(mockMetadataService.getMetadata).mockResolvedValue(isolatedMetadata);
@@ -441,9 +422,8 @@ describe('GraphService', () => {
 
       expect(Array.isArray(tagNodes)).toBe(true);
       expect(tagNodes.length).toBeGreaterThan(0);
-      expect(tagNodes.every(node => node.type === 'tag')).toBe(true);
-      expect(tagNodes.every(node => node.label.startsWith('#'))).toBe(true);
-
+      expect(tagNodes.every((node) => node.type === 'tag')).toBe(true);
+      expect(tagNodes.every((node) => node.label.startsWith('#'))).toBe(true);
     });
 
     it('should get all file nodes', async () => {
@@ -451,8 +431,7 @@ describe('GraphService', () => {
 
       expect(Array.isArray(fileNodes)).toBe(true);
       expect(fileNodes.length).toBeGreaterThan(0);
-      expect(fileNodes.every(node => node.type === 'file')).toBe(true);
-
+      expect(fileNodes.every((node) => node.type === 'file')).toBe(true);
     });
 
     it('should get orphaned nodes', async () => {
@@ -476,7 +455,6 @@ describe('GraphService', () => {
 
       expect(connectivity.totalDegree).toBe(connectivity.inDegree + connectivity.outDegree);
       expect(connectivity.totalDegree).toBeGreaterThan(0);
-
     });
   });
 
@@ -490,7 +468,7 @@ describe('GraphService', () => {
     it('should get cache stats', async () => {
       vi.mocked(mockMetadataService.getCacheStats).mockResolvedValue({
         vaultId: 'Demo',
-        fileCount: 4
+        fileCount: 4,
       });
 
       const stats = await graphService.getCacheStats();
@@ -501,7 +479,6 @@ describe('GraphService', () => {
       expect(stats.totalEdges).toBeDefined();
       expect(stats.totalTags).toBeDefined();
       expect(stats.metadataStats).toBeDefined();
-
     });
   });
 

@@ -30,17 +30,19 @@ export function TagsPanel() {
       // console.log('📊 NewTagsPanel: 第一个标签详细信息:', tags[0]);
 
       // 转换为带计数的格式
-      const tagCounts = tags.map(tagData => {
-        let tagName = tagData.name || tagData.toString();
-        // 移除开头的 # 符号，因为显示时会再加上
-        if (tagName.startsWith('#')) {
-          tagName = tagName.substring(1);
-        }
-        return {
-          tag: tagName,
-          count: tagData.count || 1
-        };
-      }).sort((a, b) => b.count - a.count); // 按频率排序
+      const tagCounts = tags
+        .map((tagData) => {
+          let tagName = tagData.name || tagData.toString();
+          // 移除开头的 # 符号，因为显示时会再加上
+          if (tagName.startsWith('#')) {
+            tagName = tagName.substring(1);
+          }
+          return {
+            tag: tagName,
+            count: tagData.count || 1,
+          };
+        })
+        .sort((a, b) => b.count - a.count); // 按频率排序
 
       // console.log('📊 NewTagsPanel: 转换后的标签:', tagCounts);
       // console.log('📊 NewTagsPanel: 第一个转换后标签详细:', tagCounts[0]);
@@ -77,15 +79,17 @@ export function TagsPanel() {
       // console.log(`📊 NewTagsPanel: 标签 "${tag}" 的文件:`, searchResults);
 
       // 转换为文件信息数组
-      const fileList = searchResults.map((result: UnifiedSearchResult) => {
-        const filePath = result.document?.path || '';
-        // 从路径中提取文件名（不含扩展名）
-        const fileName = filePath.split('/').pop()?.replace(/\.md$/, '') || filePath;
-        return {
-          fileName,
-          filePath
-        };
-      }).sort((a, b) => a.fileName.localeCompare(b.fileName)); // 按文件名排序
+      const fileList = searchResults
+        .map((result: UnifiedSearchResult) => {
+          const filePath = result.document?.path || '';
+          // 从路径中提取文件名（不含扩展名）
+          const fileName = filePath.split('/').pop()?.replace(/\.md$/, '') || filePath;
+          return {
+            fileName,
+            filePath,
+          };
+        })
+        .sort((a, b) => a.fileName.localeCompare(b.fileName)); // 按文件名排序
 
       setExpandedTag(tag);
       setTagFiles(fileList);
@@ -120,9 +124,7 @@ export function TagsPanel() {
       {/* Header */}
       <div className="flex-shrink-0 p-4 pb-2">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-[var(--text-normal)]">
-            Tags
-          </div>
+          <div className="text-sm font-medium text-[var(--text-normal)]">Tags</div>
         </div>
       </div>
 
@@ -156,9 +158,7 @@ export function TagsPanel() {
             </div>
 
             {allTags.length === 0 ? (
-              <div className="text-sm text-[var(--text-muted)]">
-                No tags found in vault
-              </div>
+              <div className="text-sm text-[var(--text-muted)]">No tags found in vault</div>
             ) : (
               <div className="space-y-1">
                 {allTags.map(({ tag, count }) => {
@@ -171,19 +171,18 @@ export function TagsPanel() {
                       <div
                         className={`
                           flex items-center justify-between px-2 py-1 rounded cursor-pointer transition-colors
-                          ${isCurrentTag
-                            ? 'bg-[var(--interactive-accent)] text-white hover:bg-[var(--interactive-hover)]'
-                            : isExpanded
-                            ? 'bg-[var(--background-modifier-hover)] text-[var(--text-normal)]'
-                            : 'bg-[var(--background-modifier-border)] text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
+                          ${
+                            isCurrentTag
+                              ? 'bg-[var(--interactive-accent)] text-white hover:bg-[var(--interactive-hover)]'
+                              : isExpanded
+                                ? 'bg-[var(--background-modifier-hover)] text-[var(--text-normal)]'
+                                : 'bg-[var(--background-modifier-border)] text-[var(--text-normal)] hover:bg-[var(--background-modifier-hover)]'
                           }
                         `}
                         onClick={() => handleTagClick(tag)}
                       >
                         <span className="text-sm">#{tag}</span>
-                        <span className="text-xs opacity-70">
-                          {count}
-                        </span>
+                        <span className="text-xs opacity-70">{count}</span>
                       </div>
                     </div>
                   );
@@ -194,7 +193,10 @@ export function TagsPanel() {
 
           {/* 展开的文件列表 */}
           {expandedTag && (
-            <div className="border-t border-[var(--background-modifier-border)]" style={{ marginTop: '2rem', paddingTop: '1.5rem' }}>
+            <div
+              className="border-t border-[var(--background-modifier-border)]"
+              style={{ marginTop: '2rem', paddingTop: '1.5rem' }}
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs font-medium text-[var(--text-muted)]">
                   Files with #{expandedTag} ({tagFiles.length})
@@ -215,9 +217,7 @@ export function TagsPanel() {
                   Loading files...
                 </div>
               ) : tagFiles.length === 0 ? (
-                <div className="text-sm text-[var(--text-muted)]">
-                  No files found with this tag
-                </div>
+                <div className="text-sm text-[var(--text-muted)]">No files found with this tag</div>
               ) : (
                 <div className="space-y-1 max-h-64 overflow-auto">
                   {tagFiles.map(({ fileName, filePath }) => (
@@ -228,9 +228,7 @@ export function TagsPanel() {
                       title={filePath}
                     >
                       <IconFile size={14} className="text-[var(--text-muted)] flex-shrink-0" />
-                      <span className="text-sm text-[var(--text-normal)] truncate">
-                        {fileName}
-                      </span>
+                      <span className="text-sm text-[var(--text-normal)] truncate">{fileName}</span>
                     </div>
                   ))}
                 </div>

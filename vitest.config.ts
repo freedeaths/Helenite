@@ -12,7 +12,7 @@ export default defineConfig({
       'node_modules/**',
       'dist/**',
       'e2e/**', // Exclude E2E tests - they should be run with Playwright
-      '**/*.{spec,e2e}.{ts,tsx}' // Exclude spec files that are for Playwright
+      '**/*.{spec,e2e}.{ts,tsx}', // Exclude spec files that are for Playwright
     ],
     coverage: {
       provider: 'v8',
@@ -22,8 +22,8 @@ export default defineConfig({
           branches: 70,
           functions: 70,
           lines: 70,
-          statements: 70
-        }
+          statements: 70,
+        },
       },
       // 排除测试文件和类型声明文件
       exclude: [
@@ -35,9 +35,9 @@ export default defineConfig({
         '**/*.d.ts',
         'src/test/**',
         'playwright.config.ts',
-        'vitest.config.ts'
-      ]
-    }
+        'vitest.config.ts',
+      ],
+    },
   },
   resolve: {
     alias: {

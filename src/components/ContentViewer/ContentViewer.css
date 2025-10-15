@@ -101,7 +101,7 @@
 
 /* 外部链接图标 */
 .markdown-viewer a.external-link::after {
-  content: "↗";
+  content: '↗';
   display: inline-block;
   margin-left: 4px;
   font-size: 0.8em;
@@ -221,7 +221,6 @@
   text-decoration: none;
 }
 
-
 /* Invalid/unresolved links */
 .markdown-viewer .internal-link.invalid-link {
   color: var(--text-error, var(--text-muted));
@@ -293,7 +292,7 @@
 }
 
 /* Dark theme highlight - Obsidian dark style */
-[data-theme="dark"] .markdown-viewer .cm-highlight {
+[data-theme='dark'] .markdown-viewer .cm-highlight {
   background-color: #d4af37; /* Obsidian golden yellow */
   color: #1a1a1a; /* Dark text on golden background for better readability */
 }
@@ -320,7 +319,7 @@
 }
 
 .markdown-viewer .callout-title::before {
-  content: var(--callout-icon, "ℹ");
+  content: var(--callout-icon, 'ℹ');
   margin-right: 8px;
   font-size: 1.1em;
   color: var(--callout-color, var(--text-accent));
@@ -345,47 +344,47 @@
 /* Callout Types */
 .markdown-viewer .callout-info {
   --callout-color: var(--color-blue-rgb, 8, 109, 221);
-  --callout-icon: "ℹ";
+  --callout-icon: 'ℹ';
 }
 
 .markdown-viewer .callout-tip {
   --callout-color: var(--color-green-rgb, 0, 184, 117);
-  --callout-icon: "💡";
+  --callout-icon: '💡';
 }
 
 .markdown-viewer .callout-warning {
   --callout-color: var(--color-orange-rgb, 255, 145, 0);
-  --callout-icon: "⚠";
+  --callout-icon: '⚠';
 }
 
 .markdown-viewer .callout-error {
   --callout-color: var(--color-red-rgb, 233, 49, 71);
-  --callout-icon: "❌";
+  --callout-icon: '❌';
 }
 
 .markdown-viewer .callout-note {
   --callout-color: var(--color-blue-rgb, 8, 109, 221);
-  --callout-icon: "📝";
+  --callout-icon: '📝';
 }
 
 .markdown-viewer .callout-success {
   --callout-color: var(--color-green-rgb, 0, 184, 117);
-  --callout-icon: "✅";
+  --callout-icon: '✅';
 }
 
 .markdown-viewer .callout-question {
   --callout-color: var(--color-yellow-rgb, 224, 222, 113);
-  --callout-icon: "❓";
+  --callout-icon: '❓';
 }
 
 .markdown-viewer .callout-example {
   --callout-color: var(--color-purple-rgb, 139, 69, 255);
-  --callout-icon: "📋";
+  --callout-icon: '📋';
 }
 
 .markdown-viewer .callout-quote {
   --callout-color: var(--color-gray-rgb, 158, 158, 158);
-  --callout-icon: "💬";
+  --callout-icon: '💬';
 }
 
 /* ===== ENHANCED CODE STYLING ===== */
@@ -618,7 +617,7 @@
 }
 
 .markdown-viewer .frontmatter-tag::before {
-  content: "#";
+  content: '#';
   margin-right: 4px;
   font-size: 0.9em;
   opacity: 0.6;
@@ -865,7 +864,7 @@
 }
 
 .frontmatter-tag::before {
-  content: "#";
+  content: '#';
   margin-right: 4px;
   font-size: 0.9em;
   opacity: 0.6;

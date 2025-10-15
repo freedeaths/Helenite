@@ -32,10 +32,11 @@ export function TOC() {
       let currentElement = targetElement.parentElement;
       while (currentElement && currentElement !== document.body) {
         const computedStyle = window.getComputedStyle(currentElement);
-        const hasScroll = computedStyle.overflowY === 'auto' ||
-                         computedStyle.overflowY === 'scroll' ||
-                         computedStyle.overflow === 'auto' ||
-                         computedStyle.overflow === 'scroll';
+        const hasScroll =
+          computedStyle.overflowY === 'auto' ||
+          computedStyle.overflowY === 'scroll' ||
+          computedStyle.overflow === 'auto' ||
+          computedStyle.overflow === 'scroll';
 
         if (hasScroll && currentElement.scrollHeight > currentElement.clientHeight) {
           // console.log('🎯 找到滚动父容器:', currentElement.className, { scrollHeight: currentElement.scrollHeight, clientHeight: currentElement.clientHeight });
@@ -45,11 +46,16 @@ export function TOC() {
       }
 
       // Method 3: Fallback to any scrollable container that contains our element
-      const allScrollableContainers = document.querySelectorAll('*[style*="overflow"], .overflow-auto, .overflow-y-auto');
+      const allScrollableContainers = document.querySelectorAll(
+        '*[style*="overflow"], .overflow-auto, .overflow-y-auto'
+      );
 
       for (const container of allScrollableContainers) {
         const htmlContainer = container as HTMLElement;
-        if (htmlContainer.contains(targetElement) && htmlContainer.scrollHeight > htmlContainer.clientHeight) {
+        if (
+          htmlContainer.contains(targetElement) &&
+          htmlContainer.scrollHeight > htmlContainer.clientHeight
+        ) {
           // console.log('🎯 找到备用滚动容器:', htmlContainer.className);
           return htmlContainer;
         }
@@ -91,7 +97,7 @@ export function TOC() {
 
         scrollContainer.scrollTo({
           top: targetScrollTop,
-          behavior: 'instant'
+          behavior: 'instant',
         });
 
         requestAnimationFrame(() => {
@@ -110,7 +116,7 @@ export function TOC() {
 
           scrollContainer.scrollTo({
             top: targetScrollTop,
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
         });
       });
@@ -154,10 +160,11 @@ export function TOC() {
         let element = markdownViewers[0].parentElement;
         while (element && element !== document.body) {
           const computedStyle = window.getComputedStyle(element);
-          const hasScroll = computedStyle.overflowY === 'auto' ||
-                           computedStyle.overflowY === 'scroll' ||
-                           computedStyle.overflow === 'auto' ||
-                           computedStyle.overflow === 'scroll';
+          const hasScroll =
+            computedStyle.overflowY === 'auto' ||
+            computedStyle.overflowY === 'scroll' ||
+            computedStyle.overflow === 'auto' ||
+            computedStyle.overflow === 'scroll';
 
           if (hasScroll && element.scrollHeight > element.clientHeight) {
             // console.log('🎯 滚动跟踪找到备用容器:', element.className);
@@ -179,7 +186,7 @@ export function TOC() {
       const headings = currentDocument.metadata.headings
         .map((heading: TOCHeading) => ({
           ...heading,
-          element: document.getElementById(heading.id)
+          element: document.getElementById(heading.id),
         }))
         .filter((heading) => heading.element);
 
@@ -220,9 +227,7 @@ export function TOC() {
           Table of Contents
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <div className="text-sm text-[var(--text-muted)]">
-            No headings found in this document
-          </div>
+          <div className="text-sm text-[var(--text-muted)]">No headings found in this document</div>
         </div>
       </div>
     );
@@ -236,45 +241,51 @@ export function TOC() {
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="space-y-1 text-sm">
           {currentDocument.metadata.headings.map((heading: TOCHeading, index: number) => {
-          const indent = (heading.level - 1) * 12; // 12px per level for cleaner look
-          const isActive = activeHeadingId === heading.id;
+            const indent = (heading.level - 1) * 12; // 12px per level for cleaner look
+            const isActive = activeHeadingId === heading.id;
 
-          // Font size based on heading level - 完全复制老版本样式
-          const getFontSize = (level: number) => {
-            switch (level) {
-              case 1: return 'text-sm font-semibold';
-              case 2: return 'text-sm font-medium';
-              case 3: return 'text-xs font-medium';
-              case 4: return 'text-xs';
-              case 5: return 'text-xs';
-              case 6: return 'text-xs';
-              default: return 'text-xs';
-            }
-          };
+            // Font size based on heading level - 完全复制老版本样式
+            const getFontSize = (level: number) => {
+              switch (level) {
+                case 1:
+                  return 'text-sm font-semibold';
+                case 2:
+                  return 'text-sm font-medium';
+                case 3:
+                  return 'text-xs font-medium';
+                case 4:
+                  return 'text-xs';
+                case 5:
+                  return 'text-xs';
+                case 6:
+                  return 'text-xs';
+                default:
+                  return 'text-xs';
+              }
+            };
 
-          return (
-            <div
-              key={`${heading.id}-${index}`}
-              className={`
+            return (
+              <div
+                key={`${heading.id}-${index}`}
+                className={`
                 cursor-pointer py-1.5 px-2 rounded transition-all duration-200 border-l-2
-                ${isActive
-                  ? 'text-[var(--interactive-accent)] border-l-[var(--interactive-accent)] bg-[var(--background-modifier-hover)]'
-                  : 'text-[var(--text-normal)] border-l-transparent hover:text-[var(--interactive-accent)] hover:border-l-[var(--interactive-accent)] hover:bg-[var(--background-modifier-hover)]'
+                ${
+                  isActive
+                    ? 'text-[var(--interactive-accent)] border-l-[var(--interactive-accent)] bg-[var(--background-modifier-hover)]'
+                    : 'text-[var(--text-normal)] border-l-transparent hover:text-[var(--interactive-accent)] hover:border-l-[var(--interactive-accent)] hover:bg-[var(--background-modifier-hover)]'
                 }
                 ${getFontSize(heading.level)}
               `}
-              style={{
-                marginLeft: `${indent}px`,
-                paddingLeft: `${8 + (heading.level - 1) * 4}px` // Progressive indentation
-              }}
-              onClick={() => handleHeadingClick(heading.id)}
-              title={heading.text}
-            >
-              <span className="line-clamp-2">
-                {heading.text}
-              </span>
-            </div>
-          );
+                style={{
+                  marginLeft: `${indent}px`,
+                  paddingLeft: `${8 + (heading.level - 1) * 4}px`, // Progressive indentation
+                }}
+                onClick={() => handleHeadingClick(heading.id)}
+                title={heading.text}
+              >
+                <span className="line-clamp-2">{heading.text}</span>
+              </div>
+            );
           })}
         </div>
       </div>

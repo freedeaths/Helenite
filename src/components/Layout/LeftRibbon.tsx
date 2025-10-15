@@ -1,7 +1,7 @@
 import { IconDice, IconHome, IconSettings, IconMoon, IconSun } from '@tabler/icons-react';
 import type { FileTree } from '../../types/vaultTypes';
-import { LuFolderTree } from "react-icons/lu";
-import { PiGraphFill } from "react-icons/pi";
+import { LuFolderTree } from 'react-icons/lu';
+import { PiGraphFill } from 'react-icons/pi';
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useUIStore } from '../../stores/uiStore';
 import { useVaultStore } from '../../stores/vaultStore';
@@ -15,15 +15,9 @@ export function LeftRibbon() {
     theme,
     setTheme,
     mainContentView,
-    setMainContentView
+    setMainContentView,
   } = useUIStore();
-  const {
-    activeFile,
-    fileTree,
-    navigateToFile,
-    navigateToGraph,
-    type
-  } = useVaultStore();
+  const { activeFile, fileTree, navigateToFile, navigateToGraph, type } = useVaultStore();
 
   const [lastClickedButton, setLastClickedButton] = useState<string>('files');
 
@@ -63,9 +57,11 @@ export function LeftRibbon() {
     document.body.setAttribute('data-theme', newTheme);
 
     // Trigger theme change event for other components
-    document.dispatchEvent(new CustomEvent('obsidian-theme-changed', {
-      detail: { theme: newTheme }
-    }));
+    document.dispatchEvent(
+      new CustomEvent('obsidian-theme-changed', {
+        detail: { theme: newTheme },
+      })
+    );
   }, [theme, setTheme]);
 
   // 从文件树中收集所有 markdown 文件
@@ -97,7 +93,7 @@ export function LeftRibbon() {
     }
 
     // 排除当前文件，避免重复选择
-    const availableFiles = allMarkdownFiles.filter(file => file !== activeFile);
+    const availableFiles = allMarkdownFiles.filter((file) => file !== activeFile);
     const filesToChooseFrom = availableFiles.length > 0 ? availableFiles : allMarkdownFiles;
 
     // 随机选择一个文件
@@ -119,7 +115,7 @@ export function LeftRibbon() {
         navigateToFile(config.indexFile);
         setMainContentView('file');
         setLastClickedButton('home');
-      }
+      },
     },
     {
       id: 'files',
@@ -132,7 +128,7 @@ export function LeftRibbon() {
           toggleLeftSidebar();
         }
         setLastClickedButton('files');
-      }
+      },
     },
     {
       id: 'graph',
@@ -144,7 +140,7 @@ export function LeftRibbon() {
         setMainContentView('globalGraph');
         navigateToGraph();
         setLastClickedButton('graph');
-      }
+      },
     },
     {
       id: 'random',
@@ -154,8 +150,8 @@ export function LeftRibbon() {
         openRandomNote();
         setMainContentView('file');
         setLastClickedButton('random');
-      }
-    }
+      },
+    },
   ];
 
   return (
@@ -170,7 +166,7 @@ export function LeftRibbon() {
             filter: 'invert(0.7)',
             width: '32px',
             height: '32px',
-            objectFit: 'contain'
+            objectFit: 'contain',
           }}
         />
       </div>
@@ -204,7 +200,7 @@ export function LeftRibbon() {
 
       {/* Bottom items */}
       <div className="flex flex-col gap-1">
-        <Tooltip label={theme === 'dark' ? "Light Theme" : "Dark Theme"} position="right" withArrow>
+        <Tooltip label={theme === 'dark' ? 'Light Theme' : 'Dark Theme'} position="right" withArrow>
           <ActionIcon
             variant="subtle"
             color="gray"
@@ -217,12 +213,7 @@ export function LeftRibbon() {
         </Tooltip>
 
         <Tooltip label="Settings" position="right" withArrow>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="md"
-            radius="md"
-          >
+          <ActionIcon variant="subtle" color="gray" size="md" radius="md">
             <IconSettings size={16} />
           </ActionIcon>
         </Tooltip>

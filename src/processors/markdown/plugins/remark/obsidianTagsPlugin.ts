@@ -1,6 +1,6 @@
 /**
  * Obsidian #tags 语法处理插件
- * 
+ *
  * 处理 #标签 语法，转换为带有样式的链接
  * 支持嵌套标签如 #编程/JavaScript
  */
@@ -15,7 +15,7 @@ export interface ObsidianTagsOptions {
 
 const DEFAULT_OPTIONS: ObsidianTagsOptions = {
   tagUrlPrefix: '#tag:',
-  tagClassName: 'tag'
+  tagClassName: 'tag',
 };
 
 /**
@@ -48,18 +48,18 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
         if (match.index > lastIndex) {
           parts.push({
             type: 'text',
-            value: value.slice(lastIndex, match.index) + prefix
+            value: value.slice(lastIndex, match.index) + prefix,
           });
         } else if (prefix) {
           parts.push({
             type: 'text',
-            value: prefix
+            value: prefix,
           });
         }
 
         parts.push({
           type: 'tag',
-          value: tag
+          value: tag,
         });
 
         lastIndex = match.index + fullMatch.length;
@@ -69,13 +69,13 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
       if (lastIndex < value.length) {
         parts.push({
           type: 'text',
-          value: value.slice(lastIndex)
+          value: value.slice(lastIndex),
         });
       }
 
       // 替换文本节点
       if (parts.length > 1) {
-        const newNodes: MdastNode[] = parts.map(part => {
+        const newNodes: MdastNode[] = parts.map((part) => {
           if (part.type === 'text') {
             return { type: 'text', value: part.value } as MdastNode;
           } else {
@@ -87,9 +87,9 @@ export function obsidianTagsPlugin(options: ObsidianTagsOptions = {}) {
                 hName: 'span',
                 hProperties: {
                   className: [opts.tagClassName],
-                  'data-tag': part.value.slice(1)
-                }
-              }
+                  'data-tag': part.value.slice(1),
+                },
+              },
             } as MdastNode;
           }
         });

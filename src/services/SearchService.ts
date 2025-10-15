@@ -164,7 +164,7 @@ export class SearchService {
               filePath: relativePath,
               fileName,
               matches: matches.slice(0, maxMatches),
-              matchCount: matches.length
+              matchCount: matches.length,
             });
           }
         } catch {
@@ -223,17 +223,19 @@ export class SearchService {
           // 只检查 metadata 中的标签，不搜索文件内容
           const fileTags = fileInfo.tags || [];
           if (fileTags.includes(tagName)) {
-            const matches: SearchMatch[] = [{
-              content: `Tag: #${tagName}`,
-              highlighted: `Tag: <span class="search-result-file-matched-text">#${tagName}</span>`,
-              lineNumber: 0
-            }];
+            const matches: SearchMatch[] = [
+              {
+                content: `Tag: #${tagName}`,
+                highlighted: `Tag: <span class="search-result-file-matched-text">#${tagName}</span>`,
+                lineNumber: 0,
+              },
+            ];
 
             results.push({
               filePath: relativePath,
               fileName,
               matches,
-              matchCount: 1
+              matchCount: 1,
             });
           }
         } catch {
@@ -289,7 +291,7 @@ export class SearchService {
         matchedFiles: results.length,
         totalMatches,
         searchTime,
-        topFolders
+        topFolders,
       };
     } catch {
       return {
@@ -297,7 +299,7 @@ export class SearchService {
         matchedFiles: 0,
         totalMatches: 0,
         searchTime: 0,
-        topFolders: []
+        topFolders: [],
       };
     }
   }
@@ -309,7 +311,11 @@ export class SearchService {
   /**
    * 高亮搜索结果
    */
-  highlightSearchResults(content: string, query: string, className = 'search-result-file-matched-text'): string {
+  highlightSearchResults(
+    content: string,
+    query: string,
+    className = 'search-result-file-matched-text'
+  ): string {
     try {
       const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(escapedQuery, 'gi');
@@ -354,7 +360,7 @@ export class SearchService {
       vaultId: this.vaultConfig.id,
       searchCacheSize: this.searchCache.size,
       contentCacheSize: this.contentCache.size,
-      ...stats
+      ...stats,
     };
   }
 
@@ -376,7 +382,7 @@ export class SearchService {
   getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 
@@ -394,7 +400,8 @@ export class SearchService {
 
     try {
       const content = await this.storageService.readFile(filePath);
-      const stringContent = typeof content === 'string' ? content : new TextDecoder().decode(content);
+      const stringContent =
+        typeof content === 'string' ? content : new TextDecoder().decode(content);
       this.contentCache.set(filePath, stringContent);
       return stringContent;
     } catch {
@@ -405,7 +412,11 @@ export class SearchService {
   /**
    * 在内容中查找匹配项
    */
-  private findMatchesInContent(content: string, query: string, options: SearchOptions = {}): SearchMatch[] {
+  private findMatchesInContent(
+    content: string,
+    query: string,
+    options: SearchOptions = {}
+  ): SearchMatch[] {
     try {
       const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const flags = options.caseSensitive ? 'gm' : 'gmi';
@@ -422,7 +433,7 @@ export class SearchService {
           matches.push({
             content: line,
             highlighted,
-            lineNumber: i + 1
+            lineNumber: i + 1,
           });
         }
       }
@@ -432,7 +443,6 @@ export class SearchService {
       return [];
     }
   }
-
 
   /**
    * 从文件路径获取文件名（不含扩展名）

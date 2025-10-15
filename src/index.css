@@ -17,10 +17,9 @@
   --text-on-accent: #1565c0;
   --interactive-accent: #646cff;
   --interactive-hover: #535bf2;
-  
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --background-primary: #1e1e1e;
   --background-secondary: #252525;
   --background-ribbon: #2f2f2f;
@@ -34,7 +33,7 @@
   --text-on-accent: #ffffff;
   --interactive-accent: #646cff;
   --interactive-hover: #535bf2;
-  
+
   /* Mantine CSS Variable Bridge - Dark Theme */
   --mantine-color-body: var(--background-primary);
   --mantine-color-text: var(--text-normal);
@@ -61,7 +60,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
   background-color: var(--background-primary);
   color: var(--text-normal);
   line-height: 1.5;
@@ -119,7 +120,7 @@ body {
   .mobile-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
-  
+
   .mobile-scrollbar::-webkit-scrollbar-thumb {
     background: var(--interactive-accent);
     border-radius: 2px;
@@ -160,11 +161,11 @@ body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
-  
+
   .mobile-safe-area-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .mobile-safe-area-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 8px);
   }
@@ -179,15 +180,21 @@ body {
 
 /* Responsive breakpoint helpers */
 @media (max-width: 767px) {
-  .hide-mobile { display: none !important; }
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .hide-tablet { display: none !important; }
+  .hide-tablet {
+    display: none !important;
+  }
 }
 
 @media (min-width: 1024px) {
-  .hide-desktop { display: none !important; }
+  .hide-desktop {
+    display: none !important;
+  }
 }
 
 /* Performance optimizations */
@@ -200,56 +207,56 @@ body {
 /* Mantine Component Override Styles - Bridge to Obsidian Variables */
 
 /* ActionIcon Component */
-[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant="subtle"] {
+[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant='subtle'] {
   background-color: transparent !important;
   color: var(--text-normal) !important;
   border-color: transparent !important;
 }
 
-[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant="subtle"]:hover {
+[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant='subtle']:hover {
   background-color: var(--background-modifier-border) !important;
   color: var(--text-normal) !important;
 }
 
-[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant="filled"] {
+[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant='filled'] {
   background-color: var(--interactive-accent) !important;
   color: var(--background-primary) !important;
   border-color: var(--interactive-accent) !important;
 }
 
-[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant="filled"]:hover {
+[data-mantine-color-scheme] .mantine-ActionIcon-root[data-variant='filled']:hover {
   background-color: var(--interactive-hover) !important;
 }
 
 /* Button Component */
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="light"] {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='light'] {
   background-color: transparent !important;
   color: var(--text-normal) !important;
   border: 1px solid var(--background-modifier-border) !important;
 }
 
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="light"]:hover {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='light']:hover {
   background-color: var(--background-modifier-border) !important;
   color: var(--text-normal) !important;
 }
 
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="filled"] {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='filled'] {
   background-color: var(--interactive-accent) !important;
   color: var(--background-primary) !important;
   border-color: var(--interactive-accent) !important;
 }
 
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="filled"]:hover {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='filled']:hover {
   background-color: var(--interactive-hover) !important;
 }
 
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="subtle"] {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='subtle'] {
   background-color: transparent !important;
   color: var(--text-normal) !important;
   border-color: transparent !important;
 }
 
-[data-mantine-color-scheme] .mantine-Button-root[data-variant="subtle"]:hover {
+[data-mantine-color-scheme] .mantine-Button-root[data-variant='subtle']:hover {
   background-color: var(--background-secondary) !important;
 }
 
@@ -276,7 +283,7 @@ button:focus,
 }
 
 /* Active states */
-[data-mantine-color-scheme] .mantine-Button-root[data-active="true"] {
+[data-mantine-color-scheme] .mantine-Button-root[data-active='true'] {
   background-color: var(--interactive-accent) !important;
   color: var(--background-primary) !important;
 }
@@ -389,13 +396,13 @@ button:focus,
 }
 
 /* Hide only Leaflet logo, keep OSM attribution */
-.leaflet-control-attribution a[href*="leafletjs.com"] {
+.leaflet-control-attribution a[href*='leafletjs.com'] {
   display: none !important;
 }
 
 /* Remove the separator before Leaflet link */
 .leaflet-control-attribution:after {
-  content: "";
+  content: '';
 }
 
 /* Clean up any extra spacing or separators */
@@ -417,7 +424,7 @@ button:focus,
   font-weight: 500;
 }
 
-[data-theme="dark"] .search-result-file-matched-text {
+[data-theme='dark'] .search-result-file-matched-text {
   background-color: rgba(255, 193, 7, 0.3);
   color: var(--text-normal);
 }

@@ -21,7 +21,10 @@ interface TrackMapNode extends MdastNode {
   type: 'trackMap';
   data?: Data & {
     hName?: string;
-    hProperties?: Record<string, string | number | boolean | (string | number)[] | null | undefined>;
+    hProperties?: Record<
+      string,
+      string | number | boolean | (string | number)[] | null | undefined
+    >;
   };
   children: never[];
 }
@@ -38,9 +41,9 @@ interface TrackData {
   id: string;
   type: 'single-track' | 'multi-track' | 'leaflet';
   format?: 'gpx' | 'kml' | 'leaflet';
-  source: 'file' | 'inline' | 'mixed';  // 支持内联内容用于测试
+  source: 'file' | 'inline' | 'mixed'; // 支持内联内容用于测试
   filePath?: string;
-  content?: string;  // 内联内容
+  content?: string; // 内联内容
   leafletConfig?: LeafletConfig;
   tracks?: SingleTrack[];
   // 向后兼容的属性
@@ -56,7 +59,7 @@ interface TrackData {
 interface SingleTrack {
   id: string;
   format: 'gpx' | 'kml';
-  source: 'file';  // 只支持文件引用
+  source: 'file'; // 只支持文件引用
   filePath: string;
 }
 
@@ -67,7 +70,6 @@ interface LeafletConfig {
   gpx?: string | string[]; // 可以是单个文件或文件列表
   [key: string]: unknown; // 其他 leaflet 配置
 }
-
 
 /**
  * Track Maps 插件
@@ -92,7 +94,7 @@ export function trackMapsPlugin() {
           leafletConfig = YAML.parse(node.value) || {};
         } catch {
           // console.warn('Failed to parse leaflet config:', error);
-          
+
           return;
         }
 
@@ -117,8 +119,11 @@ export function trackMapsPlugin() {
 
       if (isInParagraph && matches.length > 0) {
         // 如果在段落内且有匹配，需要将段落分解
-        const grandParent = (tree as MdastRoot).children.find((child: RootContent) =>
-          'children' in child && (child as Parent).children && (child as Parent).children.includes(parent as RootContent)
+        const grandParent = (tree as MdastRoot).children.find(
+          (child: RootContent) =>
+            'children' in child &&
+            (child as Parent).children &&
+            (child as Parent).children.includes(parent as RootContent)
         ) as Parent | undefined;
 
         if (grandParent) {
@@ -126,7 +131,7 @@ export function trackMapsPlugin() {
           const newNodes: RootContent[] = [];
           let lastIndex = 0;
 
-          matches.forEach(match => {
+          matches.forEach((match) => {
             const matchStart = match.index!;
             const matchEnd = matchStart + match[0].length;
             const filePath = match[2];
@@ -138,7 +143,7 @@ export function trackMapsPlugin() {
               if (beforeText) {
                 newNodes.push({
                   type: 'paragraph',
-                  children: [{ type: 'text', value: beforeText }]
+                  children: [{ type: 'text', value: beforeText }],
                 } as RootContent);
               }
             }
@@ -149,7 +154,7 @@ export function trackMapsPlugin() {
               type: 'single-track',
               format,
               source: 'file',
-              filePath
+              filePath,
             };
             newNodes.push(createTrackMapNode(trackData, 'single') as unknown as RootContent);
 
@@ -162,7 +167,7 @@ export function trackMapsPlugin() {
             if (remainingText) {
               newNodes.push({
                 type: 'paragraph',
-                children: [{ type: 'text', value: remainingText }]
+                children: [{ type: 'text', value: remainingText }],
               } as RootContent);
             }
           }
@@ -176,7 +181,10 @@ export function trackMapsPlugin() {
       // 如果不在段落内但父节点是段落，我们需要打破段落
       if (parent.type === 'paragraph') {
         // 需要找到段落的父节点
-        const findParentOfNode = (tree: MdastNode, targetNode: MdastNode): MdastNode | undefined => {
+        const findParentOfNode = (
+          tree: MdastNode,
+          targetNode: MdastNode
+        ): MdastNode | undefined => {
           if ('children' in tree && (tree as Parent).children) {
             for (const child of (tree as Parent).children) {
               if (child === targetNode) return tree;
@@ -193,7 +201,7 @@ export function trackMapsPlugin() {
           const newNodes: RootContent[] = [];
           let lastIndex = 0;
 
-          matches.forEach(match => {
+          matches.forEach((match) => {
             const matchStart = match.index!;
             const matchEnd = matchStart + match[0].length;
             const filePath = match[2];
@@ -205,7 +213,7 @@ export function trackMapsPlugin() {
               if (beforeText) {
                 newNodes.push({
                   type: 'paragraph',
-                  children: [{ type: 'text', value: beforeText }]
+                  children: [{ type: 'text', value: beforeText }],
                 } as RootContent);
               }
             }
@@ -216,7 +224,7 @@ export function trackMapsPlugin() {
               type: 'single-track',
               format,
               source: 'file',
-              filePath
+              filePath,
             };
             newNodes.push(createTrackMapNode(trackData, 'single') as unknown as RootContent);
 
@@ -229,7 +237,7 @@ export function trackMapsPlugin() {
             if (remainingText) {
               newNodes.push({
                 type: 'paragraph',
-                children: [{ type: 'text', value: remainingText }]
+                children: [{ type: 'text', value: remainingText }],
               } as RootContent);
             }
           }
@@ -244,7 +252,7 @@ export function trackMapsPlugin() {
       const newNodes: MdastNode[] = [];
       let lastIndex = 0;
 
-      matches.forEach(match => {
+      matches.forEach((match) => {
         const matchStart = match.index!;
         const matchEnd = matchStart + match[0].length;
         const filePath = match[2];
@@ -256,7 +264,7 @@ export function trackMapsPlugin() {
           if (beforeText.trim()) {
             newNodes.push({
               type: 'text',
-              value: beforeText
+              value: beforeText,
             } as MdastNode);
           }
         }
@@ -267,7 +275,7 @@ export function trackMapsPlugin() {
           type: 'single-track',
           format,
           source: 'file',
-          filePath
+          filePath,
         };
         newNodes.push(createTrackMapNode(trackData, 'single') as unknown as MdastNode);
 
@@ -280,7 +288,7 @@ export function trackMapsPlugin() {
         if (remainingText.trim()) {
           newNodes.push({
             type: 'text',
-            value: remainingText
+            value: remainingText,
           } as MdastNode);
         }
       }
@@ -308,7 +316,6 @@ function processLeafletConfig(config: LeafletConfig, id: number): TrackData {
       // 单个 GPX 文件
       const track = parseGpxReference(config.gpx, `${id}-${trackIdCounter++}`);
       if (track) tracks.push(track);
-
     } else if (Array.isArray(config.gpx)) {
       // GPX 文件列表：gpx: ["[[track1.gpx]]", "[[track2.gpx]]"]
       // GPX 文件列表
@@ -331,14 +338,13 @@ function processLeafletConfig(config: LeafletConfig, id: number): TrackData {
 
   // console.log('[processLeafletConfig] Final tracks:', tracks);
 
-
   return {
     id: `leaflet-${id}`,
-    type: 'leaflet',  // Always use 'leaflet' type for proper handling
+    type: 'leaflet', // Always use 'leaflet' type for proper handling
     format: 'leaflet',
     source: 'mixed',
     leafletConfig: config,
-    tracks
+    tracks,
   };
 }
 
@@ -393,7 +399,7 @@ function parseGpxReference(gpxRef: unknown, id: string): SingleTrack | null {
     id,
     format,
     source: 'file' as const,
-    filePath: cleanRef
+    filePath: cleanRef,
   };
 
   // console.log('[parseGpxReference] Success:', result);
@@ -407,7 +413,7 @@ function createTrackMapNode(trackData: TrackData, displayType: string): TrackMap
   // 准备要存储的完整数据
   const dataToStore = {
     ...trackData,
-    displayType
+    displayType,
   };
 
   // 创建一个符合 MDAST 规范的自定义节点
@@ -418,10 +424,10 @@ function createTrackMapNode(trackData: TrackData, displayType: string): TrackMap
       hProperties: {
         className: ['track-map-container'],
         // 将所有数据存储在一个属性中
-        'data-track-props': JSON.stringify(dataToStore)
-      }
+        'data-track-props': JSON.stringify(dataToStore),
+      },
     },
-    children: []
+    children: [],
   };
 
   return node;
@@ -430,8 +436,16 @@ function createTrackMapNode(trackData: TrackData, displayType: string): TrackMap
 /**
  * 替换节点为轨迹地图节点的通用函数
  */
-function replaceWithTrackNode(parent: Parent, index: number, trackData: TrackData, displayType: string) {
-  (parent.children as (RootContent | TrackMapNode)[])[index] = createTrackMapNode(trackData, displayType);
+function replaceWithTrackNode(
+  parent: Parent,
+  index: number,
+  trackData: TrackData,
+  displayType: string
+) {
+  (parent.children as (RootContent | TrackMapNode)[])[index] = createTrackMapNode(
+    trackData,
+    displayType
+  );
 }
 
 // 导出类型（TrackMapsPluginOptions 已在文件开头导出）

@@ -6,7 +6,12 @@
 
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
-import type { ICacheService, CacheEntry, CacheStatistics, CacheMetadata } from '../interfaces/ICacheService.js';
+import type {
+  ICacheService,
+  CacheEntry,
+  CacheStatistics,
+  CacheMetadata,
+} from '../interfaces/ICacheService.js';
 
 /** 缓存层级定义 */
 type CacheTier = 'persistent' | 'lru';
@@ -73,7 +78,7 @@ export class IndexedDBCache implements ICacheService {
   private stats = {
     hits: 0,
     misses: 0,
-    evictions: 0
+    evictions: 0,
   };
   private cleanupTimer?: NodeJS.Timeout;
   private pollingTimer?: NodeJS.Timeout;
@@ -88,23 +93,23 @@ export class IndexedDBCache implements ICacheService {
       persistent: {
         maxCount: Infinity, // 持久层无自动数量限制（不主动清理）
         maxSizeMB: Infinity, // 持久层无自动大小限制（不主动清理）
-        defaultTTL: undefined // 持久层无自动TTL过期（不主动清理）
+        defaultTTL: undefined, // 持久层无自动TTL过期（不主动清理）
       },
       lru: {
         maxCount: 1000, // LRU层最大1000个文件
         maxSizeMB: 500, // LRU层最大500MB
-        defaultTTL: 1800000 // LRU层默认30分钟TTL
-      }
+        defaultTTL: 1800000, // LRU层默认30分钟TTL
+      },
     },
     polling: {
       enabled: false,
       interval: 300000, // 5分钟轮询一次
-      baseUrl: ''
+      baseUrl: '',
     },
     cleanup: {
       interval: 3600000, // 1小时清理一次（低频）
-      enabled: true
-    }
+      enabled: true,
+    },
   };
 
   constructor(options: IndexedDBCacheOptions = {}) {
@@ -140,10 +145,10 @@ export class IndexedDBCache implements ICacheService {
         ...this.defaultOptions.tiers,
         ...userOptions.tiers,
         persistent: { ...this.defaultOptions.tiers.persistent, ...userOptions.tiers?.persistent },
-        lru: { ...this.defaultOptions.tiers.lru, ...userOptions.tiers?.lru }
+        lru: { ...this.defaultOptions.tiers.lru, ...userOptions.tiers?.lru },
       },
       polling: { ...this.defaultOptions.polling, ...userOptions.polling },
-      cleanup: { ...this.defaultOptions.cleanup, ...userOptions.cleanup }
+      cleanup: { ...this.defaultOptions.cleanup, ...userOptions.cleanup },
     };
   }
 
@@ -156,7 +161,7 @@ export class IndexedDBCache implements ICacheService {
     const data = encoder.encode(content);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -164,7 +169,14 @@ export class IndexedDBCache implements ICacheService {
    */
   private determineTier(key: string): CacheTier {
     // 持久层关键词：metadata, file-tree, global-graph, config, settings
-    const persistentKeywords = ['metadata', 'file-tree', 'global-graph', 'config', 'settings', 'vault-info'];
+    const persistentKeywords = [
+      'metadata',
+      'file-tree',
+      'global-graph',
+      'config',
+      'settings',
+      'vault-info',
+    ];
 
     for (const keyword of persistentKeywords) {
       if (key.includes(keyword)) {
@@ -208,10 +220,12 @@ export class IndexedDBCache implements ICacheService {
     try {
       // 构造完整 URL：sourceUrl 存储的是相对路径
       const baseUrl = this.options.polling?.baseUrl || '';
-      const fullUrl = baseUrl ? `${baseUrl.replace(/\/+$/, '')}/${entry.sourceUrl}` : entry.sourceUrl!;
+      const fullUrl = baseUrl
+        ? `${baseUrl.replace(/\/+$/, '')}/${entry.sourceUrl}`
+        : entry.sourceUrl!;
 
       const response = await fetch(fullUrl, {
-        cache: 'no-cache' // 绕过浏览器缓存
+        cache: 'no-cache', // 绕过浏览器缓存
       });
       if (!response.ok) return;
 
@@ -224,7 +238,7 @@ export class IndexedDBCache implements ICacheService {
         await this.set(entry.key, content, entry.ttl, {
           tier: entry.tier,
           sourceUrl: entry.sourceUrl,
-          contentHash: currentHash
+          contentHash: currentHash,
         });
 
         // 触发上层服务更新事件
@@ -241,9 +255,11 @@ export class IndexedDBCache implements ICacheService {
   private notifyUpstreamServices(key: string, newContent: unknown): void {
     // 发送自定义事件，上层服务可以监听
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('cacheUpdated', {
-        detail: { key, content: newContent, timestamp: Date.now() }
-      }));
+      window.dispatchEvent(
+        new CustomEvent('cacheUpdated', {
+          detail: { key, content: newContent, timestamp: Date.now() },
+        })
+      );
     }
   }
 
@@ -296,7 +312,7 @@ export class IndexedDBCache implements ICacheService {
       // 更新访问时间 (LRU)
       const updatedEntry: StoredCacheEntry = {
         ...entry,
-        lastAccessed: now
+        lastAccessed: now,
       };
       await this.db!.put('cache', updatedEntry);
 
@@ -341,7 +357,7 @@ export class IndexedDBCache implements ICacheService {
       lastAccessed: now,
       tier,
       contentHash,
-      sourceUrl: metadata?.sourceUrl
+      sourceUrl: metadata?.sourceUrl,
     };
 
     // 只对LRU层执行容量检查和清理
@@ -350,10 +366,14 @@ export class IndexedDBCache implements ICacheService {
     }
 
     await this.db!.put('cache', entry);
-
   }
 
-  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T> {
+  async getOrSet<T = unknown>(
+    key: string,
+    factory: () => Promise<T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
@@ -401,7 +421,11 @@ export class IndexedDBCache implements ICacheService {
     return result;
   }
 
-  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void> {
+  async setMultiple<T = unknown>(
+    entries: Map<string, T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<void> {
     for (const [key, value] of entries) {
       await this.set(key, value, ttl, metadata);
     }
@@ -470,7 +494,7 @@ export class IndexedDBCache implements ICacheService {
         totalSize,
         hitRate: total > 0 ? this.stats.hits / total : 0,
         missRate: total > 0 ? this.stats.misses / total : 0,
-        evictions: this.stats.evictions
+        evictions: this.stats.evictions,
       };
     } catch {
       return {
@@ -478,7 +502,7 @@ export class IndexedDBCache implements ICacheService {
         totalSize: 0,
         hitRate: 0,
         missRate: 0,
-        evictions: 0
+        evictions: 0,
       };
     }
   }
@@ -558,7 +582,11 @@ export class IndexedDBCache implements ICacheService {
       tierEntries.sort((a, b) => a.lastAccessed - b.lastAccessed);
 
       // 检查数量限制
-      if (tierConfig.maxCount && tierConfig.maxCount !== Infinity && tierEntries.length > tierConfig.maxCount) {
+      if (
+        tierConfig.maxCount &&
+        tierConfig.maxCount !== Infinity &&
+        tierEntries.length > tierConfig.maxCount
+      ) {
         const toEvict = tierEntries.length - tierConfig.maxCount;
         for (let i = 0; i < toEvict; i++) {
           await store.delete(tierEntries[i].key);
@@ -668,7 +696,7 @@ export class IndexedDBCache implements ICacheService {
 
     const stats = {
       persistent: { count: 0, sizeMB: 0 },
-      lru: { count: 0, sizeMB: 0 }
+      lru: { count: 0, sizeMB: 0 },
     };
 
     try {
@@ -684,7 +712,6 @@ export class IndexedDBCache implements ICacheService {
       // 四舍五入到小数点后2位
       stats.persistent.sizeMB = Math.round(stats.persistent.sizeMB * 100) / 100;
       stats.lru.sizeMB = Math.round(stats.lru.sizeMB * 100) / 100;
-
     } catch {
       // TODO: 处理错误
     }
@@ -734,7 +761,9 @@ export class IndexedDBCache implements ICacheService {
   /**
    * 清理持久层数据（需要用户明确确认）
    */
-  async clearPersistent(confirmMessage = '确认清理所有持久层数据？这将删除 metadata.json 等核心文件的缓存'): Promise<number> {
+  async clearPersistent(
+    confirmMessage = '确认清理所有持久层数据？这将删除 metadata.json 等核心文件的缓存'
+  ): Promise<number> {
     // 在浏览器环境中要求用户确认
     if (typeof window !== 'undefined') {
       const confirmed = window.confirm(confirmMessage);
@@ -793,7 +822,6 @@ export class IndexedDBCache implements ICacheService {
         await store.delete(key);
         cleared++;
       }
-
     } catch {
       // TODO: 处理错误
     }
@@ -891,10 +919,7 @@ class NamespacedCache implements ICacheService {
   private cache: ICacheService;
   private namespaceName: string;
 
-  constructor(
-    cache: ICacheService,
-    namespaceName: string
-  ) {
+  constructor(cache: ICacheService, namespaceName: string) {
     this.cache = cache;
     this.namespaceName = namespaceName;
   }
@@ -907,11 +932,21 @@ class NamespacedCache implements ICacheService {
     return this.cache.get<T>(this.getNamespacedKey(key));
   }
 
-  async set<T = unknown>(key: string, value: T, ttl?: number, metadata?: CacheMetadata): Promise<void> {
+  async set<T = unknown>(
+    key: string,
+    value: T,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<void> {
     return this.cache.set(this.getNamespacedKey(key), value, ttl, metadata);
   }
 
-  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T> {
+  async getOrSet<T = unknown>(
+    key: string,
+    factory: () => Promise<T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<T> {
     return this.cache.getOrSet(this.getNamespacedKey(key), factory, ttl, metadata);
   }
 
@@ -924,7 +959,7 @@ class NamespacedCache implements ICacheService {
   }
 
   async getMultiple<T = unknown>(keys: string[]): Promise<Map<string, T | null>> {
-    const namespacedKeys = keys.map(k => this.getNamespacedKey(k));
+    const namespacedKeys = keys.map((k) => this.getNamespacedKey(k));
     const result = await this.cache.getMultiple<T>(namespacedKeys);
 
     // 转换回原始键名
@@ -936,7 +971,11 @@ class NamespacedCache implements ICacheService {
     return converted;
   }
 
-  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void> {
+  async setMultiple<T = unknown>(
+    entries: Map<string, T>,
+    ttl?: number,
+    metadata?: CacheMetadata
+  ): Promise<void> {
     const namespacedEntries = new Map<string, T>();
     for (const [key, value] of entries) {
       namespacedEntries.set(this.getNamespacedKey(key), value);
@@ -945,7 +984,7 @@ class NamespacedCache implements ICacheService {
   }
 
   async deleteMultiple(keys: string[]): Promise<void> {
-    const namespacedKeys = keys.map(k => this.getNamespacedKey(k));
+    const namespacedKeys = keys.map((k) => this.getNamespacedKey(k));
     return this.cache.deleteMultiple(namespacedKeys);
   }
 
@@ -956,8 +995,8 @@ class NamespacedCache implements ICacheService {
     // 移除命名空间前缀
     const prefix = `${this.namespace}:`;
     return matchingKeys
-      .filter(key => key.startsWith(prefix))
-      .map(key => key.substring(prefix.length));
+      .filter((key) => key.startsWith(prefix))
+      .map((key) => key.substring(prefix.length));
   }
 
   async deleteMatching(pattern: string): Promise<number> {

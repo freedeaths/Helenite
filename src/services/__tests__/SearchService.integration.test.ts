@@ -46,12 +46,11 @@ describe('SearchService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -93,7 +92,7 @@ describe('SearchService Integration Tests', () => {
     storageService = new StorageService({
       basePath: `${serverUrl}/vaults/Demo`,
       timeout: 10000,
-      cache: false // 禁用缓存确保测试准确性
+      cache: false, // 禁用缓存确保测试准确性
     });
     await storageService.initialize();
 
@@ -110,7 +109,6 @@ describe('SearchService Integration Tests', () => {
     it('应该能够搜索真实文件内容', async () => {
       const results = await searchService.searchContent('Welcome');
 
-
       expect(results.length).toBeGreaterThan(0);
 
       const firstResult = results[0];
@@ -119,12 +117,10 @@ describe('SearchService Integration Tests', () => {
       expect(firstResult.matches.length).toBeGreaterThan(0);
       expect(firstResult.matches[0].content).toBeDefined();
       expect(firstResult.matches[0].highlighted).toContain('search-result-file-matched-text');
-
     });
 
     it('应该能够搜索标签', async () => {
       const results = await searchService.searchByTag('#helenite');
-
 
       expect(results.length).toBeGreaterThan(0);
 
@@ -132,7 +128,6 @@ describe('SearchService Integration Tests', () => {
       expect(firstResult.filePath).toBeDefined();
       expect(firstResult.fileName).toBeDefined();
       expect(firstResult.matches.length).toBeGreaterThan(0);
-
     });
 
     it('应该能够使用统一搜索入口', async () => {
@@ -143,7 +138,6 @@ describe('SearchService Integration Tests', () => {
       // 测试标签搜索
       const tagResults = await searchService.search('#react');
       expect(tagResults.length).toBeGreaterThanOrEqual(0);
-
     });
 
     it('应该支持搜索选项', async () => {
@@ -152,11 +146,12 @@ describe('SearchService Integration Tests', () => {
       expect(limitedResults.length).toBeLessThanOrEqual(2);
 
       // 测试每文件匹配限制
-      const matchLimitedResults = await searchService.searchContent('the', { maxMatchesPerFile: 1 });
-      matchLimitedResults.forEach(result => {
+      const matchLimitedResults = await searchService.searchContent('the', {
+        maxMatchesPerFile: 1,
+      });
+      matchLimitedResults.forEach((result) => {
         expect(result.matches.length).toBeLessThanOrEqual(1);
       });
-
     });
   });
 
@@ -173,8 +168,7 @@ describe('SearchService Integration Tests', () => {
 
       // 验证搜索服务能使用该内容
       const results = await searchService.searchContent('Welcome');
-      expect(results.some(r => r.filePath === testFile)).toBe(true);
-
+      expect(results.some((r) => r.filePath === testFile)).toBe(true);
     });
 
     it('应该能够与 MetadataService 正确集成', async () => {
@@ -185,7 +179,6 @@ describe('SearchService Integration Tests', () => {
       // 验证搜索服务能使用元数据
       const results = await searchService.search('test-query-that-might-not-exist');
       expect(Array.isArray(results)).toBe(true);
-
     });
 
     it('应该能够获取搜索统计信息', async () => {
@@ -194,7 +187,6 @@ describe('SearchService Integration Tests', () => {
       expect(stats.totalFiles).toBeGreaterThan(0);
       expect(stats.searchTime).toBeGreaterThan(0);
       expect(Array.isArray(stats.topFolders)).toBe(true);
-
     });
   });
 
@@ -214,10 +206,9 @@ describe('SearchService Integration Tests', () => {
       expect(filteredResults.length).toBeLessThanOrEqual(allResults.length);
 
       // 验证所有过滤结果都以指定前缀开头
-      filteredResults.forEach(result => {
+      filteredResults.forEach((result) => {
         expect(result.filePath.startsWith('Features/')).toBe(true);
       });
-
     });
 
     it('应该支持高亮搜索结果', async () => {
@@ -225,14 +216,12 @@ describe('SearchService Integration Tests', () => {
       const highlighted = searchService.highlightSearchResults(content, 'React');
 
       expect(highlighted).toContain('<span class="search-result-file-matched-text">React</span>');
-
     });
 
     it('应该验证搜索查询', () => {
       expect(searchService.validateSearchQuery('valid query')).toBe(true);
       expect(searchService.validateSearchQuery('')).toBe(false);
       expect(searchService.validateSearchQuery('a'.repeat(101))).toBe(false);
-
     });
   });
 
@@ -259,7 +248,6 @@ describe('SearchService Integration Tests', () => {
 
       // 第二次应该更快（缓存效果）
       expect(time2).toBeLessThan(time1);
-
     });
 
     it('应该能够刷新缓存', async () => {
@@ -274,7 +262,6 @@ describe('SearchService Integration Tests', () => {
       // 验证缓存已清空（通过检查缓存统计）
       const stats = await searchService.getCacheStats();
       expect(typeof stats.searchCacheSize).toBe('number');
-
     });
 
     it('应该在合理时间内完成搜索', async () => {
@@ -284,7 +271,6 @@ describe('SearchService Integration Tests', () => {
 
       // 搜索应该在 5 秒内完成
       expect(searchTime).toBeLessThan(5000);
-
     });
   });
 
@@ -304,7 +290,6 @@ describe('SearchService Integration Tests', () => {
 
       // 恢复原始 vault
       searchService.switchVault(originalVault.id);
-
     });
 
     it('应该返回正确的 vault 信息', () => {
@@ -312,7 +297,6 @@ describe('SearchService Integration Tests', () => {
 
       expect(vaultInfo.id).toBe('Demo');
       expect(vaultInfo.path).toBe('/vaults/Demo');
-
     });
   });
 
@@ -322,17 +306,17 @@ describe('SearchService Integration Tests', () => {
 
   describe('错误处理', () => {
     it('应该处理不存在的文件搜索', async () => {
-      const results = await searchService.searchContent('this-definitely-does-not-exist-in-any-file');
+      const results = await searchService.searchContent(
+        'this-definitely-does-not-exist-in-any-file'
+      );
 
       expect(results).toEqual([]);
-
     });
 
     it('应该处理不存在的标签搜索', async () => {
       const results = await searchService.searchByTag('#nonexistent-tag');
 
       expect(results).toEqual([]);
-
     });
 
     it('应该处理特殊字符查询', async () => {
@@ -342,7 +326,6 @@ describe('SearchService Integration Tests', () => {
         const results = await searchService.searchContent(query);
         expect(Array.isArray(results)).toBe(true);
       }
-
     });
 
     it('应该处理空查询', async () => {
@@ -352,7 +335,6 @@ describe('SearchService Integration Tests', () => {
         const results = await searchService.search(query);
         expect(results).toEqual([]);
       }
-
     });
   });
 
@@ -362,7 +344,6 @@ describe('SearchService Integration Tests', () => {
 
   describe('业务场景集成', () => {
     it('应该支持复杂的搜索工作流', async () => {
-
       // 1. 全文搜索找到相关文档
       const contentResults = await searchService.searchContent('React');
 
@@ -385,21 +366,18 @@ describe('SearchService Integration Tests', () => {
       expect(contentResults).toBeDefined();
       expect(tagResults).toBeDefined();
       expect(stats).toBeDefined();
-
     });
 
     it('应该支持批量搜索操作', async () => {
       const queries = ['React', 'component', 'state', 'props'];
       const allResults = [];
 
-
       for (const query of queries) {
         const results = await searchService.searchContent(query);
         allResults.push({ query, count: results.length });
       }
 
-      expect(allResults.every(r => typeof r.count === 'number')).toBe(true);
-
+      expect(allResults.every((r) => typeof r.count === 'number')).toBe(true);
     });
   });
 });

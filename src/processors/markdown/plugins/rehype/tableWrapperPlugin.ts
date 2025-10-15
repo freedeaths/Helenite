@@ -1,6 +1,6 @@
 /**
  * Table wrapper rehype 插件
- * 
+ *
  * 为表格添加响应式容器包装，确保在小屏幕上可以水平滚动
  */
 
@@ -12,7 +12,7 @@ export interface TableWrapperOptions {
 }
 
 const DEFAULT_OPTIONS: TableWrapperOptions = {
-  wrapperClassName: 'table-container'
+  wrapperClassName: 'table-container',
 };
 
 /**
@@ -29,9 +29,9 @@ export function tableWrapperPlugin(options: TableWrapperOptions = {}) {
           type: 'element',
           tagName: 'div',
           properties: {
-            className: [opts.wrapperClassName || 'table-container']
+            className: [opts.wrapperClassName || 'table-container'],
           },
-          children: [node]
+          children: [node],
         };
 
         // 替换表格为包装后的表格

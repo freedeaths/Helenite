@@ -23,9 +23,17 @@ import { CacheManager } from '../services/CacheManager.js';
 import type { FileTree } from '../types/vaultTypes.js';
 import type { TagData } from '../services/interfaces/ITagService.js';
 import type { GraphNode, GraphEdge } from '../services/interfaces/IGraphService.js';
-import type { FootprintsData, FootprintsConfig } from '../services/interfaces/IFootprintsService.js';
+import type {
+  FootprintsData,
+  FootprintsConfig,
+} from '../services/interfaces/IFootprintsService.js';
 import type { SearchOptions } from '../services/SearchService.js';
-import type { IVaultService, UnifiedSearchOptions, UnifiedSearchResult, DocumentRef } from '../services/interfaces/IVaultService.js';
+import type {
+  IVaultService,
+  UnifiedSearchOptions,
+  UnifiedSearchResult,
+  DocumentRef,
+} from '../services/interfaces/IVaultService.js';
 
 /**
  * 统一的 Vault API 接口
@@ -79,14 +87,17 @@ export interface VaultAPI {
   getFileTree(): Promise<FileTree[]>;
 
   // === 搜索功能 ===
-  search(query: string, options?: {
-    type?: 'content' | 'tag' | 'filename' | 'all';
-    scope?: string;
-    fileTypes?: string[];
-    includeAttachments?: boolean;
-    limit?: number;
-    sortBy?: 'relevance' | 'modified' | 'created' | 'alphabetical';
-  }): Promise<UnifiedSearchResult[]>;
+  search(
+    query: string,
+    options?: {
+      type?: 'content' | 'tag' | 'filename' | 'all';
+      scope?: string;
+      fileTypes?: string[];
+      includeAttachments?: boolean;
+      limit?: number;
+      sortBy?: 'relevance' | 'modified' | 'created' | 'alphabetical';
+    }
+  ): Promise<UnifiedSearchResult[]>;
 
   searchByTag(tagName: string): Promise<UnifiedSearchResult[]>;
 
@@ -144,7 +155,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const storageConfig = {
       basePath: VAULT_CONFIG.VAULT_BASE_URL,
       timeout: 10000, // 增加超时时间
-      cache: true
+      cache: true,
     };
 
     // 3. 创建并缓存所有基础服务
@@ -170,7 +181,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const searchService = new SearchService(
       cachedStorage,
       cachedMetadata,
-      'Demo'  // vaultId
+      'Demo' // vaultId
     );
     const cachedSearch = cacheManager.createCachedSearchService(searchService);
 
@@ -204,8 +215,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
               tagSearch: hasMetadata,
               advancedSearch: true,
               fileLinks: hasMetadata,
-              footprints: true
-            }
+              footprints: true,
+            },
           };
         } catch {
           // console.warn('getVaultInfo 失败，返回默认值:', error);
@@ -218,8 +229,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
               tagSearch: false,
               advancedSearch: true,
               fileLinks: false,
-              footprints: true
-            }
+              footprints: true,
+            },
           };
         }
       },
@@ -229,7 +240,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           const [fileTree, tags, graph] = await Promise.all([
             cachedFileTree.getFileTree().catch(() => []),
             cachedTag.getAllTags().catch(() => []),
-            cachedGraph.getGlobalGraph().catch(() => ({ nodes: [], edges: [] }))
+            cachedGraph.getGlobalGraph().catch(() => ({ nodes: [], edges: [] })),
           ]);
 
           const countFiles = (tree: FileTree[]): number => {
@@ -257,7 +268,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
             totalLinks: graph.edges.length,
             graphNodes: graph.nodes.length,
             graphEdges: graph.edges.length,
-            trackFiles: 0 // TODO: 实现轨迹文件统计
+            trackFiles: 0, // TODO: 实现轨迹文件统计
           };
         } catch {
           // console.warn('getVaultStatistics 失败，返回默认值:', error);
@@ -268,7 +279,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
             totalLinks: 15,
             graphNodes: 20,
             graphEdges: 15,
-            trackFiles: 2
+            trackFiles: 2,
           };
         }
       },
@@ -279,28 +290,31 @@ async function createVaultAPI(): Promise<VaultAPI> {
           metadata: 'healthy' as const,
           cache: 'healthy' as const,
           search: 'healthy' as const,
-          graph: 'healthy' as const
+          graph: 'healthy' as const,
         };
 
         try {
           // 测试基本功能
           await Promise.all([
             cachedStorage.initialize?.() || Promise.resolve(),
-            cachedMetadata.getMetadata().then(() => true).catch(() => false)
+            cachedMetadata
+              .getMetadata()
+              .then(() => true)
+              .catch(() => false),
           ]);
         } catch {
           // console.warn('健康检查发现问题:', error);
           return {
             status: 'degraded' as const,
             services: { ...services, storage: 'degraded' as const },
-            details: ['存储服务连接异常']
+            details: ['存储服务连接异常'],
           };
         }
 
         return {
           status: 'healthy' as const,
           services,
-          details: []
+          details: [],
         };
       },
 
@@ -319,7 +333,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
         }
 
         // 检查是否返回了 HTML（Vite 开发服务器对不存在的文件返回 index.html）
-        if (textContent.includes('<!DOCTYPE html>') || textContent.includes('<html') || textContent.includes('</script>')) {
+        if (
+          textContent.includes('<!DOCTYPE html>') ||
+          textContent.includes('<html') ||
+          textContent.includes('</script>')
+        ) {
           const error = new Error(`File not found: ${path}`);
           (error as unknown as Record<string, unknown>).type = 'FILE_NOT_FOUND';
           throw error;
@@ -334,18 +352,28 @@ async function createVaultAPI(): Promise<VaultAPI> {
           return {
             path,
             type: 'markdown' as const,
-            title: (metadata?.fileName as string) || path.split('/').pop()?.replace('.md', '') || 'Untitled',
+            title:
+              (metadata?.fileName as string) ||
+              path.split('/').pop()?.replace('.md', '') ||
+              'Untitled',
             tags: metadata?.tags || [],
             aliases: metadata?.aliases || [],
             frontmatter: (metadata?.frontmatter as Record<string, unknown>) || {},
-            headings: (metadata?.headings || []).map(h => ({ level: h.level, text: h.heading, id: `heading-${h.level}-${h.heading.replace(/\s+/g, '-').toLowerCase()}` })),
-            links: (metadata?.links || []).map(l => ({ path: l.link, text: l.displayText || l.link })),
-            backlinks: (metadata?.backlinks || []).map(b => ({
+            headings: (metadata?.headings || []).map((h) => ({
+              level: h.level,
+              text: h.heading,
+              id: `heading-${h.level}-${h.heading.replace(/\s+/g, '-').toLowerCase()}`,
+            })),
+            links: (metadata?.links || []).map((l) => ({
+              path: l.link,
+              text: l.displayText || l.link,
+            })),
+            backlinks: (metadata?.backlinks || []).map((b) => ({
               sourcePath: b.relativePath,
               sourceTitle: b.fileName || b.link,
               context: '', // TODO: 从实际内容中提取上下文
-              line: 0      // TODO: 从实际内容中提取行号
-            }))
+              line: 0, // TODO: 从实际内容中提取行号
+            })),
           };
         } catch {
           // console.warn(`获取文档信息失败 ${path}:`, error);
@@ -358,7 +386,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
             frontmatter: {},
             headings: [],
             links: [],
-            backlinks: []
+            backlinks: [],
           };
         }
       },
@@ -369,17 +397,20 @@ async function createVaultAPI(): Promise<VaultAPI> {
           const [content, metadata, localGraph] = await Promise.all([
             api.getDocumentContent(path),
             cachedMetadata.getFileMetadata(path).catch(() => null),
-            cachedGraph.getLocalGraph(path).catch(() => ({ nodes: [], edges: [] }))
+            cachedGraph.getLocalGraph(path).catch(() => ({ nodes: [], edges: [] })),
           ]);
 
-          const backlinks = (metadata?.backlinks || []).map(b => ({ path: b.relativePath, text: b.fileName || b.link }));
+          const backlinks = (metadata?.backlinks || []).map((b) => ({
+            path: b.relativePath,
+            text: b.fileName || b.link,
+          }));
 
           return {
             content,
             metadata: (metadata as unknown as Record<string, unknown>) || {},
             localGraph,
             backlinks,
-            hasGraph: localGraph.nodes.length > 1 // 超过当前文件本身
+            hasGraph: localGraph.nodes.length > 1, // 超过当前文件本身
           };
         } catch {
           // console.warn(`获取文档上下文失败 ${path}:`, error);
@@ -389,7 +420,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
             metadata: {} as Record<string, unknown>,
             localGraph: { nodes: [], edges: [] },
             backlinks: [],
-            hasGraph: false
+            hasGraph: false,
           };
         }
       },
@@ -405,25 +436,25 @@ async function createVaultAPI(): Promise<VaultAPI> {
         const searchOptions: SearchOptions = {
           includeContent: options.type === 'content' || options.type === 'all',
           fileTypes: options.fileTypes,
-          limit: options.limit
+          limit: options.limit,
         };
 
         const searchResults = await cachedSearch.search(query, searchOptions);
 
         // 转换结果格式: SearchResult[] -> UnifiedSearchResult[]
-        return searchResults.map(result => ({
+        return searchResults.map((result) => ({
           document: {
             path: result.filePath,
             title: result.fileName,
-            type: 'markdown' as const
+            type: 'markdown' as const,
           },
-          matches: result.matches.map(match => ({
+          matches: result.matches.map((match) => ({
             type: 'content' as const,
             value: match.content,
             context: match.highlighted,
-            line: match.lineNumber
+            line: match.lineNumber,
           })),
-          score: result.matchCount / 10 // 简单评分算法
+          score: result.matchCount / 10, // 简单评分算法
         }));
       },
 
@@ -431,19 +462,19 @@ async function createVaultAPI(): Promise<VaultAPI> {
         const searchResults = await cachedSearch.searchByTag(tagName);
 
         // 转换结果格式: SearchResult[] -> UnifiedSearchResult[]
-        return searchResults.map(result => ({
+        return searchResults.map((result) => ({
           document: {
             path: result.filePath,
             title: result.fileName,
-            type: 'markdown' as const
+            type: 'markdown' as const,
           },
-          matches: result.matches.map(match => ({
+          matches: result.matches.map((match) => ({
             type: 'tag' as const,
             value: match.content,
             context: match.highlighted,
-            line: match.lineNumber
+            line: match.lineNumber,
           })),
-          score: result.matchCount / 10
+          score: result.matchCount / 10,
         }));
       },
 
@@ -461,7 +492,11 @@ async function createVaultAPI(): Promise<VaultAPI> {
         return cachedGraph.getGlobalGraph();
       },
 
-      async getLocalGraph(options: { centerPath: string; depth?: number; includeOrphans?: boolean }) {
+      async getLocalGraph(options: {
+        centerPath: string;
+        depth?: number;
+        includeOrphans?: boolean;
+      }) {
         return cachedGraph.getLocalGraph(options.centerPath, options);
       },
 
@@ -480,7 +515,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         tag: cachedTag as unknown,
         footprints: cachedFootprints as unknown,
         frontMatter: cachedFrontMatter as unknown,
-        exif: cachedExif as unknown
+        exif: cachedExif as unknown,
       },
 
       // === 缓存管理 ===
@@ -493,16 +528,15 @@ async function createVaultAPI(): Promise<VaultAPI> {
           return {
             totalEntries: stats.totalEntries,
             totalSize: stats.totalSize,
-            hitRate: stats.hitRate
+            hitRate: stats.hitRate,
           };
-        }
-      }
+        },
+      },
     };
 
     // console.log('🎉 统一 Vault API 创建成功！');
 
     return api;
-
   } catch {
     // console.error('❌ VaultAPI 创建失败，使用降级方案:', error);
 
@@ -518,8 +552,8 @@ async function createVaultAPI(): Promise<VaultAPI> {
             tagSearch: false,
             advancedSearch: true,
             fileLinks: false,
-            footprints: false
-          }
+            footprints: false,
+          },
         };
       },
 
@@ -531,7 +565,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           totalLinks: 0,
           graphNodes: 0,
           graphEdges: 0,
-          trackFiles: 0
+          trackFiles: 0,
         };
       },
 
@@ -543,9 +577,9 @@ async function createVaultAPI(): Promise<VaultAPI> {
             metadata: 'unhealthy' as const,
             cache: 'unhealthy' as const,
             search: 'unhealthy' as const,
-            graph: 'unhealthy' as const
+            graph: 'unhealthy' as const,
           },
-          details: ['服务初始化失败，运行在降级模式']
+          details: ['服务初始化失败，运行在降级模式'],
         };
       },
 
@@ -563,7 +597,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           frontmatter: {},
           headings: [],
           links: [],
-          backlinks: []
+          backlinks: [],
         };
       },
 
@@ -574,7 +608,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           metadata: {} as Record<string, unknown>,
           localGraph: { nodes: [], edges: [] },
           backlinks: [],
-          hasGraph: false
+          hasGraph: false,
         };
       },
 
@@ -619,15 +653,15 @@ async function createVaultAPI(): Promise<VaultAPI> {
         tag: {} as unknown,
         footprints: {} as unknown,
         frontMatter: {} as unknown,
-        exif: {} as unknown
+        exif: {} as unknown,
       },
 
       cache: {
-        async clear() { },
+        async clear() {},
         async getStats() {
           return { totalEntries: 0, totalSize: 0, hitRate: 0 };
-        }
-      }
+        },
+      },
     };
 
     // console.log('✅ 降级 VaultAPI 创建成功');
@@ -640,13 +674,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
  * 提供缓存优化的数据访问接口
  */
 export function useVaultService() {
-  const {
-    vaultService,
-    initializeVaultService,
-    loading,
-    error,
-    vaultInfo
-  } = useVaultStore();
+  const { vaultService, initializeVaultService, loading, error, vaultInfo } = useVaultStore();
 
   // 使用 useMemo 确保 API 只创建一次
   const vaultAPI = useMemo(() => {
@@ -662,7 +690,7 @@ export function useVaultService() {
         apiPromise = createVaultAPI();
         api = await apiPromise;
         return api;
-      }
+      },
     };
   }, []); // 空依赖数组，确保只创建一次
 
@@ -689,7 +717,7 @@ export function useVaultService() {
         getAllTags: api.getAllTags,
         getFilesByTag: api.getFilesByTag,
         getGlobalGraph: api.getGlobalGraph,
-        getLocalGraph: api.getLocalGraph
+        getLocalGraph: api.getLocalGraph,
       };
 
       await initializeVaultService(mockVaultService as unknown as IVaultService);
@@ -742,7 +770,7 @@ export function useVaultService() {
     async getCacheStats() {
       const api = await vaultAPI.getAPI();
       return api.cache.getStats();
-    }
+    },
   };
 }
 

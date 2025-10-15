@@ -35,9 +35,7 @@ export function Backlinks() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-sm font-medium text-[var(--text-normal)] mb-3">
-        🔗 反向链接
-      </div>
+      <div className="text-sm font-medium text-[var(--text-normal)] mb-3">🔗 反向链接</div>
 
       {backlinks.length > 0 ? (
         <div className="flex-1 overflow-auto space-y-2">
@@ -49,11 +47,12 @@ export function Backlinks() {
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="text-sm font-medium text-[var(--text-normal)] truncate">
-                  📄 {backlink.sourceTitle || backlink.sourcePath.split('/').pop()?.replace('.md', '') || 'Untitled'}
+                  📄{' '}
+                  {backlink.sourceTitle ||
+                    backlink.sourcePath.split('/').pop()?.replace('.md', '') ||
+                    'Untitled'}
                 </div>
-                <div className="text-xs text-[var(--text-muted)] flex-shrink-0 ml-2">
-                  链接
-                </div>
+                <div className="text-xs text-[var(--text-muted)] flex-shrink-0 ml-2">链接</div>
               </div>
 
               {backlink.context && (
@@ -77,13 +76,9 @@ export function Backlinks() {
           ))}
         </div>
       ) : activeFile ? (
-        <div className="text-sm text-[var(--text-muted)] italic">
-          当前文档无反向链接
-        </div>
+        <div className="text-sm text-[var(--text-muted)] italic">当前文档无反向链接</div>
       ) : (
-        <div className="text-sm text-[var(--text-muted)] italic">
-          选择一个文档查看反向链接
-        </div>
+        <div className="text-sm text-[var(--text-muted)] italic">选择一个文档查看反向链接</div>
       )}
 
       {/* 统计信息 */}
@@ -94,7 +89,7 @@ export function Backlinks() {
         </div>
         {backlinks.length > 0 && (
           <div className="mt-1 text-[var(--text-faint)]">
-            来自 {new Set(backlinks.map(b => b.sourceTitle || b.sourcePath)).size} 个不同文档
+            来自 {new Set(backlinks.map((b) => b.sourceTitle || b.sourcePath)).size} 个不同文档
           </div>
         )}
       </div>

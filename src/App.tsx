@@ -8,8 +8,12 @@ import { useVaultService } from './hooks/useVaultService';
 
 // 条件性懒加载开发工具 - 只在开发环境加载
 const DevToolsPanel = import.meta.env.DEV
-  ? React.lazy(() => import('./components/DevTools/DevToolsPanel').then(m => ({ default: m.DevToolsPanel })))
-  : React.lazy(() => import('./components/DevTools/NoOpDevTools').then(m => ({ default: m.DevToolsPanel })));
+  ? React.lazy(() =>
+      import('./components/DevTools/DevToolsPanel').then((m) => ({ default: m.DevToolsPanel }))
+    )
+  : React.lazy(() =>
+      import('./components/DevTools/NoOpDevTools').then((m) => ({ default: m.DevToolsPanel }))
+    );
 
 function App() {
   // 初始化 VaultService 集成
@@ -25,13 +29,15 @@ function App() {
   if (loading) {
     return (
       <MantineProvider defaultColorScheme="light">
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '18px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            fontSize: '18px',
+          }}
+        >
           🚀 初始化新架构 VaultService...
         </div>
       </MantineProvider>
@@ -42,18 +48,18 @@ function App() {
   if (error) {
     return (
       <MantineProvider defaultColorScheme="light">
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          color: 'red'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            color: 'red',
+          }}
+        >
           <div>❌ 新架构初始化失败</div>
-          <div style={{ marginTop: '10px', fontSize: '14px' }}>
-            {error}
-          </div>
+          <div style={{ marginTop: '10px', fontSize: '14px' }}>{error}</div>
         </div>
       </MantineProvider>
     );

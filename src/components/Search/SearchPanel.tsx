@@ -24,7 +24,7 @@ export function SearchPanel() {
         // 内容搜索
         results = await vaultService.search(searchQuery, {
           type: 'content',
-          limit: 20
+          limit: 20,
         });
       } else {
         // 标签搜索
@@ -56,8 +56,9 @@ export function SearchPanel() {
       // Perform the search immediately
       if (vaultService) {
         setIsSearching(true);
-        vaultService.searchByTag(tag)
-          .then(results => {
+        vaultService
+          .searchByTag(tag)
+          .then((results) => {
             setSearchResults(results);
           })
           .catch(() => {
@@ -134,7 +135,8 @@ export function SearchPanel() {
                 className="p-2 bg-[var(--background-modifier-hover)] rounded hover:bg-[var(--background-modifier-border)] cursor-pointer"
               >
                 <div className="text-sm font-medium text-[var(--text-normal)] mb-1">
-                  📄 {result.document?.title || result.document?.path?.split('/').pop() || 'Unknown'}
+                  📄{' '}
+                  {result.document?.title || result.document?.path?.split('/').pop() || 'Unknown'}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mb-1">
                   路径: {result.document?.path}
@@ -142,20 +144,18 @@ export function SearchPanel() {
                 {result.matches?.map((match, matchIndex: number) => (
                   <div key={matchIndex} className="text-xs text-[var(--text-muted)]">
                     <span className="mr-2">第 {match.line} 行:</span>
-                    <span dangerouslySetInnerHTML={{ __html: match.context || match.value || '' }} />
+                    <span
+                      dangerouslySetInnerHTML={{ __html: match.context || match.value || '' }}
+                    />
                   </div>
                 ))}
               </div>
             ))}
           </div>
         ) : searchQuery && !isSearching ? (
-          <div className="text-sm text-[var(--text-muted)] italic">
-            未找到匹配结果
-          </div>
+          <div className="text-sm text-[var(--text-muted)] italic">未找到匹配结果</div>
         ) : (
-          <div className="text-sm text-[var(--text-muted)] italic">
-            输入关键词开始搜索
-          </div>
+          <div className="text-sm text-[var(--text-muted)] italic">输入关键词开始搜索</div>
         )}
       </div>
 

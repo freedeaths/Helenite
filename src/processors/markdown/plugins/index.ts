@@ -1,6 +1,6 @@
 /**
  * Markdown 插件统一入口
- * 
+ *
  * 导出所有 remark 和 rehype 插件
  */
 
@@ -25,7 +25,12 @@ export type { ObsidianTagsOptions } from './remark/obsidianTagsPlugin.js';
 export type { ObsidianHighlightsOptions } from './remark/obsidianHighlightsPlugin.js';
 export type { ObsidianCalloutsOptions } from './remark/obsidianCalloutsPlugin.js';
 export type { TableWrapperOptions } from './rehype/tableWrapperPlugin.js';
-export type { TrackMapsPluginOptions, TrackData, SingleTrack, LeafletConfig } from './remark/trackMapsPlugin.js';
+export type {
+  TrackMapsPluginOptions,
+  TrackData,
+  SingleTrack,
+  LeafletConfig,
+} from './remark/trackMapsPlugin.js';
 export type { TrackMapRendererOptions } from './rehype/trackMapRenderer.js';
 // export type { MermaidRendererOptions } from './rehype/mermaidRenderer.js';
 // export type { MermaidPluginOptions, MermaidData } from './remark/mermaidPlugin.js';

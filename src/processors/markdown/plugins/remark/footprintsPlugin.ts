@@ -1,11 +1,11 @@
 /**
  * Footprints 聚合地图插件
- * 
+ *
  * 专门处理足迹聚合地图的高级功能：
  * 1. 解析 footprints 配置
  * 2. 整合多数据源（用户输入、轨迹文件、照片EXIF）
  * 3. 生成统一的地图组件配置
- * 
+ *
  * 基于现有的 FootprintsService 架构
  */
 
@@ -25,12 +25,12 @@ export interface FootprintsPluginOptions {
 export interface FootprintsConfig {
   // 用户输入的城市列表
   userInputs?: string[];
-  
+
   // 附件路径扫描
   attachmentsPath?: string;
   includeTracks?: boolean;
   includePhotos?: boolean;
-  
+
   // 可视化配置
   locationType?: 'centerPoint' | 'bounds';
   clustering?: {
@@ -38,13 +38,13 @@ export interface FootprintsConfig {
     maxDistance: number; // km
     minPoints: number;
   };
-  
+
   // 时间过滤
   timeFilter?: {
     start: string;
     end: string;
   };
-  
+
   // 地图样式
   style?: {
     showTracks?: boolean;
@@ -95,13 +95,13 @@ export function footprintsPlugin(_options: FootprintsPluginOptions = {}) {
       const estimatedData = {
         tracksCount: 0,
         locationsCount: 0,
-        photosCount: 0
+        photosCount: 0,
       };
-      
+
       const footprintsData: FootprintsData = {
         id: `footprints-${footprintsId++}`,
         config,
-        estimatedData
+        estimatedData,
       };
 
       // 替换为自定义 footprints 节点
@@ -112,10 +112,10 @@ export function footprintsPlugin(_options: FootprintsPluginOptions = {}) {
           hProperties: {
             className: ['footprints-map-container'],
             'data-footprints-id': footprintsData.id,
-            'data-footprints-config': JSON.stringify(config)
-          }
+            'data-footprints-config': JSON.stringify(config),
+          },
         },
-        children: []
+        children: [],
       } as MdastNode;
     });
   };
@@ -129,15 +129,15 @@ export const DEFAULT_FOOTPRINTS_CONFIG: Partial<FootprintsConfig> = {
   clustering: {
     enabled: true,
     maxDistance: 50,
-    minPoints: 3
+    minPoints: 3,
   },
   style: {
     showTracks: true,
     showPhotos: true,
     trackColor: '#3b82f6',
     visitedColor: '#10b981',
-    plannedColor: '#f59e0b'
-  }
+    plannedColor: '#f59e0b',
+  },
 };
 
 // 类型已在文件顶部导出

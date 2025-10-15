@@ -57,9 +57,9 @@ export function mermaidRenderer() {
           tagName: 'MermaidDiagram',
           properties: {
             code: diagram.code,
-            id: diagram.id
+            id: diagram.id,
           },
-          children: []
+          children: [],
         };
 
         // console.log('🎨 mermaidRenderer: Creating MermaidDiagram element:', {
@@ -75,14 +75,14 @@ export function mermaidRenderer() {
         const parts: HastNode[] = [];
         let lastIndex = 0;
 
-        matches.forEach(match => {
+        matches.forEach((match) => {
           const matchIndex = text.indexOf(match, lastIndex);
 
           // 添加占位符前的文本
           if (matchIndex > lastIndex) {
             parts.push({
               type: 'text',
-              value: text.substring(lastIndex, matchIndex)
+              value: text.substring(lastIndex, matchIndex),
             } as HastNode);
           }
 
@@ -94,9 +94,9 @@ export function mermaidRenderer() {
               tagName: 'MermaidDiagram',
               properties: {
                 code: diagram.code,
-                id: diagram.id
+                id: diagram.id,
               },
-              children: []
+              children: [],
             } as HastElement);
           }
 
@@ -107,7 +107,7 @@ export function mermaidRenderer() {
         if (lastIndex < text.length) {
           parts.push({
             type: 'text',
-            value: text.substring(lastIndex)
+            value: text.substring(lastIndex),
           } as HastNode);
         }
 

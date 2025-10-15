@@ -16,9 +16,7 @@ interface TrackNode extends Node {
 
 describe('trackMapsPlugin', () => {
   const createProcessor = () => {
-    return unified()
-      .use(remarkParse)
-      .use(trackMapsPlugin, true);
+    return unified().use(remarkParse).use(trackMapsPlugin, true);
   };
 
   describe('GPX 代码块', () => {
@@ -38,7 +36,7 @@ describe('trackMapsPlugin', () => {
       // 查找 trackMap 节点
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.type).toBe('single-track');
       expect(trackNode.trackData?.format).toBe('gpx');
@@ -59,7 +57,7 @@ describe('trackMapsPlugin', () => {
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.format).toBe('kml');
       expect(trackNode.trackData?.content).toContain('<kml>');
@@ -76,7 +74,7 @@ describe('trackMapsPlugin', () => {
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.type).toBe('single-track');
       expect(trackNode.trackData?.format).toBe('gpx');
@@ -93,7 +91,7 @@ describe('trackMapsPlugin', () => {
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.format).toBe('kml');
       expect(trackNode.trackData?.filePath).toBe('city-walk.kml');
@@ -108,7 +106,7 @@ describe('trackMapsPlugin', () => {
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(3);
-      
+
       expect((trackMapNodes[0] as TrackNode).trackData?.filePath).toBe('day1.gpx');
       expect((trackMapNodes[1] as TrackNode).trackData?.filePath).toBe('day2.kml');
       expect((trackMapNodes[2] as TrackNode).trackData?.filePath).toBe('day3.gpx');
@@ -130,7 +128,7 @@ zoom: 12
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.type).toBe('single-track');
       expect(trackNode.trackData?.format).toBe('leaflet');
@@ -155,12 +153,12 @@ zoom: 10
 
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(1);
-      
+
       const trackNode = trackMapNodes[0] as TrackNode;
       expect(trackNode.trackData?.type).toBe('multi-track');
       expect(trackNode.trackData?.format).toBe('leaflet');
       expect(trackNode.trackData?.tracks).toHaveLength(3);
-      
+
       expect(trackNode.trackData?.tracks?.[0]?.filePath).toBe('track1.gpx');
       expect(trackNode.trackData?.tracks?.[1]?.filePath).toBe('track2.gpx');
       expect(trackNode.trackData?.tracks?.[2]?.filePath).toBe('track3.kml');
@@ -177,10 +175,10 @@ invalid: yaml: content
 
       const processor = createProcessor();
       const ast = processor.parse(markdown);
-      
+
       // 应该不会抛出错误，保持原始代码块
       expect(() => processor.runSync(ast)).not.toThrow();
-      
+
       const trackMapNodes = findNodesOfType(ast, 'trackMap');
       expect(trackMapNodes).toHaveLength(0); // 解析失败，保持原样
     });

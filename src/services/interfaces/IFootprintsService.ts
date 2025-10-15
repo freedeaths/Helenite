@@ -1,6 +1,6 @@
 /**
  * FootprintsService 接口定义
- * 
+ *
  * 统一的足迹数据管理服务，支持：
  * - GPX/KML 轨迹文件解析（多厂商支持）
  * - 地理位置数据聚合（用户输入 + 照片 EXIF）
@@ -31,10 +31,10 @@ export interface TrackPhoto {
 }
 
 export interface TrackData {
-  id: string;                       // 唯一标识
-  name?: string;                    // 轨迹名称
-  waypoints: TrackPoint[];          // 航点/兴趣点（主要坐标数据）
-  placemarks: TrackPhoto[];         // 照片标记（替代 photos，与 KML 术语一致）
+  id: string; // 唯一标识
+  name?: string; // 轨迹名称
+  waypoints: TrackPoint[]; // 航点/兴趣点（主要坐标数据）
+  placemarks: TrackPhoto[]; // 照片标记（替代 photos，与 KML 术语一致）
   provider?: 'yamap' | 'garmin' | '2bulu' | 'foooooot' | 'google' | 'unknown'; // 数据提供商
   style: {
     color: string;
@@ -43,8 +43,8 @@ export interface TrackData {
   };
   metadata?: {
     source: 'gpx' | 'kml';
-    totalDistance?: number;      // 米
-    totalTime?: number;          // 分钟
+    totalDistance?: number; // 米
+    totalTime?: number; // 分钟
     maxElevation?: number;
     minElevation?: number;
     bounds?: GeoBounds;
@@ -54,25 +54,25 @@ export interface TrackData {
 export interface LocationData {
   id: string;
   type: 'country' | 'state' | 'city';
-  name: string;                     // 标准化名称
-  displayName: string;              // 显示名称（支持多语言）
-  
+  name: string; // 标准化名称
+  displayName: string; // 显示名称（支持多语言）
+
   // 访问状态（足迹地图区分渲染）
-  visitStatus: 'visited' | 'wantToVisit';  // 去过 | 想去
-  
+  visitStatus: 'visited' | 'wantToVisit'; // 去过 | 想去
+
   // 可视化选项（两种渲染方式）
   visualization: {
-    centerPoint: [number, number];    // 中心点坐标（点标记方式）
-    bounds?: GeoBounds;               // 区域边界（区域多边形方式）
+    centerPoint: [number, number]; // 中心点坐标（点标记方式）
+    bounds?: GeoBounds; // 区域边界（区域多边形方式）
   };
-  
+
   // 聚合统计
   aggregation: {
-    photoCount: number;               // 来自照片的数量
-    userInputCount: number;           // 来自用户输入的数量
-    totalVisits: number;              // 总访问次数
+    photoCount: number; // 来自照片的数量
+    userInputCount: number; // 来自用户输入的数量
+    totalVisits: number; // 总访问次数
   };
-  
+
   // 数据来源详情
   sources: {
     photos: Array<{
@@ -81,8 +81,8 @@ export interface LocationData {
       timestamp?: Date;
     }>;
     userInputs: Array<{
-      raw: string;                    // 原始输入
-      normalized: string;             // 标准化格式
+      raw: string; // 原始输入
+      normalized: string; // 标准化格式
       coordinates?: [number, number]; // 地理编码结果
     }>;
   };
@@ -101,28 +101,28 @@ export interface GeoBounds {
 
 export interface FootprintsConfig {
   // 用户输入的城市列表
-  userInputs?: string[];              // ["beijing", "tokyo", "new_york"]
-  
+  userInputs?: string[]; // ["beijing", "tokyo", "new_york"]
+
   // 访问状态配置（去过/想去）
-  visitedLocations?: string[];        // ["beijing", "shanghai"] - 已去过的地点
-  wantToVisitLocations?: string[];    // ["tokyo", "paris"] - 想去的地点
-  
+  visitedLocations?: string[]; // ["beijing", "shanghai"] - 已去过的地点
+  wantToVisitLocations?: string[]; // ["tokyo", "paris"] - 想去的地点
+
   // 附件路径（扫描照片和轨迹文件）
-  attachmentsPath?: string;           // "@Attachments"
-  
+  attachmentsPath?: string; // "@Attachments"
+
   // 包含轨迹文件
-  includeTracks?: boolean;            // true
-  
+  includeTracks?: boolean; // true
+
   // 可视化配置
   visualization?: {
-    locationType?: 'centerPoint' | 'bounds';  // 省市渲染方式
+    locationType?: 'centerPoint' | 'bounds'; // 省市渲染方式
     clustering?: {
       enabled: boolean;
-      maxDistance: number;            // km
+      maxDistance: number; // km
       minPoints: number;
     };
   };
-  
+
   // 时间过滤（可选）
   timeFilter?: {
     start: Date;
@@ -136,7 +136,7 @@ export interface FootprintsData {
   metadata: {
     totalTracks: number;
     totalLocations: number;
-    processingTime: number;         // ms
+    processingTime: number; // ms
     errors: Array<{
       filePath: string;
       error: string;
@@ -263,11 +263,11 @@ export interface IFootprintsService {
    * @returns 统计信息
    */
   getTrackStatistics(track: TrackData): {
-    totalDistance: number;        // 米
-    totalTime: number;            // 分钟
-    averageSpeed: number;         // km/h
-    elevationGain: number;        // 米
-    elevationLoss: number;        // 米
+    totalDistance: number; // 米
+    totalTime: number; // 分钟
+    averageSpeed: number; // km/h
+    elevationGain: number; // 米
+    elevationLoss: number; // 米
     maxElevation: number;
     minElevation: number;
   };

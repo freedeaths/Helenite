@@ -30,12 +30,11 @@ describe('StorageService Real Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -63,7 +62,7 @@ describe('StorageService Real Integration Tests', () => {
     const config: StorageConfig = {
       basePath: `${serverUrl}/vaults/Demo`,
       timeout: 10000,
-      cache: false // 禁用缓存确保测试准确性
+      cache: false, // 禁用缓存确保测试准确性
     };
 
     storageService = new StorageService(config);
@@ -92,7 +91,9 @@ describe('StorageService Real Integration Tests', () => {
     });
 
     it('should read binary file (PNG) via HTTP', async () => {
-      const content = await storageService.readFile('/Attachments/inversed mt fuji.png', { binary: true });
+      const content = await storageService.readFile('/Attachments/inversed mt fuji.png', {
+        binary: true,
+      });
 
       expect(content).toBeInstanceOf(Uint8Array);
       expect((content as Uint8Array).length).toBeGreaterThan(0);
@@ -154,7 +155,9 @@ describe('StorageService Real Integration Tests', () => {
 
       // 验证内容
       expect(typeof result.content).toBe('string');
-      expect(typeof result.content === 'string' ? result.content.length : result.content.byteLength).toBeGreaterThan(0);
+      expect(
+        typeof result.content === 'string' ? result.content.length : result.content.byteLength
+      ).toBeGreaterThan(0);
       expect(result.content).toContain('vault');
 
       // 验证文件信息
@@ -199,7 +202,7 @@ describe('StorageService Real Integration Tests', () => {
       // 创建一个短超时的服务实例
       const shortTimeoutService = new StorageService({
         basePath: `${serverUrl}/vaults/Demo`,
-        timeout: 1 // 1ms 超时，应该会失败
+        timeout: 1, // 1ms 超时，应该会失败
       });
 
       try {
@@ -237,7 +240,7 @@ describe('StorageService Real Integration Tests', () => {
       // 创建启用缓存的服务实例
       const cachedService = new StorageService({
         basePath: `${serverUrl}/vaults/Demo`,
-        cache: true
+        cache: true,
       });
       await cachedService.initialize();
 
@@ -257,7 +260,7 @@ describe('StorageService Real Integration Tests', () => {
   describe('Service Lifecycle', () => {
     it('should initialize and perform health check', async () => {
       const newService = new StorageService({
-        basePath: `${serverUrl}/vaults/Demo`
+        basePath: `${serverUrl}/vaults/Demo`,
       });
 
       await expect(newService.initialize()).resolves.not.toThrow();
@@ -268,7 +271,7 @@ describe('StorageService Real Integration Tests', () => {
 
     it('should handle disposal correctly', async () => {
       const newService = new StorageService({
-        basePath: `${serverUrl}/vaults/Demo`
+        basePath: `${serverUrl}/vaults/Demo`,
       });
       await newService.initialize();
 
@@ -278,13 +281,9 @@ describe('StorageService Real Integration Tests', () => {
 
   describe('Preload Functionality', () => {
     it('should preload multiple files', async () => {
-      const filesToPreload = [
-        '/Welcome.md',
-        '/Attachments/inversed mt fuji.png'
-      ];
+      const filesToPreload = ['/Welcome.md', '/Attachments/inversed mt fuji.png'];
 
-      await expect(storageService.preloadFiles(filesToPreload))
-        .resolves.not.toThrow();
+      await expect(storageService.preloadFiles(filesToPreload)).resolves.not.toThrow();
     });
   });
 

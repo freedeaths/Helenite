@@ -32,7 +32,9 @@ describe('MetadataService Integration Tests', () => {
     // 检查服务器是否已经在运行
     const isServerRunning = async (): Promise<boolean> => {
       try {
-        const response = await fetch(`${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`);
+        const response = await fetch(
+          `${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`
+        );
         return response.ok;
       } catch {
         return false;
@@ -42,12 +44,11 @@ describe('MetadataService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -115,7 +116,6 @@ describe('MetadataService Integration Tests', () => {
 
       // 验证实际文件数量 (基于读取到的数据)
       expect(metadata!.length).toBe(12); // 包含所有 Demo vault 中的文件
-
     });
 
     it('should find specific files from real data', async () => {
@@ -123,16 +123,17 @@ describe('MetadataService Integration Tests', () => {
       expect(metadata).toBeTruthy();
 
       // 验证特定文件存在
-      const files = metadata!.map(file => file.fileName);
+      const files = metadata!.map((file) => file.fileName);
       expect(files).toContain('services-architecture');
       expect(files).toContain('Welcome');
       expect(files).toContain('Abilities');
       expect(files).toContain('README');
-
     });
 
     it('should have correct file structure for services-architecture', async () => {
-      const fileMetadata = await metadataService.getFileMetadata('helenite-docs/services-architecture.md');
+      const fileMetadata = await metadataService.getFileMetadata(
+        'helenite-docs/services-architecture.md'
+      );
 
       expect(fileMetadata).toBeTruthy();
       expect(fileMetadata!.fileName).toBe('services-architecture');
@@ -149,7 +150,6 @@ describe('MetadataService Integration Tests', () => {
       const firstHeading = fileMetadata!.headings![0];
       expect(firstHeading.heading).toBe('Helenite 服务架构概览');
       expect(firstHeading.level).toBe(1);
-
     });
 
     it('should have correct file structure for Abilities', async () => {
@@ -168,9 +168,8 @@ describe('MetadataService Integration Tests', () => {
 
       // 验证链接
       expect(fileMetadata!.links).toBeTruthy();
-      expect(fileMetadata!.links!.some(link => link.link === 'Usages')).toBe(true);
-      expect(fileMetadata!.links!.some(link => link.link === 'Welcome')).toBe(true);
-
+      expect(fileMetadata!.links!.some((link) => link.link === 'Usages')).toBe(true);
+      expect(fileMetadata!.links!.some((link) => link.link === 'Welcome')).toBe(true);
     });
   });
 
@@ -187,51 +186,45 @@ describe('MetadataService Integration Tests', () => {
       expect(tags).toContain('markdown');
       expect(tags).toContain('obsidian');
       expect(tags).toContain('abc');
-
     });
 
     it('should search files by tag in real data', async () => {
       const reactFiles = await metadataService.getFilesByTag('react');
 
       expect(reactFiles.length).toBeGreaterThan(0);
-      expect(reactFiles.some(file => file.fileName === 'Abilities')).toBe(true);
+      expect(reactFiles.some((file) => file.fileName === 'Abilities')).toBe(true);
 
       const heleniteFiles = await metadataService.getFilesByTag('helenite');
       expect(heleniteFiles.length).toBeGreaterThan(0);
-      expect(heleniteFiles.some(file => file.fileName === 'services-architecture')).toBe(true);
-
+      expect(heleniteFiles.some((file) => file.fileName === 'services-architecture')).toBe(true);
     });
 
     it('should search files by name in real data', async () => {
       const searchResults = await metadataService.searchInMetadata('Welcome');
 
       expect(searchResults.length).toBeGreaterThan(0);
-      expect(searchResults.some(file => file.fileName === 'Welcome')).toBe(true);
-      expect(searchResults.some(file => file.fileName === 'Abilities')).toBe(true); // Abilities has "Welcome to Helenite" heading
-
+      expect(searchResults.some((file) => file.fileName === 'Welcome')).toBe(true);
+      expect(searchResults.some((file) => file.fileName === 'Abilities')).toBe(true); // Abilities has "Welcome to Helenite" heading
     });
 
     it('should find backlinks in real data', async () => {
       const backlinks = await metadataService.getFileBacklinks('Welcome.md');
 
       expect(backlinks.length).toBeGreaterThan(0);
-      expect(backlinks.some(link => link.fileName === 'Abilities')).toBe(true);
-
+      expect(backlinks.some((link) => link.fileName === 'Abilities')).toBe(true);
     });
 
     it('should find outgoing links in real data', async () => {
       const outgoingLinks = await metadataService.getFileLinks('FolderA/SubFolder/Abilities.md');
 
       expect(outgoingLinks.length).toBeGreaterThan(0);
-      expect(outgoingLinks.some(link => link.link === 'Usages')).toBe(true);
-      expect(outgoingLinks.some(link => link.link === 'Welcome')).toBe(true);
-
+      expect(outgoingLinks.some((link) => link.link === 'Usages')).toBe(true);
+      expect(outgoingLinks.some((link) => link.link === 'Welcome')).toBe(true);
     });
   });
 
   describe('Caching Integration', () => {
     it('should demonstrate caching performance with real data', async () => {
-
       // 第一次调用 - 从网络加载
       const metadata1 = await cachedMetadataService.getMetadata();
 
@@ -245,18 +238,20 @@ describe('MetadataService Integration Tests', () => {
       // 获取缓存统计
       const stats = await cacheManager.getStatistics();
       expect(stats.totalEntries).toBeGreaterThan(0);
-
     });
 
     it('should cache individual file metadata', async () => {
       // 测试单个文件元数据的缓存
-      const fileMetadata1 = await cachedMetadataService.getFileMetadata('helenite-docs/services-architecture.md');
+      const fileMetadata1 = await cachedMetadataService.getFileMetadata(
+        'helenite-docs/services-architecture.md'
+      );
 
-      const fileMetadata2 = await cachedMetadataService.getFileMetadata('helenite-docs/services-architecture.md');
+      const fileMetadata2 = await cachedMetadataService.getFileMetadata(
+        'helenite-docs/services-architecture.md'
+      );
 
       expect(fileMetadata1).toEqual(fileMetadata2);
       expect(fileMetadata1!.fileName).toBe('services-architecture');
-
     });
 
     it('should cache search results', async () => {
@@ -267,7 +262,6 @@ describe('MetadataService Integration Tests', () => {
 
       expect(searchResults1).toEqual(searchResults2);
       expect(searchResults1.length).toBeGreaterThan(0);
-
     });
   });
 
@@ -288,15 +282,13 @@ describe('MetadataService Integration Tests', () => {
 
       expect(totalLinks).toBeGreaterThan(0);
       expect(totalBacklinks).toBeGreaterThan(0);
-
     });
 
     it('should find files linking to specific target', async () => {
       const filesLinkingToWelcome = await metadataService.getFilesLinkingTo('Welcome');
 
       expect(filesLinkingToWelcome.length).toBeGreaterThan(0);
-      expect(filesLinkingToWelcome.some(file => file.fileName === 'Abilities')).toBe(true);
-
+      expect(filesLinkingToWelcome.some((file) => file.fileName === 'Abilities')).toBe(true);
     });
   });
 

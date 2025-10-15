@@ -8,7 +8,12 @@ interface ImageWithZoomProps {
   [key: string]: unknown;
 }
 
-export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, className, ...restProps }) => {
+export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({
+  src,
+  alt,
+  className,
+  ...restProps
+}) => {
   const [imageZoom, setImageZoom] = useState<{ src: string; alt: string } | null>(null);
   const [imageScale, setImageScale] = useState(1);
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
@@ -21,7 +26,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
     e.preventDefault();
     setImageZoom({
       src: src,
-      alt: alt || ''
+      alt: alt || '',
     });
   };
 
@@ -45,8 +50,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
       const touch1 = touches[0];
       const touch2 = touches[1];
       return Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
+        Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2)
       );
     };
 
@@ -55,7 +59,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
       if (event.target instanceof HTMLImageElement) {
         event.preventDefault();
         const scaleChange = event.deltaY > 0 ? 0.9 : 1.1;
-        setImageScale(prevScale => {
+        setImageScale((prevScale) => {
           const newScale = Math.min(Math.max(prevScale * scaleChange, 0.5), 5);
           return newScale;
         });
@@ -68,7 +72,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
         setIsDragging(true);
         setDragStart({
           x: event.clientX - imagePosition.x,
-          y: event.clientY - imagePosition.y
+          y: event.clientY - imagePosition.y,
         });
         event.preventDefault();
       }
@@ -78,7 +82,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
       if (isDragging && imageScale > 1) {
         setImagePosition({
           x: event.clientX - dragStart.x,
-          y: event.clientY - dragStart.y
+          y: event.clientY - dragStart.y,
         });
       }
     };
@@ -96,7 +100,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
           setIsDragging(true);
           setDragStart({
             x: touch.clientX - imagePosition.x,
-            y: touch.clientY - imagePosition.y
+            y: touch.clientY - imagePosition.y,
           });
         } else if (event.touches.length === 2) {
           // 双指缩放
@@ -115,14 +119,14 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
           const touch = event.touches[0];
           setImagePosition({
             x: touch.clientX - dragStart.x,
-            y: touch.clientY - dragStart.y
+            y: touch.clientY - dragStart.y,
           });
         } else if (event.touches.length === 2) {
           // 双指缩放
           const distance = getTouchDistance(event.touches);
           if (lastTouchDistance > 0) {
             const scaleChange = distance / lastTouchDistance;
-            setImageScale(prevScale => {
+            setImageScale((prevScale) => {
               const newScale = Math.min(Math.max(prevScale * scaleChange, 0.5), 5);
               return newScale;
             });
@@ -163,13 +167,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
 
   return (
     <>
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        onClick={handleImageClick}
-        {...restProps}
-      />
+      <img src={src} alt={alt} className={className} onClick={handleImageClick} {...restProps} />
 
       {/* Image Zoom Modal */}
       {imageZoom && (
@@ -182,9 +180,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
             }
           }}
         >
-          <div className="close-hint">
-            点击空白处关闭 • 滚轮/双指缩放
-          </div>
+          <div className="close-hint">点击空白处关闭 • 滚轮/双指缩放</div>
           <img
             src={imageZoom.src}
             alt={imageZoom.alt}
@@ -193,7 +189,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
               transition: isDragging ? 'none' : 'transform 0.2s ease-out',
               cursor: imageScale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in',
               userSelect: 'none',
-              touchAction: 'none' // 防止浏览器默认的触摸行为
+              touchAction: 'none', // 防止浏览器默认的触摸行为
             }}
             onClick={(e) => {
               e.stopPropagation(); // 防止点击图片时关闭模态框
@@ -203,9 +199,7 @@ export const ImageWithZoom: React.FC<ImageWithZoomProps> = ({ src, alt, classNam
 
           {/* 缩放指示器 */}
           {imageScale !== 1 && (
-            <div className="zoom-indicator">
-              {Math.round(imageScale * 100)}%
-            </div>
+            <div className="zoom-indicator">{Math.round(imageScale * 100)}%</div>
           )}
         </div>
       )}

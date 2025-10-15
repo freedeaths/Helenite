@@ -24,7 +24,7 @@ export function StatusBar() {
       try {
         const localGraph = await vaultService.getLocalGraph({
           centerPath: activeFile,
-          depth: 2
+          depth: 2,
         });
 
         // 找到当前文件节点 - 复制老版本逻辑
@@ -32,20 +32,25 @@ export function StatusBar() {
         const normalizedPath = decodedActiveFile.replace('.md', '');
         const fileName = normalizedPath.split('/').pop() || normalizedPath;
 
-        const currentFileNode = localGraph.nodes.find(node => {
-          const normalizedDecodedFileName = normalizedPath.startsWith('/') ? normalizedPath.slice(1) : normalizedPath;
-          return node.title === normalizedDecodedFileName ||
-                 node.title === normalizedPath ||
-                 node.title === fileName ||
-                 node.label === fileName;
+        const currentFileNode = localGraph.nodes.find((node) => {
+          const normalizedDecodedFileName = normalizedPath.startsWith('/')
+            ? normalizedPath.slice(1)
+            : normalizedPath;
+          return (
+            node.title === normalizedDecodedFileName ||
+            node.title === normalizedPath ||
+            node.title === fileName ||
+            node.label === fileName
+          );
         });
 
         if (currentFileNode) {
           // 计算指向当前文件的边数量（被引用数） - 复制老版本逻辑
-          const inboundLinks = localGraph.edges.filter(edge =>
-            edge.to === currentFileNode.id &&
-            // 排除标签连接，只计算文件连接
-            localGraph.nodes.find(n => n.id === edge.from)?.type !== 'tag'
+          const inboundLinks = localGraph.edges.filter(
+            (edge) =>
+              edge.to === currentFileNode.id &&
+              // 排除标签连接，只计算文件连接
+              localGraph.nodes.find((n) => n.id === edge.from)?.type !== 'tag'
           );
 
           setBacklinksCount(inboundLinks.length);
@@ -105,7 +110,6 @@ export function StatusBar() {
         } else {
           setWordCount(0);
         }
-
       } catch {
         // console.error('❌ NewStatusBar: 计算单词/字符数失败:', error);
         setWordCount(0);
@@ -118,7 +122,9 @@ export function StatusBar() {
 
   // 完全复制老版本布局和样式
   return (
-    <div className={`h-6 bg-[var(--background-secondary)] border-t border-[var(--background-modifier-border)] flex items-center justify-between px-4 text-xs text-[var(--text-muted)] ${isMobile ? 'mobile-safe-area-bottom' : ''}`}>
+    <div
+      className={`h-6 bg-[var(--background-secondary)] border-t border-[var(--background-modifier-border)] flex items-center justify-between px-4 text-xs text-[var(--text-muted)] ${isMobile ? 'mobile-safe-area-bottom' : ''}`}
+    >
       <div className="flex items-center space-x-4">
         <span>{backlinksCount} backlinks</span>
       </div>

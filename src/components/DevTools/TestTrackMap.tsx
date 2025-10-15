@@ -45,7 +45,9 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
     setLoading(true);
     try {
       // 确保路径正确，filePath 可能已经包含 Attachments/ 前缀
-      const normalizedPath = filePath.startsWith('Attachments/') ? filePath : `Attachments/${filePath}`;
+      const normalizedPath = filePath.startsWith('Attachments/')
+        ? filePath
+        : `Attachments/${filePath}`;
       // console.log('🔍 TestTrackMap: Loading file from:', normalizedPath);
 
       const api = await getAPI();
@@ -60,11 +62,16 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
 
   const getTypeIcon = () => {
     switch (trackType) {
-      case 'single-track': return '🚶‍♂️';
-      case 'multi-track': return '🚴‍♂️';
-      case 'leaflet': return '🗺️';
-      case 'footprints': return '🌍';
-      default: return '📍';
+      case 'single-track':
+        return '🚶‍♂️';
+      case 'multi-track':
+        return '🚴‍♂️';
+      case 'leaflet':
+        return '🗺️';
+      case 'footprints':
+        return '🌍';
+      default:
+        return '📍';
     }
   };
 
@@ -73,10 +80,12 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
     const colors = {
       gpx: 'bg-green-100 text-green-700',
       kml: 'bg-blue-100 text-blue-700',
-      leaflet: 'bg-purple-100 text-purple-700'
+      leaflet: 'bg-purple-100 text-purple-700',
     };
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${colors[format as keyof typeof colors]}`}>
+      <span
+        className={`px-2 py-1 rounded text-xs font-medium ${colors[format as keyof typeof colors]}`}
+      >
         {format.toUpperCase()}
       </span>
     );
@@ -88,9 +97,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-2xl">{getTypeIcon()}</span>
           <div>
-            <h4 className="font-medium text-gray-800">
-              轨迹地图组件 #{trackId}
-            </h4>
+            <h4 className="font-medium text-gray-800">轨迹地图组件 #{trackId}</h4>
             <p className="text-sm text-gray-600">
               类型: {trackType} | 来源: {source}
             </p>
@@ -110,9 +117,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
         {trackFile && (
           <div>
             <strong>文件路径:</strong>
-            <code className="ml-1 px-1 py-0.5 bg-gray-200 rounded text-xs">
-              {trackFile}
-            </code>
+            <code className="ml-1 px-1 py-0.5 bg-gray-200 rounded text-xs">{trackFile}</code>
             <button
               onClick={() => loadFileContent(trackFile)}
               className="ml-2 text-blue-500 hover:text-blue-700 text-xs"
@@ -178,15 +183,19 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
           <div>
             <h5 className="font-medium text-gray-700 mb-1">所有属性:</h5>
             <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-32">
-              {JSON.stringify({
-                trackId,
-                trackType,
-                format,
-                source,
-                trackFile,
-                tracks: tracks?.length,
-                ...otherProps
-              }, null, 2)}
+              {JSON.stringify(
+                {
+                  trackId,
+                  trackType,
+                  format,
+                  source,
+                  trackFile,
+                  tracks: tracks?.length,
+                  ...otherProps,
+                },
+                null,
+                2
+              )}
             </pre>
           </div>
         </div>
@@ -201,9 +210,7 @@ export const TestTrackMap: React.FC<TestTrackMapProps> = ({
           {trackType === 'multi-track' && '多轨迹叠加地图'}
           {trackType === 'single-track' && '单轨迹地图'}
         </div>
-        <div className="text-xs text-gray-500 mt-1">
-          组件 ID: {trackId}
-        </div>
+        <div className="text-xs text-gray-500 mt-1">组件 ID: {trackId}</div>
       </div>
     </div>
   );

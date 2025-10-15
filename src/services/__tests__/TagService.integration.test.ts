@@ -20,8 +20,7 @@ import type { TagData } from '../interfaces/ITagService.js';
 
 // Mock console methods to avoid test output noise
 const originalConsole = { ...console };
-beforeEach(() => {
-});
+beforeEach(() => {});
 
 afterEach(() => {
   Object.assign(console, originalConsole);
@@ -74,7 +73,7 @@ describe('TagService Integration Tests', () => {
       const mockFileMetadata = {
         relativePath: 'test.md',
         fileName: 'test',
-        tags: ['test-tag', 'integration']
+        tags: ['test-tag', 'integration'],
       };
 
       // Mock MetadataService
@@ -92,7 +91,7 @@ describe('TagService Integration Tests', () => {
       // Arrange
       const mockMetadataFiles = [
         { relativePath: 'file1.md', fileName: 'file1' },
-        { relativePath: 'file2.md', fileName: 'file2' }
+        { relativePath: 'file2.md', fileName: 'file2' },
       ];
 
       // Mock StorageService 读取失败，触发降级
@@ -113,18 +112,18 @@ describe('TagService Integration Tests', () => {
         {
           relativePath: 'file1.md',
           fileName: 'file1',
-          tags: ['tag1', 'tag2']
+          tags: ['tag1', 'tag2'],
         },
         {
           relativePath: 'file2.md',
           fileName: 'file2',
-          tags: ['tag1', 'tag3']
+          tags: ['tag1', 'tag3'],
         },
         {
           relativePath: 'file3.md',
           fileName: 'file3',
-          tags: ['tag2']
-        }
+          tags: ['tag2'],
+        },
       ];
 
       // Mock StorageService 读取失败，触发降级到 metadata 计算
@@ -150,8 +149,8 @@ describe('TagService Integration Tests', () => {
         {
           tag: 'integration-test',
           tagCount: 2,
-          relativePaths: ['test1.md', 'test2.md']
-        }
+          relativePaths: ['test1.md', 'test2.md'],
+        },
       ];
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(mockTagsJson));
@@ -160,12 +159,14 @@ describe('TagService Integration Tests', () => {
       const result = await tagService.getAllTags();
 
       // Assert
-      expect(storageService.readFile).toHaveBeenCalledWith('.obsidian/plugins/metadata-extractor/tags.json');
+      expect(storageService.readFile).toHaveBeenCalledWith(
+        '.obsidian/plugins/metadata-extractor/tags.json'
+      );
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         name: '#integration-test',
         count: 2,
-        files: ['test1.md', 'test2.md']
+        files: ['test1.md', 'test2.md'],
       });
     });
 
@@ -245,34 +246,33 @@ describe('TagService Integration Tests', () => {
         {
           tag: 'react',
           tagCount: 3,
-          relativePaths: ['react-guide.md', 'hooks-tutorial.md', 'component-design.md']
+          relativePaths: ['react-guide.md', 'hooks-tutorial.md', 'component-design.md'],
         },
         {
           tag: 'typescript',
           tagCount: 2,
-          relativePaths: ['react-guide.md', 'ts-advanced.md']
-        }
+          relativePaths: ['react-guide.md', 'ts-advanced.md'],
+        },
       ];
 
       const mockMetadata = [
         {
           relativePath: 'react-guide.md',
           fileName: 'react-guide',
-          tags: ['react', 'typescript', 'frontend']
+          tags: ['react', 'typescript', 'frontend'],
         },
         {
           relativePath: 'hooks-tutorial.md',
           fileName: 'hooks-tutorial',
-          tags: ['react', 'hooks']
-        }
+          tags: ['react', 'hooks'],
+        },
       ];
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(mockTagsJson));
       vi.spyOn(metadataService, 'getMetadata').mockResolvedValue(mockMetadata);
-      vi.spyOn(metadataService, 'getFileMetadata')
-        .mockImplementation((path: string) => {
-          return Promise.resolve(mockMetadata.find(f => f.relativePath === path) || null);
-        });
+      vi.spyOn(metadataService, 'getFileMetadata').mockImplementation((path: string) => {
+        return Promise.resolve(mockMetadata.find((f) => f.relativePath === path) || null);
+      });
 
       // Act - 执行多个相关操作
       const allTags = await tagService.getAllTags();
@@ -298,19 +298,26 @@ describe('TagService Integration Tests', () => {
         {
           tag: 'javascript',
           tagCount: 2,
-          relativePaths: ['js-basics.md', 'advanced-js.md']
-        }
+          relativePaths: ['js-basics.md', 'advanced-js.md'],
+        },
       ];
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(mockTagsJson));
-      vi.spyOn(metadataService, 'getFileMetadata')
-        .mockImplementation((path: string) => {
-          const mockData = {
-            'js-basics.md': { relativePath: 'js-basics.md', fileName: 'js-basics', tags: ['javascript', 'beginner', 'web'] },
-            'advanced-js.md': { relativePath: 'advanced-js.md', fileName: 'advanced-js', tags: ['javascript', 'advanced', 'patterns'] }
-          };
-          return Promise.resolve(mockData[path as keyof typeof mockData] || null);
-        });
+      vi.spyOn(metadataService, 'getFileMetadata').mockImplementation((path: string) => {
+        const mockData = {
+          'js-basics.md': {
+            relativePath: 'js-basics.md',
+            fileName: 'js-basics',
+            tags: ['javascript', 'beginner', 'web'],
+          },
+          'advanced-js.md': {
+            relativePath: 'advanced-js.md',
+            fileName: 'advanced-js',
+            tags: ['javascript', 'advanced', 'patterns'],
+          },
+        };
+        return Promise.resolve(mockData[path as keyof typeof mockData] || null);
+      });
 
       // Act
       const cooccurrence = await tagService.getTagCooccurrence('javascript');
@@ -320,7 +327,7 @@ describe('TagService Integration Tests', () => {
       expect(cooccurrence.cooccurredTags).toHaveLength(4);
 
       // 验证共现标签包含预期的标签
-      const tagNames = cooccurrence.cooccurredTags.map(t => t.tag);
+      const tagNames = cooccurrence.cooccurredTags.map((t) => t.tag);
       expect(tagNames).toContain('#beginner');
       expect(tagNames).toContain('#web');
       expect(tagNames).toContain('#advanced');
@@ -333,18 +340,18 @@ describe('TagService Integration Tests', () => {
         {
           relativePath: 'frontend/react.md',
           fileName: 'react',
-          tags: ['react', 'frontend']
+          tags: ['react', 'frontend'],
         },
         {
           relativePath: 'frontend/vue.md',
           fileName: 'vue',
-          tags: ['vue', 'frontend']
+          tags: ['vue', 'frontend'],
         },
         {
           relativePath: 'backend/node.md',
           fileName: 'node',
-          tags: ['nodejs', 'backend']
-        }
+          tags: ['nodejs', 'backend'],
+        },
       ];
 
       // Mock tags.json 读取失败，触发 metadata 计算
@@ -371,18 +378,18 @@ describe('TagService Integration Tests', () => {
         {
           relativePath: 'docs/api.md',
           fileName: 'api',
-          tags: ['api', 'documentation']
+          tags: ['api', 'documentation'],
         },
         {
           relativePath: 'docs/guide.md',
           fileName: 'guide',
-          tags: ['guide', 'documentation', 'tutorial']
+          tags: ['guide', 'documentation', 'tutorial'],
         },
         {
           relativePath: 'docs/examples.md',
           fileName: 'examples',
-          tags: ['examples', 'documentation']
-        }
+          tags: ['examples', 'documentation'],
+        },
       ];
 
       // Mock tags.json 读取失败，使用 metadata 计算
@@ -391,7 +398,7 @@ describe('TagService Integration Tests', () => {
       vi.spyOn(metadataService, 'getFileMetadata').mockResolvedValue({
         relativePath: 'docs/new-doc.md',
         fileName: 'new-doc',
-        tags: [] // 新文件，没有标签
+        tags: [], // 新文件，没有标签
       });
 
       // Act
@@ -405,9 +412,9 @@ describe('TagService Integration Tests', () => {
     it('应该能够进行文件标签模式分析', async () => {
       // Arrange
       const mockAllTags: TagData[] = [
-        { name: '#common', count: 10, files: [] },     // 常见标签
-        { name: '#rare', count: 1, files: [] },        // 稀少标签
-        { name: '#moderate', count: 3, files: [] }     // 中等标签
+        { name: '#common', count: 10, files: [] }, // 常见标签
+        { name: '#rare', count: 1, files: [] }, // 稀少标签
+        { name: '#moderate', count: 3, files: [] }, // 中等标签
       ];
 
       vi.spyOn(tagService, 'getFileTags').mockResolvedValue(['#common', '#rare', '#moderate']);
@@ -419,8 +426,8 @@ describe('TagService Integration Tests', () => {
       // Assert
       expect(pattern.totalTags).toBe(3);
       expect(pattern.uniqueTags).toEqual(['#common', '#rare', '#moderate']);
-      expect(pattern.commonTags).toContain('#common');  // count >= 5
-      expect(pattern.rareTags).toContain('#rare');      // count <= 2
+      expect(pattern.commonTags).toContain('#common'); // count >= 5
+      expect(pattern.rareTags).toContain('#rare'); // count <= 2
     });
   });
 
@@ -429,7 +436,7 @@ describe('TagService Integration Tests', () => {
       // Arrange - StorageService 失败，但 MetadataService 正常
       vi.spyOn(storageService, 'readFile').mockRejectedValue(new Error('Storage service down'));
       vi.spyOn(metadataService, 'getMetadata').mockResolvedValue([
-        { relativePath: 'test.md', fileName: 'test', tags: ['fallback'] }
+        { relativePath: 'test.md', fileName: 'test', tags: ['fallback'] },
       ]);
 
       // Act
@@ -443,7 +450,7 @@ describe('TagService Integration Tests', () => {
     it('应该能够处理数据不一致的情况', async () => {
       // Arrange - tags.json 和 metadata 数据不一致
       const inconsistentTagsJson = [
-        { tag: 'outdated', tagCount: 1, relativePaths: ['deleted-file.md'] }
+        { tag: 'outdated', tagCount: 1, relativePaths: ['deleted-file.md'] },
       ];
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(inconsistentTagsJson));
@@ -462,7 +469,7 @@ describe('TagService Integration Tests', () => {
       const largeTagsJson = Array.from({ length: 1000 }, (_, i) => ({
         tag: `tag-${i}`,
         tagCount: Math.floor(Math.random() * 10) + 1,
-        relativePaths: [`file-${i}.md`]
+        relativePaths: [`file-${i}.md`],
       }));
 
       vi.spyOn(storageService, 'readFile').mockResolvedValue(JSON.stringify(largeTagsJson));
@@ -471,7 +478,7 @@ describe('TagService Integration Tests', () => {
       const mockLargeMetadata = Array.from({ length: 1000 }, (_, i) => ({
         relativePath: `file-${i}.md`,
         fileName: `file-${i}`,
-        tags: [`tag-${i}`]
+        tags: [`tag-${i}`],
       }));
       vi.spyOn(metadataService, 'getMetadata').mockResolvedValue(mockLargeMetadata);
 

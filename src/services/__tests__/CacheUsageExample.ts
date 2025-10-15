@@ -13,26 +13,25 @@ import type { IStorageService } from '../interfaces/IStorageService.js';
 // ===============================
 
 export async function basicCacheExample() {
-
   // 1.1 初始化缓存管理器
   const cacheManager = initializeCacheManager({
     tiers: {
       lru: {
         maxCount: 1000,
-        defaultTTL: 300000 // 5分钟
-      }
+        defaultTTL: 300000, // 5分钟
+      },
     },
     cleanup: {
       interval: 60000, // 1分钟清理间隔
-      enabled: true
-    }
+      enabled: true,
+    },
   });
 
   // 1.2 创建原始 StorageService
   const storageService = new StorageService({
     basePath: '/vaults/Demo',
     timeout: 10000,
-    cache: false // 禁用内置缓存
+    cache: false, // 禁用内置缓存
   });
 
   // 1.3 创建缓存代理 - 零侵入式增强
@@ -63,14 +62,14 @@ export class ApplicationServiceContainer {
       tiers: {
         lru: {
           maxCount: 2000,
-          defaultTTL: 600000 // 10分钟
-        }
-      }
+          defaultTTL: 600000, // 10分钟
+        },
+      },
     });
 
     const storageService = new StorageService({
       basePath: vaultPath,
-      cache: false
+      cache: false,
     });
 
     this.cachedStorageService = this.cacheManager.createCachedStorageService(storageService);
@@ -100,31 +99,31 @@ export interface ISearchService {
 
 export class SearchService implements ISearchService {
   async search(query: string): Promise<string[]> {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return [`result1-${query}`, `result2-${query}`];
   }
 
   async getPopularTags(): Promise<string[]> {
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     return ['react', 'javascript', 'typescript'];
   }
 }
 
 export function customServiceCacheExample() {
   const cacheManager = new CacheManager({
-    dbName: `test-search-cache-${Date.now()}-${Math.random()}`
+    dbName: `test-search-cache-${Date.now()}-${Math.random()}`,
   });
   const searchService = new SearchService();
 
   const searchCacheConfig = {
     search: {
       ttl: 120000,
-      keyGenerator: (...args: unknown[]) => `search:${(args[0] as string).toLowerCase()}`
+      keyGenerator: (...args: unknown[]) => `search:${(args[0] as string).toLowerCase()}`,
     },
     getPopularTags: {
       ttl: 600000,
-      keyGenerator: () => 'popular-tags'
-    }
+      keyGenerator: () => 'popular-tags',
+    },
   };
 
   const cachedSearchService = cacheManager.createCachedService(

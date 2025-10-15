@@ -1,6 +1,6 @@
 /**
  * Obsidian callouts 语法处理插件
- * 
+ *
  * 处理 > [!note] 标题 callout 语法
  * 支持各种类型：note, warning, info, tip, error, etc.
  */
@@ -13,7 +13,7 @@ export interface ObsidianCalloutsOptions {
 }
 
 const DEFAULT_OPTIONS: ObsidianCalloutsOptions = {
-  classPrefix: 'callout'
+  classPrefix: 'callout',
 };
 
 /**
@@ -38,7 +38,8 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
       if (!match) return;
 
       const calloutType = match[1].toLowerCase();
-      const calloutTitle = match[2].split('\n')[0].trim() || 
+      const calloutTitle =
+        match[2].split('\n')[0].trim() ||
         calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
 
       // 提取标题行后的内容
@@ -51,8 +52,8 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
         hName: 'div',
         hProperties: {
           className: [`${opts.classPrefix}`, `${opts.classPrefix}-${calloutType}`],
-          'data-callout': calloutType
-        }
+          'data-callout': calloutType,
+        },
       };
 
       // 创建 callout 结构
@@ -61,10 +62,10 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
         data: {
           hName: 'div',
           hProperties: {
-            className: [`${opts.classPrefix}-title`]
-          }
+            className: [`${opts.classPrefix}-title`],
+          },
         },
-        children: [{ type: 'text', value: calloutTitle }]
+        children: [{ type: 'text', value: calloutTitle }],
       } as MdastNode;
 
       // 创建内容容器
@@ -74,7 +75,7 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
       if (contentText) {
         contentChildren.push({
           type: 'paragraph' as const,
-          children: [{ type: 'text', value: contentText }]
+          children: [{ type: 'text', value: contentText }],
         });
       }
 
@@ -88,10 +89,10 @@ export function obsidianCalloutsPlugin(options: ObsidianCalloutsOptions = {}) {
         data: {
           hName: 'div',
           hProperties: {
-            className: [`${opts.classPrefix}-content`]
-          }
+            className: [`${opts.classPrefix}-content`],
+          },
         },
-        children: contentChildren
+        children: contentChildren,
       } as MdastNode;
 
       node.children = [titleElement, contentElement] as BlockContent[];

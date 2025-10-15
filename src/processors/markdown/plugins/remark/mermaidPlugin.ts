@@ -35,14 +35,14 @@ export function mermaidPlugin() {
       const mermaidData: MermaidData = {
         id,
         code: node.value.trim(),
-        placeholder
+        placeholder,
       };
       mermaidDiagrams.push(mermaidData);
 
       // 将代码块替换为占位符文本节点
       const placeholderNode = {
         type: 'text' as const,
-        value: placeholder
+        value: placeholder,
       };
 
       parent.children[index] = placeholderNode;
@@ -71,6 +71,6 @@ export function extractMermaidFromHTML(html: string, mermaidDiagrams: MermaidDat
 
   return {
     html: processedHtml,
-    mermaidDiagrams: foundDiagrams
+    mermaidDiagrams: foundDiagrams,
   };
 }

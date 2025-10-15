@@ -202,21 +202,21 @@ export interface IExifService {
   // ===============================
   // 核心 EXIF 解析操作
   // ===============================
-  
+
   /**
    * 解析单个图片文件的 EXIF 数据
    * @param filePath 图片文件路径
    * @returns EXIF 数据，如果解析失败返回 null
    */
   parseExif(filePath: string): Promise<ExifData | null>;
-  
+
   /**
    * 批量解析多个图片文件的 EXIF 数据
    * @param filePaths 图片文件路径数组
    * @returns EXIF 数据数组
    */
   parseMultipleExif(filePaths: string[]): Promise<ExifData[]>;
-  
+
   /**
    * 扫描指定目录下的所有图片并解析 EXIF
    * @param dirPath 目录路径，默认为 Attachments 目录
@@ -227,28 +227,28 @@ export interface IExifService {
   // ===============================
   // EXIF 数据查询操作
   // ===============================
-  
+
   /**
    * 获取图片的 GPS 坐标信息
    * @param filePath 图片文件路径
    * @returns GPS 坐标，如果不存在返回 null
    */
   getGpsCoordinates(filePath: string): Promise<GpsCoordinates | null>;
-  
+
   /**
    * 获取图片的拍摄设备信息
    * @param filePath 图片文件路径
    * @returns 拍摄设备信息，如果不存在返回 null
    */
   getCameraInfo(filePath: string): Promise<CameraInfo | null>;
-  
+
   /**
    * 获取图片的拍摄参数
    * @param filePath 图片文件路径
    * @returns 拍摄参数，如果不存在返回 null
    */
   getShootingParams(filePath: string): Promise<ShootingParams | null>;
-  
+
   /**
    * 获取图片的拍摄时间信息
    * @param filePath 图片文件路径
@@ -259,14 +259,14 @@ export interface IExifService {
   // ===============================
   // EXIF 搜索和过滤操作
   // ===============================
-  
+
   /**
    * 搜索包含 GPS 信息的图片
    * @param options 搜索选项
    * @returns 包含 GPS 信息的 EXIF 数据数组
    */
   searchImagesWithGps(options?: ExifSearchOptions): Promise<ExifData[]>;
-  
+
   /**
    * 根据相机信息搜索图片
    * @param cameraMake 相机制造商，可选
@@ -274,8 +274,12 @@ export interface IExifService {
    * @param options 其他搜索选项
    * @returns 匹配的 EXIF 数据数组
    */
-  searchImagesByCamera(cameraMake?: string, cameraModel?: string, options?: ExifSearchOptions): Promise<ExifData[]>;
-  
+  searchImagesByCamera(
+    cameraMake?: string,
+    cameraModel?: string,
+    options?: ExifSearchOptions
+  ): Promise<ExifData[]>;
+
   /**
    * 根据拍摄时间范围搜索图片
    * @param startDate 开始时间
@@ -283,16 +287,23 @@ export interface IExifService {
    * @param options 其他搜索选项
    * @returns 匹配的 EXIF 数据数组
    */
-  searchImagesByDateRange(startDate: Date, endDate: Date, options?: ExifSearchOptions): Promise<ExifData[]>;
-  
+  searchImagesByDateRange(
+    startDate: Date,
+    endDate: Date,
+    options?: ExifSearchOptions
+  ): Promise<ExifData[]>;
+
   /**
    * 根据地理位置范围搜索图片
    * @param bounds 地理边界
    * @param options 其他搜索选项
    * @returns 匹配的 EXIF 数据数组
    */
-  searchImagesByGeoBounds(bounds: ExifSearchOptions['geoBounds'], options?: ExifSearchOptions): Promise<ExifData[]>;
-  
+  searchImagesByGeoBounds(
+    bounds: ExifSearchOptions['geoBounds'],
+    options?: ExifSearchOptions
+  ): Promise<ExifData[]>;
+
   /**
    * 通用 EXIF 搜索
    * @param options 搜索选项
@@ -303,31 +314,31 @@ export interface IExifService {
   // ===============================
   // EXIF 分析操作
   // ===============================
-  
+
   /**
    * 获取 EXIF 统计信息
    * @returns 统计信息
    */
   getExifStatistics(): Promise<ExifStatistics>;
-  
+
   /**
    * 获取所有唯一的相机制造商
    * @returns 相机制造商列表
    */
   getAllCameraMakes(): Promise<string[]>;
-  
+
   /**
    * 获取所有唯一的相机型号
    * @returns 相机型号列表
    */
   getAllCameraModels(): Promise<string[]>;
-  
+
   /**
    * 获取拍摄时间范围
    * @returns 时间范围，如果没有时间信息返回 null
    */
   getDateTimeRange(): Promise<{ earliest: Date; latest: Date } | null>;
-  
+
   /**
    * 获取 GPS 覆盖边界
    * @returns GPS 边界，如果没有 GPS 信息返回 null
@@ -337,14 +348,14 @@ export interface IExifService {
   // ===============================
   // 工具方法
   // ===============================
-  
+
   /**
    * 检查文件是否支持 EXIF 解析
    * @param filePath 文件路径
    * @returns 是否支持
    */
   isExifSupported(filePath: string): boolean;
-  
+
   /**
    * 计算两个 GPS 坐标之间的距离（米）
    * @param coord1 坐标1
@@ -352,7 +363,7 @@ export interface IExifService {
    * @returns 距离（米）
    */
   calculateDistance(coord1: GpsCoordinates, coord2: GpsCoordinates): number;
-  
+
   /**
    * 将 GPS 坐标转换为可读的地址描述（如果有逆地理编码服务）
    * @param coordinates GPS 坐标
@@ -363,12 +374,12 @@ export interface IExifService {
   // ===============================
   // 缓存管理
   // ===============================
-  
+
   /**
    * 刷新 EXIF 缓存
    */
   refreshCache(): Promise<void>;
-  
+
   /**
    * 获取缓存统计
    */
@@ -377,13 +388,13 @@ export interface IExifService {
   // ===============================
   // Vault 管理
   // ===============================
-  
+
   /**
    * 切换到不同的 vault
    * @param vaultId vault ID
    */
   switchVault(vaultId: string): void;
-  
+
   /**
    * 获取当前 vault 信息
    */

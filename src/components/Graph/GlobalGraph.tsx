@@ -50,7 +50,8 @@ export function GlobalGraph() {
     if (!graphData || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    let container: d3.Selection<SVGGElement, unknown, null, undefined> = svg.select('.graph-container');
+    let container: d3.Selection<SVGGElement, unknown, null, undefined> =
+      svg.select('.graph-container');
 
     // 清除之前的内容
     svg.selectAll('*').remove();
@@ -58,7 +59,8 @@ export function GlobalGraph() {
     // 重新创建容器并添加缩放和平移功能
     container = svg.append('g').attr('class', 'graph-container');
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 4])
       .on('zoom', (event) => {
         container.attr('transform', event.transform);
@@ -70,41 +72,54 @@ export function GlobalGraph() {
     const height = 600;
 
     // 准备数据 - 完全复制老版本逻辑，但修复数据映射问题
-    const nodes: D3Node[] = graphData.nodes.map(node => ({ ...node }));
+    const nodes: D3Node[] = graphData.nodes.map((node) => ({ ...node }));
 
     // 创建节点ID集合，用于验证边的有效性
-    const nodeIds = new Set(nodes.map(n => n.id));
+    const nodeIds = new Set(nodes.map((n) => n.id));
 
     // 过滤掉引用不存在节点的边，修复 D3 "node not found" 错误
-    const validEdges = graphData.edges.filter(edge => {
+    const validEdges = graphData.edges.filter((edge) => {
       const sourceId = edge.from;
       const targetId = edge.to;
       return nodeIds.has(sourceId) && nodeIds.has(targetId);
     });
 
-    const links: D3Link[] = validEdges.map(edge => ({
+    const links: D3Link[] = validEdges.map((edge) => ({
       ...edge,
       source: edge.from,
-      target: edge.to
+      target: edge.to,
     }));
 
     // 创建力仿真 - 完全复制老版本参数
-    const simulation = d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
-      .force('link', d3.forceLink(links).id((d: d3.SimulationNodeDatum) => (d as D3Node).id).distance(100).strength(0.6))
+    const simulation = d3
+      .forceSimulation(nodes as d3.SimulationNodeDatum[])
+      .force(
+        'link',
+        d3
+          .forceLink(links)
+          .id((d: d3.SimulationNodeDatum) => (d as D3Node).id)
+          .distance(100)
+          .strength(0.6)
+      )
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
-        const node = d as D3Node;
-        if (node.type === 'tag') return 15;
-        return 20;
-      }));
+      .force(
+        'collision',
+        d3.forceCollide().radius((d: d3.SimulationNodeDatum) => {
+          const node = d as D3Node;
+          if (node.type === 'tag') return 15;
+          return 20;
+        })
+      );
 
     // 创建连线 - 完全复制老版本样式
-    const link = container.append('g')
+    const link = container
+      .append('g')
       .attr('class', 'links')
       .selectAll('line')
       .data(links)
-      .enter().append('line')
+      .enter()
+      .append('line')
       .attr('stroke', 'var(--text-muted)')
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 1)
@@ -112,8 +127,8 @@ export function GlobalGraph() {
         // 检查连线的两端是否有标签节点
         const sourceId = typeof d.source === 'string' ? d.source : (d.source as D3Node).id;
         const targetId = typeof d.target === 'string' ? d.target : (d.target as D3Node).id;
-        const sourceNode = nodes.find(n => n.id === sourceId);
-        const targetNode = nodes.find(n => n.id === targetId);
+        const sourceNode = nodes.find((n) => n.id === sourceId);
+        const targetNode = nodes.find((n) => n.id === targetId);
 
         // 如果有一端是标签节点，使用虚线
         if (sourceNode?.type === 'tag' || targetNode?.type === 'tag') {
@@ -123,16 +138,19 @@ export function GlobalGraph() {
       });
 
     // 创建节点组 - 完全复制老版本结构
-    const node = container.append('g')
+    const node = container
+      .append('g')
       .attr('class', 'nodes')
       .selectAll('g')
       .data(nodes)
-      .enter().append('g')
+      .enter()
+      .append('g')
       .attr('class', 'node')
       .style('cursor', 'pointer');
 
     // 添加节点圆圈 - 完全复制老版本样式
-    node.append('circle')
+    node
+      .append('circle')
       .attr('r', (d: D3Node) => {
         if (d.type === 'tag') return 8;
         // 根据连接数调整大小
@@ -145,7 +163,7 @@ export function GlobalGraph() {
       })
       .attr('stroke', 'var(--background-primary)')
       .attr('stroke-width', 2)
-      .on('click', function(event: MouseEvent, d: D3Node) {
+      .on('click', function (event: MouseEvent, d: D3Node) {
         // 阻止事件冒泡
         event.stopPropagation();
 
@@ -157,7 +175,8 @@ export function GlobalGraph() {
       });
 
     // 添加节点标签 - 完全复制老版本实现
-    node.append('text')
+    node
+      .append('text')
       .text((d: D3Node) => {
         // 截断过长的标签
         const label = d.label;
@@ -170,19 +189,23 @@ export function GlobalGraph() {
       .attr('pointer-events', 'none');
 
     // 添加悬停提示 - 完全复制老版本
-    node.append('title')
+    node
+      .append('title')
       .text((d: D3Node) => `${d.title || d.label}${d.size ? ` (${d.size} connections)` : ''}`);
 
     // 添加拖拽功能到节点组（不会干扰圆圈的点击事件）
-    node.call(d3.drag<SVGGElement, D3Node>()
-      .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended));
+    node.call(
+      d3
+        .drag<SVGGElement, D3Node>()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended)
+    );
 
     // 更新位置 - 完全复制老版本实现
     simulation.on('tick', () => {
       // 添加边界约束，确保所有节点都在视口内
-      nodes.forEach(d => {
+      nodes.forEach((d) => {
         const radius = d.type === 'tag' ? 15 : 25; // 节点半径
         d.x = Math.max(radius, Math.min(width - radius, d.x!));
         d.y = Math.max(radius, Math.min(height - radius, d.y!));
@@ -194,8 +217,7 @@ export function GlobalGraph() {
         .attr('x2', (d: D3Link) => (d.target as D3Node).x || 0)
         .attr('y2', (d: D3Link) => (d.target as D3Node).y || 0);
 
-      node
-        .attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
+      node.attr('transform', (d: D3Node) => `translate(${d.x || 0},${d.y || 0})`);
     });
 
     // 拖拽功能 - 完全复制老版本
@@ -227,9 +249,7 @@ export function GlobalGraph() {
     return (
       <div className="h-full p-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
-            Global Graph
-          </div>
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">Global Graph</div>
           <div className="text-[var(--text-muted)]">加载中...</div>
         </div>
       </div>
@@ -241,9 +261,7 @@ export function GlobalGraph() {
     return (
       <div className="h-full p-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
-            Global Graph
-          </div>
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">Global Graph</div>
           <div className="text-red-500 text-sm">{error}</div>
         </div>
       </div>
@@ -255,9 +273,7 @@ export function GlobalGraph() {
     return (
       <div className="h-full p-8 flex items-center justify-center">
         <div className="text-center text-[var(--text-muted)]">
-          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
-            Global Graph
-          </div>
+          <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">Global Graph</div>
           <div className="text-2xl mb-2">🕸️</div>
           <div className="text-sm">没有找到任何图谱数据</div>
         </div>
@@ -268,9 +284,7 @@ export function GlobalGraph() {
   // 主组件渲染 - 完全复制老版本 UI 结构
   return (
     <div className="h-full p-8">
-      <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">
-        Global Graph
-      </div>
+      <div className="text-lg font-medium mb-4 text-[var(--text-normal)]">Global Graph</div>
 
       <div className="text-sm text-[var(--text-muted)] mb-4">
         {graphData.nodes.length} 个节点, {graphData.edges.length} 条连接

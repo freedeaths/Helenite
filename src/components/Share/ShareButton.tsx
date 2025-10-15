@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { ActionIcon, Menu, Tooltip, Text } from '@mantine/core';
-import { IconLink, IconBrandTwitter, IconBrandWechat, IconCopy, IconCheck } from '@tabler/icons-react';
+import {
+  IconLink,
+  IconBrandTwitter,
+  IconBrandWechat,
+  IconCopy,
+  IconCheck,
+} from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { QRCodeModal } from './QRCodeModal';
 
@@ -27,7 +33,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
   };
 
   const decodedUrl = getDecodedUrl(); // 解码版本（用于原生分享、微信）
-  const encodedUrl = currentUrl;      // 编码版本（用于Twitter、调试对比）
+  const encodedUrl = currentUrl; // 编码版本（用于Twitter、调试对比）
 
   // 复制链接功能 - 使用解码版本显示中文字符
   const handleCopyLink = async () => {
@@ -123,10 +129,11 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
     }
   };
 
-
   // 分享到微信（移动端检测）
   const handleShareToWechat = () => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
     const isWechat = /MicroMessenger/i.test(navigator.userAgent);
     const hasNativeShare = 'share' in navigator;
 
@@ -153,11 +160,7 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
       <Menu shadow="md" width={200}>
         <Menu.Target>
           <Tooltip label="分享" position="bottom">
-            <ActionIcon
-              variant={variant}
-              color="gray"
-              size={size}
-            >
+            <ActionIcon variant={variant} color="gray" size={size}>
               <IconLink size={18} />
             </ActionIcon>
           </Tooltip>
@@ -166,21 +169,15 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
         <Menu.Dropdown>
           <Menu.Label>分享到</Menu.Label>
 
-
           <Menu.Item
             leftSection={<IconCopy size={16} />}
             onClick={handleCopyLink}
             rightSection={copied ? <IconCheck size={14} color="green" /> : null}
           >
-            <Text size="sm">
-              {copied ? '已复制' : '复制链接'}
-            </Text>
+            <Text size="sm">{copied ? '已复制' : '复制链接'}</Text>
           </Menu.Item>
 
-          <Menu.Item
-            leftSection={<IconBrandTwitter size={16} />}
-            onClick={handleShareToTwitter}
-          >
+          <Menu.Item leftSection={<IconBrandTwitter size={16} />} onClick={handleShareToTwitter}>
             <Text size="sm">分享到 X (Twitter)</Text>
           </Menu.Item>
 
@@ -191,7 +188,6 @@ export function ShareButton({ size = 'sm', variant = 'subtle' }: ShareButtonProp
           >
             <Text size="sm">分享到微信</Text>
           </Menu.Item>
-
         </Menu.Dropdown>
       </Menu>
 

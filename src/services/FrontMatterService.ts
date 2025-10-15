@@ -1,6 +1,6 @@
 /**
  * FrontMatterService - Front Matter 数据管理服务
- * 
+ *
  * 基于 MetadataService 提供的元数据，专门处理 Front Matter 字段
  * - UUID 管理：支持基于 UUID 的评论功能
  * - 发布状态：管理文件的发布状态
@@ -12,10 +12,10 @@
 import { createVaultConfig } from '../config/vaultConfig.js';
 import type { VaultPaths } from '../config/vaultConfig.js';
 import type { IMetadataService, FrontMatter } from './interfaces/IMetadataService.js';
-import type { 
-  IFrontMatterService, 
-  FrontMatterQueryOptions, 
-  FrontMatterStatistics 
+import type {
+  IFrontMatterService,
+  FrontMatterQueryOptions,
+  FrontMatterStatistics,
 } from './interfaces/IFrontMatterService.js';
 
 // ===============================
@@ -27,10 +27,7 @@ export class FrontMatterService implements IFrontMatterService {
   private metadataService: IMetadataService;
   private frontMatterCache = new Map<string, FrontMatter | null>();
 
-  constructor(
-    metadataService: IMetadataService,
-    vaultId?: string
-  ) {
+  constructor(metadataService: IMetadataService, vaultId?: string) {
     this.vaultConfig = createVaultConfig(vaultId || 'Demo');
     this.metadataService = metadataService;
   }
@@ -54,7 +51,6 @@ export class FrontMatterService implements IFrontMatterService {
       this.frontMatterCache.set(filePath, frontMatter);
       return frontMatter;
     } catch {
-      
       return null;
     }
   }
@@ -70,14 +66,13 @@ export class FrontMatterService implements IFrontMatterService {
         if (fileData.frontmatter) {
           results.push({
             filePath: fileData.relativePath,
-            frontMatter: fileData.frontmatter
+            frontMatter: fileData.frontmatter,
           });
         }
       }
 
       return results;
     } catch {
-      
       return [];
     }
   }
@@ -91,7 +86,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.uuid || null;
     } catch {
-      
       return null;
     }
   }
@@ -109,7 +103,6 @@ export class FrontMatterService implements IFrontMatterService {
 
       return null;
     } catch {
-      
       return null;
     }
   }
@@ -129,7 +122,6 @@ export class FrontMatterService implements IFrontMatterService {
 
       return uuidMap;
     } catch {
-      
       return {};
     }
   }
@@ -139,7 +131,6 @@ export class FrontMatterService implements IFrontMatterService {
       const filePath = await this.getFileByUuid(uuid);
       return filePath !== null;
     } catch {
-      
       return false;
     }
   }
@@ -153,7 +144,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.publish ?? null;
     } catch {
-      
       return null;
     }
   }
@@ -165,7 +155,6 @@ export class FrontMatterService implements IFrontMatterService {
         .filter(({ frontMatter }) => frontMatter.publish === true)
         .map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
@@ -174,10 +163,11 @@ export class FrontMatterService implements IFrontMatterService {
     try {
       const allFrontMatter = await this.getAllFrontMatter();
       return allFrontMatter
-        .filter(({ frontMatter }) => frontMatter.publish === false || frontMatter.publish === undefined)
+        .filter(
+          ({ frontMatter }) => frontMatter.publish === false || frontMatter.publish === undefined
+        )
         .map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
@@ -187,7 +177,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.author || null;
     } catch {
-      
       return null;
     }
   }
@@ -199,7 +188,6 @@ export class FrontMatterService implements IFrontMatterService {
         .filter(({ frontMatter }) => frontMatter.author === author)
         .map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
@@ -217,7 +205,6 @@ export class FrontMatterService implements IFrontMatterService {
 
       return Array.from(authors).sort();
     } catch {
-      
       return [];
     }
   }
@@ -227,7 +214,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.description || null;
     } catch {
-      
       return null;
     }
   }
@@ -237,7 +223,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.cssclass || null;
     } catch {
-      
       return null;
     }
   }
@@ -249,7 +234,6 @@ export class FrontMatterService implements IFrontMatterService {
         .filter(({ frontMatter }) => frontMatter.cssclass === cssClass)
         .map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
@@ -262,7 +246,6 @@ export class FrontMatterService implements IFrontMatterService {
       const date = new Date(frontMatter.created);
       return isNaN(date.getTime()) ? null : date;
     } catch {
-      
       return null;
     }
   }
@@ -275,7 +258,6 @@ export class FrontMatterService implements IFrontMatterService {
       const date = new Date(frontMatter.modified);
       return isNaN(date.getTime()) ? null : date;
     } catch {
-      
       return null;
     }
   }
@@ -295,15 +277,17 @@ export class FrontMatterService implements IFrontMatterService {
           const isPublished = frontMatter.publish === true;
           const isUnpublished = frontMatter.publish === false || frontMatter.publish === undefined;
 
-          return (options.includePublished && isPublished) || 
-                 (options.includeUnpublished && isUnpublished);
+          return (
+            (options.includePublished && isPublished) ||
+            (options.includeUnpublished && isUnpublished)
+          );
         });
       }
 
       // 作者过滤
       if (options.author) {
-        filteredFiles = filteredFiles.filter(({ frontMatter }) => 
-          frontMatter.author === options.author
+        filteredFiles = filteredFiles.filter(
+          ({ frontMatter }) => frontMatter.author === options.author
         );
       }
 
@@ -326,31 +310,35 @@ export class FrontMatterService implements IFrontMatterService {
 
       // CSS 类过滤
       if (options.cssClass) {
-        filteredFiles = filteredFiles.filter(({ frontMatter }) => 
-          frontMatter.cssclass === options.cssClass
+        filteredFiles = filteredFiles.filter(
+          ({ frontMatter }) => frontMatter.cssclass === options.cssClass
         );
       }
 
       // 自定义字段过滤
       if (options.customFields) {
         filteredFiles = filteredFiles.filter(({ frontMatter }) => {
-          return Object.entries(options.customFields!).every(([key, value]) => 
-            frontMatter[key] === value
+          return Object.entries(options.customFields!).every(
+            ([key, value]) => frontMatter[key] === value
           );
         });
       }
 
       return filteredFiles.map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
 
-  async searchFrontMatter(query: string, fields?: string[]): Promise<Array<{
-    filePath: string;
-    matches: Array<{ field: string; value: unknown }>;
-  }>> {
+  async searchFrontMatter(
+    query: string,
+    fields?: string[]
+  ): Promise<
+    Array<{
+      filePath: string;
+      matches: Array<{ field: string; value: unknown }>;
+    }>
+  > {
     try {
       // Return empty results for empty query
       if (!query || query.trim() === '') {
@@ -381,8 +369,8 @@ export class FrontMatterService implements IFrontMatterService {
           }
           // 搜索数组值
           else if (Array.isArray(value)) {
-            const matchingItems = value.filter(item => 
-              typeof item === 'string' && searchPattern.test(item)
+            const matchingItems = value.filter(
+              (item) => typeof item === 'string' && searchPattern.test(item)
             );
             if (matchingItems.length > 0) {
               matches.push({ field, value: matchingItems });
@@ -397,7 +385,6 @@ export class FrontMatterService implements IFrontMatterService {
 
       return results;
     } catch {
-      
       return [];
     }
   }
@@ -407,7 +394,6 @@ export class FrontMatterService implements IFrontMatterService {
       const frontMatter = await this.getFrontMatter(filePath);
       return frontMatter?.[fieldName] ?? null;
     } catch {
-      
       return null;
     }
   }
@@ -425,7 +411,6 @@ export class FrontMatterService implements IFrontMatterService {
         })
         .map(({ filePath }) => filePath);
     } catch {
-      
       return [];
     }
   }
@@ -437,12 +422,17 @@ export class FrontMatterService implements IFrontMatterService {
 
       // 标准字段列表
       const standardFields = new Set([
-        'uuid', 'publish', 'created', 'modified', 
-        'author', 'description', 'cssclass'
+        'uuid',
+        'publish',
+        'created',
+        'modified',
+        'author',
+        'description',
+        'cssclass',
       ]);
 
       for (const { frontMatter } of allFrontMatter) {
-        Object.keys(frontMatter).forEach(field => {
+        Object.keys(frontMatter).forEach((field) => {
           if (!standardFields.has(field)) {
             allFields.add(field);
           }
@@ -451,7 +441,6 @@ export class FrontMatterService implements IFrontMatterService {
 
       return Array.from(allFields).sort();
     } catch {
-      
       return [];
     }
   }
@@ -494,11 +483,22 @@ export class FrontMatterService implements IFrontMatterService {
 
         // CSS 类统计
         if (frontMatter.cssclass) {
-          cssClassCounts.set(frontMatter.cssclass, (cssClassCounts.get(frontMatter.cssclass) || 0) + 1);
+          cssClassCounts.set(
+            frontMatter.cssclass,
+            (cssClassCounts.get(frontMatter.cssclass) || 0) + 1
+          );
         }
 
         // 自定义字段统计
-        const standardFields = ['uuid', 'publish', 'created', 'modified', 'author', 'description', 'cssclass'];
+        const standardFields = [
+          'uuid',
+          'publish',
+          'created',
+          'modified',
+          'author',
+          'description',
+          'cssclass',
+        ];
         Object.entries(frontMatter).forEach(([field, value]) => {
           if (!standardFields.includes(field) && value !== undefined && value !== null) {
             if (!customFieldStats.has(field)) {
@@ -525,7 +525,7 @@ export class FrontMatterService implements IFrontMatterService {
       customFieldStats.forEach((values, field) => {
         customFieldStatsResult[field] = {
           count: values.size,
-          uniqueValues: values.size
+          uniqueValues: values.size,
         };
       });
 
@@ -536,10 +536,9 @@ export class FrontMatterService implements IFrontMatterService {
         unpublishedFiles,
         topAuthors,
         topCssClasses,
-        customFieldStats: customFieldStatsResult
+        customFieldStats: customFieldStatsResult,
       };
     } catch {
-      
       return {
         totalFiles: 0,
         filesWithUuid: 0,
@@ -547,7 +546,7 @@ export class FrontMatterService implements IFrontMatterService {
         unpublishedFiles: 0,
         topAuthors: [],
         topCssClasses: [],
-        customFieldStats: {}
+        customFieldStats: {},
       };
     }
   }
@@ -564,7 +563,7 @@ export class FrontMatterService implements IFrontMatterService {
 
       // 分析字段使用频率
       for (const { frontMatter } of allFrontMatter) {
-        Object.keys(frontMatter).forEach(field => {
+        Object.keys(frontMatter).forEach((field) => {
           fieldUsage.set(field, (fieldUsage.get(field) || 0) + 1);
 
           // 分析字段值分布
@@ -574,7 +573,8 @@ export class FrontMatterService implements IFrontMatterService {
 
           const value = frontMatter[field];
           const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
-          fieldValueDistribution[field][valueStr] = (fieldValueDistribution[field][valueStr] || 0) + 1;
+          fieldValueDistribution[field][valueStr] =
+            (fieldValueDistribution[field][valueStr] || 0) + 1;
         });
       }
 
@@ -584,22 +584,29 @@ export class FrontMatterService implements IFrontMatterService {
         .sort((a, b) => b.usage - a.usage);
 
       // 推荐字段（使用率低但可能有用的标准字段）
-      const standardFields = ['uuid', 'publish', 'created', 'modified', 'author', 'description', 'cssclass'];
-      const recommendedFields = standardFields.filter(field => 
-        (fieldUsage.get(field) || 0) < allFrontMatter.length * 0.5
+      const standardFields = [
+        'uuid',
+        'publish',
+        'created',
+        'modified',
+        'author',
+        'description',
+        'cssclass',
+      ];
+      const recommendedFields = standardFields.filter(
+        (field) => (fieldUsage.get(field) || 0) < allFrontMatter.length * 0.5
       );
 
       return {
         commonFields,
         fieldValueDistribution,
-        recommendedFields
+        recommendedFields,
       };
     } catch {
-      
       return {
         commonFields: [],
         fieldValueDistribution: {},
-        recommendedFields: []
+        recommendedFields: [],
       };
     }
   }
@@ -619,13 +626,12 @@ export class FrontMatterService implements IFrontMatterService {
       return {
         vaultId: this.vaultConfig.id,
         frontMatterCacheSize: this.frontMatterCache.size,
-        ...stats
+        ...stats,
       };
     } catch {
-      
       return {
         vaultId: this.vaultConfig.id,
-        frontMatterCacheSize: this.frontMatterCache.size
+        frontMatterCacheSize: this.frontMatterCache.size,
       };
     }
   }
@@ -643,7 +649,7 @@ export class FrontMatterService implements IFrontMatterService {
   getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 }

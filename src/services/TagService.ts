@@ -65,10 +65,10 @@ export class TagService implements ITagService {
       }
 
       // 转换 tags.json 格式到 TagData 格式
-      let tags: TagData[] = tagsJson.map(entry => ({
+      let tags: TagData[] = tagsJson.map((entry) => ({
         name: `#${entry.tag}`, // 添加 # 前缀保持一致性
         count: entry.tagCount,
-        files: entry.relativePaths
+        files: entry.relativePaths,
       }));
 
       // 应用排序和限制
@@ -97,7 +97,7 @@ export class TagService implements ITagService {
       const tags = fileMetadata.tags || [];
 
       // 添加 # 前缀并排序
-      const formattedTags = tags.map(tag => `#${tag}`).sort();
+      const formattedTags = tags.map((tag) => `#${tag}`).sort();
 
       return formattedTags;
     } catch {
@@ -116,7 +116,7 @@ export class TagService implements ITagService {
       // 首先尝试从 tags.json 获取
       const tagsJson = await this.getTagsFromJson();
       if (tagsJson && tagsJson.length > 0) {
-        const tagEntry = tagsJson.find(entry => entry.tag === normalizedTag);
+        const tagEntry = tagsJson.find((entry) => entry.tag === normalizedTag);
         if (tagEntry) {
           return tagEntry.relativePaths;
         }
@@ -124,7 +124,7 @@ export class TagService implements ITagService {
 
       // 降级到从 metadata 计算
       const files = await this.metadataService.getFilesByTag(normalizedTag);
-      const filePaths = files.map(file => file.relativePath);
+      const filePaths = files.map((file) => file.relativePath);
 
       return filePaths;
     } catch {
@@ -145,7 +145,7 @@ export class TagService implements ITagService {
       }
 
       const totalTags = allTags.length;
-      const filesWithTags = metadata.filter(file => file.tags && file.tags.length > 0);
+      const filesWithTags = metadata.filter((file) => file.tags && file.tags.length > 0);
       const totalFiles = filesWithTags.length;
 
       // 计算平均值
@@ -165,7 +165,7 @@ export class TagService implements ITagService {
         averageTagsPerFile: Number(averageTagsPerFile.toFixed(2)),
         averageFilesPerTag: Number(averageFilesPerTag.toFixed(2)),
         mostUsedTag,
-        frequencyDistribution
+        frequencyDistribution,
       };
 
       return stats;
@@ -191,7 +191,7 @@ export class TagService implements ITagService {
       const searchQuery = normalizedQuery.startsWith('#') ? normalizedQuery : `#${normalizedQuery}`;
 
       // 过滤匹配的标签
-      let matchedTags = allTags.filter(tag => {
+      let matchedTags = allTags.filter((tag) => {
         const tagName = caseSensitive ? tag.name : tag.name.toLowerCase();
         return tagName.includes(searchQuery);
       });
@@ -213,7 +213,7 @@ export class TagService implements ITagService {
       const allTags = await this.getAllTags();
       const { minCount, maxCount, pathPrefix, excludeTags = [] } = options;
 
-      const filteredTags = allTags.filter(tag => {
+      const filteredTags = allTags.filter((tag) => {
         // 使用次数过滤
         if (minCount !== undefined && tag.count < minCount) return false;
         if (maxCount !== undefined && tag.count > maxCount) return false;
@@ -223,7 +223,7 @@ export class TagService implements ITagService {
 
         // 路径前缀过滤
         if (pathPrefix) {
-          const hasMatchingFiles = tag.files.some(file => file.startsWith(pathPrefix));
+          const hasMatchingFiles = tag.files.some((file) => file.startsWith(pathPrefix));
           if (!hasMatchingFiles) return false;
         }
 
@@ -244,7 +244,7 @@ export class TagService implements ITagService {
       const normalizedTag = tag.startsWith('#') ? tag : `#${tag}`;
       const allTags = await this.getAllTags();
 
-      const tagData = allTags.find(t => t.name === normalizedTag);
+      const tagData = allTags.find((t) => t.name === normalizedTag);
 
       return tagData || null;
     } catch {
@@ -332,13 +332,13 @@ export class TagService implements ITagService {
       const allTags = await this.getAllTags();
       const relatedTags = Array.from(tagCooccurrence.entries())
         .map(([tagName, cooccurrenceCount]) => {
-          const tagData = allTags.find(t => t.name === tagName);
+          const tagData = allTags.find((t) => t.name === tagName);
           return tagData ? { ...tagData, cooccurrenceCount } : null;
         })
         .filter(Boolean)
         .sort((a, b) => b!.cooccurrenceCount - a!.cooccurrenceCount)
         .slice(0, limit)
-        .map(tagData => {
+        .map((tagData) => {
           const { cooccurrenceCount: _cooccurrenceCount, ...rest } = tagData!;
           return rest;
         });
@@ -374,9 +374,11 @@ export class TagService implements ITagService {
 
       for (const tag of fileTags) {
         const frequency = tagFrequencyMap.get(tag) || 0;
-        if (frequency >= 5) { // 被5个或更多文件使用
+        if (frequency >= 5) {
+          // 被5个或更多文件使用
           commonTags.push(tag);
-        } else if (frequency <= 2) { // 被2个或更少文件使用
+        } else if (frequency <= 2) {
+          // 被2个或更少文件使用
           rareTags.push(tag);
         }
       }
@@ -385,7 +387,7 @@ export class TagService implements ITagService {
         totalTags: fileTags.length,
         uniqueTags: fileTags,
         commonTags,
-        rareTags
+        rareTags,
       };
 
       return result;
@@ -394,7 +396,7 @@ export class TagService implements ITagService {
         totalTags: 0,
         uniqueTags: [],
         commonTags: [],
-        rareTags: []
+        rareTags: [],
       };
     }
   }
@@ -440,13 +442,13 @@ export class TagService implements ITagService {
         .map(([tagName, data]) => ({
           tag: tagName,
           count: data.count,
-          files: data.files
+          files: data.files,
         }))
         .sort((a, b) => b.count - a.count);
 
       const result = {
         tag: normalizedTag,
-        cooccurredTags
+        cooccurredTags,
       };
 
       return result;
@@ -470,7 +472,7 @@ export class TagService implements ITagService {
       }
 
       // 过滤指定文件夹下的文件
-      const folderFiles = metadata.filter(file => {
+      const folderFiles = metadata.filter((file) => {
         if (!folderPath) return true; // 根目录包含所有文件
         return file.relativePath.startsWith(folderPath);
       });
@@ -486,7 +488,7 @@ export class TagService implements ITagService {
             tagMap.set(tagWithHash, {
               name: tagWithHash,
               count: 0,
-              files: []
+              files: [],
             });
           }
           const tagData = tagMap.get(tagWithHash)!;
@@ -497,13 +499,12 @@ export class TagService implements ITagService {
         }
       }
 
-      const tagDistribution = Array.from(tagMap.values())
-        .sort((a, b) => b.count - a.count);
+      const tagDistribution = Array.from(tagMap.values()).sort((a, b) => b.count - a.count);
 
       const result = {
         folder: folderPath || 'root',
         totalFiles: folderFiles.length,
-        tagDistribution
+        tagDistribution,
       };
 
       return result;
@@ -527,9 +528,9 @@ export class TagService implements ITagService {
 
       // 从文件夹常用标签中建议
       const suggestions = folderDistribution.tagDistribution
-        .filter(tagData => !existingTagSet.has(tagData.name))
+        .filter((tagData) => !existingTagSet.has(tagData.name))
         .slice(0, limit)
-        .map(tagData => tagData.name);
+        .map((tagData) => tagData.name);
 
       return suggestions;
     } catch {
@@ -559,7 +560,7 @@ export class TagService implements ITagService {
     return {
       vaultId: this.vaultConfig.id,
       ...tagStats,
-      metadataStats
+      metadataStats,
     };
   }
 
@@ -581,7 +582,7 @@ export class TagService implements ITagService {
   getCurrentVault(): { id: string; path: string } {
     return {
       id: this.vaultConfig.id,
-      path: this.vaultConfig.path
+      path: this.vaultConfig.path,
     };
   }
 
@@ -632,7 +633,7 @@ export class TagService implements ITagService {
             tagMap.set(tagWithHash, {
               name: tagWithHash,
               count: 0,
-              files: []
+              files: [],
             });
           }
 
@@ -695,12 +696,12 @@ export class TagService implements ITagService {
       { min: 2, max: 5, label: '2-5' },
       { min: 6, max: 10, label: '6-10' },
       { min: 11, max: 20, label: '11-20' },
-      { min: 21, max: Infinity, label: '20+' }
+      { min: 21, max: Infinity, label: '20+' },
     ];
 
-    return ranges.map(range => ({
+    return ranges.map((range) => ({
       range: range.label,
-      count: tags.filter(tag => tag.count >= range.min && tag.count <= range.max).length
+      count: tags.filter((tag) => tag.count >= range.min && tag.count <= range.max).length,
     }));
   }
 
@@ -713,7 +714,7 @@ export class TagService implements ITagService {
       totalFiles: 0,
       averageTagsPerFile: 0,
       averageFilesPerTag: 0,
-      frequencyDistribution: []
+      frequencyDistribution: [],
     };
   }
 

@@ -84,25 +84,25 @@ export interface ITagService {
   // ===============================
   // 核心标签操作
   // ===============================
-  
+
   /**
    * 获取所有标签（全局）
    * 从 tags.json 直接读取，性能优化
    */
   getAllTags(options?: TagSearchOptions): Promise<TagData[]>;
-  
+
   /**
    * 获取文件的所有标签
    * 从 metadata 读取指定文件的标签
    */
   getFileTags(filePath: string): Promise<string[]>;
-  
+
   /**
    * 根据标签获取文件列表
    * 支持全局和局部查找
    */
   getFilesByTag(tag: string): Promise<string[]>;
-  
+
   /**
    * 获取标签统计信息
    */
@@ -111,25 +111,25 @@ export interface ITagService {
   // ===============================
   // 标签查询操作
   // ===============================
-  
+
   /**
    * 搜索标签
    * 支持模糊匹配和各种排序选项
    */
   searchTags(query: string, options?: TagSearchOptions): Promise<TagData[]>;
-  
+
   /**
    * 过滤标签
    * 按使用频率、路径等条件过滤
    */
   filterTags(options: TagFilterOptions): Promise<TagData[]>;
-  
+
   /**
    * 获取标签详情
    * 获取单个标签的完整信息
    */
   getTagDetails(tag: string): Promise<TagData | null>;
-  
+
   /**
    * 检查标签是否存在
    */
@@ -138,28 +138,28 @@ export interface ITagService {
   // ===============================
   // 标签分析操作
   // ===============================
-  
+
   /**
    * 获取最常用的标签
    */
   getMostUsedTags(limit?: number): Promise<TagData[]>;
-  
+
   /**
    * 获取最少用的标签
    */
   getLeastUsedTags(limit?: number): Promise<TagData[]>;
-  
+
   /**
    * 获取孤立标签（只被一个文件使用）
    */
   getOrphanTags(): Promise<TagData[]>;
-  
+
   /**
    * 获取相关标签
    * 基于共同出现的文件计算标签相关性
    */
   getRelatedTags(tag: string, limit?: number): Promise<TagData[]>;
-  
+
   /**
    * 分析文件的标签使用模式
    */
@@ -173,7 +173,7 @@ export interface ITagService {
   // ===============================
   // 标签关系分析
   // ===============================
-  
+
   /**
    * 获取标签共现关系
    * 分析哪些标签经常一起出现
@@ -186,7 +186,7 @@ export interface ITagService {
       files: string[];
     }>;
   }>;
-  
+
   /**
    * 获取文件夹的标签分布
    */
@@ -195,7 +195,7 @@ export interface ITagService {
     totalFiles: number;
     tagDistribution: TagData[];
   }>;
-  
+
   /**
    * 建议标签
    * 基于文件内容和现有标签模式建议新标签
@@ -205,12 +205,12 @@ export interface ITagService {
   // ===============================
   // 缓存管理
   // ===============================
-  
+
   /**
    * 刷新标签缓存
    */
   refreshCache(): Promise<void>;
-  
+
   /**
    * 获取缓存统计
    */
@@ -219,12 +219,12 @@ export interface ITagService {
   // ===============================
   // Vault 管理
   // ===============================
-  
+
   /**
    * 切换到不同的 vault
    */
   switchVault(vaultId: string): void;
-  
+
   /**
    * 获取当前 vault 信息
    */

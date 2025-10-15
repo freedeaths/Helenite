@@ -21,7 +21,7 @@ export interface StorageConfig {
 export const FileContentType = {
   isString: (content: FileContent): content is string => typeof content === 'string',
   isArrayBuffer: (content: FileContent): content is ArrayBuffer => content instanceof ArrayBuffer,
-  isUint8Array: (content: FileContent): content is Uint8Array => content instanceof Uint8Array
+  isUint8Array: (content: FileContent): content is Uint8Array => content instanceof Uint8Array,
 };
 
 /** 读取结果，包含文件信息和内容 */
@@ -63,10 +63,10 @@ export const StorageType = {
   /** CDN 存储 */
   CDN: 'cdn',
   /** 远程 HTTP 存储 */
-  REMOTE_HTTP: 'remote_http'
+  REMOTE_HTTP: 'remote_http',
 } as const;
 
-export type StorageType = typeof StorageType[keyof typeof StorageType];
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 /** 存储错误类型 */
 export const StorageErrorType = {
@@ -74,20 +74,16 @@ export const StorageErrorType = {
   PERMISSION_DENIED: 'PERMISSION_DENIED',
   NETWORK_ERROR: 'NETWORK_ERROR',
   TIMEOUT: 'TIMEOUT',
-  INVALID_PATH: 'INVALID_PATH'
+  INVALID_PATH: 'INVALID_PATH',
 } as const;
 
-export type StorageErrorType = typeof StorageErrorType[keyof typeof StorageErrorType];
+export type StorageErrorType = (typeof StorageErrorType)[keyof typeof StorageErrorType];
 
 export class StorageError extends Error {
   public type: StorageErrorType;
   public path?: string;
 
-  constructor(
-    message: string,
-    type: StorageErrorType,
-    path?: string
-  ) {
+  constructor(message: string, type: StorageErrorType, path?: string) {
     super(message);
     this.type = type;
     this.path = path;

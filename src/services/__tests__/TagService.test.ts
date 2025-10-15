@@ -36,7 +36,7 @@ const createMockMetadataService = (): IMetadataService => ({
   refreshCache: vi.fn(),
   getCacheStats: vi.fn(),
   switchVault: vi.fn(),
-  getCurrentVault: vi.fn()
+  getCurrentVault: vi.fn(),
 });
 
 const createMockStorageService = (): IStorageService => ({
@@ -57,7 +57,7 @@ const createMockStorageService = (): IStorageService => ({
   config: { basePath: '', timeout: 5000 },
   initialize: vi.fn(),
   dispose: vi.fn(),
-  healthCheck: vi.fn()
+  healthCheck: vi.fn(),
 });
 
 // ===============================
@@ -68,41 +68,41 @@ const mockTagsJson = [
   {
     tag: 'tech',
     tagCount: 3,
-    relativePaths: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md']
+    relativePaths: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md'],
   },
   {
     tag: 'travel',
     tagCount: 2,
-    relativePaths: ['Japan-Trip.md', 'Europe-Guide.md']
+    relativePaths: ['Japan-Trip.md', 'Europe-Guide.md'],
   },
   {
     tag: 'cooking',
     tagCount: 1,
-    relativePaths: ['Pasta-Recipe.md']
-  }
+    relativePaths: ['Pasta-Recipe.md'],
+  },
 ];
 
 const mockMetadata: MetadataArray = [
   {
     relativePath: 'How-to-Implement.md',
     fileName: 'How-to-Implement',
-    tags: ['tech', 'tutorial']
+    tags: ['tech', 'tutorial'],
   },
   {
     relativePath: 'Japan-Trip.md',
     fileName: 'Japan-Trip',
-    tags: ['travel', 'japan']
+    tags: ['travel', 'japan'],
   },
   {
     relativePath: 'React-Guide.md',
     fileName: 'React-Guide',
-    tags: ['tech', 'react']
+    tags: ['tech', 'react'],
   },
   {
     relativePath: 'Pasta-Recipe.md',
     fileName: 'Pasta-Recipe',
-    tags: ['cooking']
-  }
+    tags: ['cooking'],
+  },
 ];
 
 describe('TagService', () => {
@@ -124,7 +124,7 @@ describe('TagService', () => {
       expect(tagService).toBeInstanceOf(TagService);
       expect(tagService.getCurrentVault()).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
 
@@ -143,22 +143,24 @@ describe('TagService', () => {
       const result = await tagService.getAllTags();
 
       // Assert
-      expect(mockStorageService.readFile).toHaveBeenCalledWith('.obsidian/plugins/metadata-extractor/tags.json');
+      expect(mockStorageService.readFile).toHaveBeenCalledWith(
+        '.obsidian/plugins/metadata-extractor/tags.json'
+      );
       expect(result).toHaveLength(3);
       expect(result[0]).toEqual({
         name: '#tech',
         count: 3,
-        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md']
+        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md'],
       });
       expect(result[1]).toEqual({
         name: '#travel',
         count: 2,
-        files: ['Japan-Trip.md', 'Europe-Guide.md']
+        files: ['Japan-Trip.md', 'Europe-Guide.md'],
       });
       expect(result[2]).toEqual({
         name: '#cooking',
         count: 1,
-        files: ['Pasta-Recipe.md']
+        files: ['Pasta-Recipe.md'],
       });
     });
 
@@ -207,7 +209,9 @@ describe('TagService', () => {
       const result = await tagService.getAllTags();
 
       // Assert
-      expect(mockStorageService.readFile).toHaveBeenCalledWith('.obsidian/plugins/metadata-extractor/tags.json');
+      expect(mockStorageService.readFile).toHaveBeenCalledWith(
+        '.obsidian/plugins/metadata-extractor/tags.json'
+      );
       expect(mockMetadataService.getMetadata).toHaveBeenCalled();
       expect(result).toHaveLength(6); // tech, travel, tutorial, japan, react, cooking
     });
@@ -229,7 +233,7 @@ describe('TagService', () => {
     it('应该获取指定文件的标签', async () => {
       // Arrange
       const filePath = 'How-to-Implement.md';
-      const expectedFileMetadata = mockMetadata.find(f => f.relativePath === filePath);
+      const expectedFileMetadata = mockMetadata.find((f) => f.relativePath === filePath);
       (mockMetadataService.getFileMetadata as Mock).mockResolvedValue(expectedFileMetadata);
 
       // Act
@@ -243,7 +247,9 @@ describe('TagService', () => {
     it('应该处理带前导斜杠的路径', async () => {
       // Arrange
       const filePath = '/How-to-Implement.md';
-      const expectedFileMetadata = mockMetadata.find(f => f.relativePath === 'How-to-Implement.md');
+      const expectedFileMetadata = mockMetadata.find(
+        (f) => f.relativePath === 'How-to-Implement.md'
+      );
       (mockMetadataService.getFileMetadata as Mock).mockResolvedValue(expectedFileMetadata);
 
       // Act
@@ -347,7 +353,7 @@ describe('TagService', () => {
       expect(result.mostUsedTag).toEqual({
         name: '#tech',
         count: 3,
-        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md']
+        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md'],
       });
       expect(result.frequencyDistribution).toHaveLength(5);
     });
@@ -427,7 +433,7 @@ describe('TagService', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result.every(tag => tag.count >= 2)).toBe(true);
+      expect(result.every((tag) => tag.count >= 2)).toBe(true);
     });
 
     it('应该按最大使用次数过滤', async () => {
@@ -439,7 +445,7 @@ describe('TagService', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result.every(tag => tag.count <= 2)).toBe(true);
+      expect(result.every((tag) => tag.count <= 2)).toBe(true);
     });
 
     it('应该排除指定标签', async () => {
@@ -451,7 +457,7 @@ describe('TagService', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result.find(tag => tag.name === '#tech')).toBeUndefined();
+      expect(result.find((tag) => tag.name === '#tech')).toBeUndefined();
     });
 
     it('应该按路径前缀过滤', async () => {
@@ -460,13 +466,13 @@ describe('TagService', () => {
         {
           tag: 'tech',
           tagCount: 2,
-          relativePaths: ['folder/tech1.md', 'folder/tech2.md']
+          relativePaths: ['folder/tech1.md', 'folder/tech2.md'],
         },
         {
           tag: 'other',
           tagCount: 1,
-          relativePaths: ['other.md']
-        }
+          relativePaths: ['other.md'],
+        },
       ];
       (mockStorageService.readFile as Mock).mockResolvedValue(JSON.stringify(modifiedTagsJson));
 
@@ -491,7 +497,7 @@ describe('TagService', () => {
       expect(result).toEqual({
         name: '#tech',
         count: 3,
-        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md']
+        files: ['How-to-Implement.md', 'React-Guide.md', 'TypeScript-Tips.md'],
       });
     });
 
@@ -506,7 +512,7 @@ describe('TagService', () => {
       expect(result).toEqual({
         name: '#travel',
         count: 2,
-        files: ['Japan-Trip.md', 'Europe-Guide.md']
+        files: ['Japan-Trip.md', 'Europe-Guide.md'],
       });
     });
 
@@ -624,7 +630,7 @@ describe('TagService', () => {
       // Assert
       expect(tagService.getCurrentVault()).toEqual({
         id: 'NewVault',
-        path: '/vaults/NewVault'
+        path: '/vaults/NewVault',
       });
       expect(mockMetadataService.switchVault).toHaveBeenCalledWith('NewVault');
     });
@@ -636,7 +642,7 @@ describe('TagService', () => {
       // Assert
       expect(result).toEqual({
         id: 'TestVault',
-        path: '/vaults/TestVault'
+        path: '/vaults/TestVault',
       });
     });
   });
@@ -691,7 +697,7 @@ describe('TagService', () => {
         totalFiles: 0,
         averageTagsPerFile: 0,
         averageFilesPerTag: 0,
-        frequencyDistribution: []
+        frequencyDistribution: [],
       });
     });
   });

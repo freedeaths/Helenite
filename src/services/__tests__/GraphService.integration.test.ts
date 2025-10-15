@@ -34,7 +34,9 @@ describe('GraphService Integration Tests', () => {
     // 检查服务器是否已经在运行
     const isServerRunning = async (): Promise<boolean> => {
       try {
-        const response = await fetch(`${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`);
+        const response = await fetch(
+          `${serverUrl}/vaults/Demo/.obsidian/plugins/metadata-extractor/metadata.json`
+        );
         return response.ok;
       } catch {
         return false;
@@ -44,12 +46,11 @@ describe('GraphService Integration Tests', () => {
     if (await isServerRunning()) {
       // SKIP
     } else {
-
       // 启动 Vite 开发服务器
       viteProcess = spawn('npm', ['run', 'dev'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, CI: 'true' },
-        detached: false
+        detached: false,
       });
 
       // 等待服务器启动
@@ -121,74 +122,71 @@ describe('GraphService Integration Tests', () => {
       expect(graph.edges.length).toBeGreaterThan(0);
 
       // 验证文件节点和标签节点
-      const fileNodes = graph.nodes.filter(node => node.type === 'file');
-      const tagNodes = graph.nodes.filter(node => node.type === 'tag');
+      const fileNodes = graph.nodes.filter((node) => node.type === 'file');
+      const tagNodes = graph.nodes.filter((node) => node.type === 'tag');
 
       expect(fileNodes.length).toBe(12); // 基于实际 vault 文件数量
       expect(tagNodes.length).toBeGreaterThan(0); // 应该有标签
 
       // 验证边类型
-      const linkEdges = graph.edges.filter(edge => edge.type === 'link');
-      const tagEdges = graph.edges.filter(edge => edge.type === 'tag');
+      const linkEdges = graph.edges.filter((edge) => edge.type === 'link');
+      const tagEdges = graph.edges.filter((edge) => edge.type === 'tag');
 
       expect(linkEdges.length).toBeGreaterThan(0);
       expect(tagEdges.length).toBeGreaterThan(0);
-
     });
 
     it('should find specific files in graph nodes', async () => {
       const graph = await graphService.getGlobalGraph();
 
       // 验证特定文件节点存在
-      const fileNodes = graph.nodes.filter(node => node.type === 'file');
-      const fileNames = fileNodes.map(node => node.label);
+      const fileNodes = graph.nodes.filter((node) => node.type === 'file');
+      const fileNames = fileNodes.map((node) => node.label);
 
       expect(fileNames).toContain('services-architecture');
       expect(fileNames).toContain('Welcome');
       expect(fileNames).toContain('Abilities');
       expect(fileNames).toContain('README');
-
     });
 
     it('should find specific tag nodes in graph', async () => {
       const graph = await graphService.getGlobalGraph();
 
       // 验证特定标签节点存在
-      const tagNodes = graph.nodes.filter(node => node.type === 'tag');
-      const tagLabels = tagNodes.map(node => node.label);
+      const tagNodes = graph.nodes.filter((node) => node.type === 'tag');
+      const tagLabels = tagNodes.map((node) => node.label);
 
       expect(tagLabels).toContain('#helenite');
       expect(tagLabels).toContain('#test');
       expect(tagLabels).toContain('#react');
       expect(tagLabels).toContain('#markdown');
-
     });
 
     it('should verify link relationships in real graph', async () => {
       const graph = await graphService.getGlobalGraph();
 
       // 验证链接边存在
-      const linkEdges = graph.edges.filter(edge => edge.type === 'link');
+      const linkEdges = graph.edges.filter((edge) => edge.type === 'link');
       expect(linkEdges.length).toBeGreaterThan(0);
 
       // 查找特定的链接关系（Abilities 链接到 Welcome）
-      const abilitiesNode = graph.nodes.find(node =>
-        node.type === 'file' && node.label === 'Abilities'
+      const abilitiesNode = graph.nodes.find(
+        (node) => node.type === 'file' && node.label === 'Abilities'
       );
-      const welcomeNode = graph.nodes.find(node =>
-        node.type === 'file' && node.label === 'Welcome'
+      const welcomeNode = graph.nodes.find(
+        (node) => node.type === 'file' && node.label === 'Welcome'
       );
 
       expect(abilitiesNode).toBeDefined();
       expect(welcomeNode).toBeDefined();
 
-      const linkExists = linkEdges.some(edge =>
-        (edge.from === abilitiesNode!.id && edge.to === welcomeNode!.id) ||
-        (edge.from === welcomeNode!.id && edge.to === abilitiesNode!.id)
+      const linkExists = linkEdges.some(
+        (edge) =>
+          (edge.from === abilitiesNode!.id && edge.to === welcomeNode!.id) ||
+          (edge.from === welcomeNode!.id && edge.to === abilitiesNode!.id)
       );
 
       expect(linkExists).toBe(true);
-
     });
   });
 
@@ -200,12 +198,11 @@ describe('GraphService Integration Tests', () => {
       expect(localGraph.edges.length).toBeGreaterThan(0);
 
       // 验证中心节点存在
-      const centerNode = localGraph.nodes.find(node =>
-        node.title === 'Welcome' || node.label === 'Welcome'
+      const centerNode = localGraph.nodes.find(
+        (node) => node.title === 'Welcome' || node.label === 'Welcome'
       );
       expect(centerNode).toBeDefined();
       expect(centerNode?.type).toBe('file');
-
     });
 
     it('should build local graph for nested file path', async () => {
@@ -214,11 +211,10 @@ describe('GraphService Integration Tests', () => {
       expect(localGraph.nodes.length).toBeGreaterThan(0);
 
       // 验证中心节点存在
-      const centerNode = localGraph.nodes.find(node =>
-        node.title.includes('Abilities') || node.label === 'Abilities'
+      const centerNode = localGraph.nodes.find(
+        (node) => node.title.includes('Abilities') || node.label === 'Abilities'
       );
       expect(centerNode).toBeDefined();
-
     });
 
     it('should respect depth parameter in local graph', async () => {
@@ -227,7 +223,6 @@ describe('GraphService Integration Tests', () => {
 
       // 深度2应该包含相同或更多节点
       expect(depth2Graph.nodes.length).toBeGreaterThanOrEqual(depth1Graph.nodes.length);
-
     });
 
     it('should handle URL-encoded paths correctly', async () => {
@@ -240,7 +235,6 @@ describe('GraphService Integration Tests', () => {
       // 两种路径应该产生相同的结果
       expect(graph1.nodes.length).toBe(graph2.nodes.length);
       expect(graph1.edges.length).toBe(graph2.edges.length);
-
     });
   });
 
@@ -252,16 +246,15 @@ describe('GraphService Integration Tests', () => {
       expect(tagGraph.edges.length).toBeGreaterThan(0);
 
       // 验证标签节点存在
-      const tagNode = tagGraph.nodes.find(node => node.label === '#helenite');
+      const tagNode = tagGraph.nodes.find((node) => node.label === '#helenite');
       expect(tagNode).toBeDefined();
       expect(tagNode?.type).toBe('tag');
 
       // 验证相关文件节点存在
-      const servicesArchNode = tagGraph.nodes.find(node =>
-        node.type === 'file' && node.label === 'services-architecture'
+      const servicesArchNode = tagGraph.nodes.find(
+        (node) => node.type === 'file' && node.label === 'services-architecture'
       );
       expect(servicesArchNode).toBeDefined();
-
     });
 
     it('should filter graph by tag with # prefix', async () => {
@@ -270,9 +263,8 @@ describe('GraphService Integration Tests', () => {
       expect(tagGraph.nodes.length).toBeGreaterThan(0);
 
       // 验证标签节点存在
-      const tagNode = tagGraph.nodes.find(node => node.label === '#react');
+      const tagNode = tagGraph.nodes.find((node) => node.label === '#react');
       expect(tagNode).toBeDefined();
-
     });
 
     it('should return empty graph for non-existent tag', async () => {
@@ -296,8 +288,9 @@ describe('GraphService Integration Tests', () => {
 
       // 验证统计的合理性
       expect(stats.totalNodes).toBeGreaterThan(stats.totalTags);
-      expect(stats.averageConnections).toBe(Number(((stats.totalEdges * 2) / stats.totalNodes).toFixed(2)));
-
+      expect(stats.averageConnections).toBe(
+        Number(((stats.totalEdges * 2) / stats.totalNodes).toFixed(2))
+      );
     });
   });
 
@@ -314,7 +307,6 @@ describe('GraphService Integration Tests', () => {
 
       // 应该返回同一个节点
       expect(node1?.id).toBe(node2?.id);
-
     });
 
     it('should get node neighbors correctly', async () => {
@@ -325,7 +317,6 @@ describe('GraphService Integration Tests', () => {
 
       expect(Array.isArray(neighbors)).toBe(true);
       expect(neighbors.length).toBeGreaterThan(0);
-
     });
 
     it('should find path between connected nodes', async () => {
@@ -371,9 +362,8 @@ describe('GraphService Integration Tests', () => {
       expect(fileNodes.length).toBeGreaterThan(0);
 
       // 验证节点类型
-      expect(tagNodes.every(node => node.type === 'tag')).toBe(true);
-      expect(fileNodes.every(node => node.type === 'file')).toBe(true);
-
+      expect(tagNodes.every((node) => node.type === 'tag')).toBe(true);
+      expect(fileNodes.every((node) => node.type === 'file')).toBe(true);
     });
 
     it('should analyze node connectivity', async () => {
@@ -388,7 +378,6 @@ describe('GraphService Integration Tests', () => {
       expect(connectivity.totalDegree).toBe(connectivity.inDegree + connectivity.outDegree);
       expect(Array.isArray(connectivity.connectedTags)).toBe(true);
       expect(Array.isArray(connectivity.connectedFiles)).toBe(true);
-
     });
 
     it('should identify orphaned nodes if any', async () => {
@@ -400,7 +389,6 @@ describe('GraphService Integration Tests', () => {
 
   describe('Caching Integration', () => {
     it('should demonstrate caching performance with real graph data', async () => {
-
       // 第一次调用 - 从网络加载
       const graph1 = await cachedGraphService.getGlobalGraph();
 
@@ -414,7 +402,6 @@ describe('GraphService Integration Tests', () => {
       // 获取缓存统计
       const stats = await cacheManager.getStatistics();
       expect(stats.totalEntries).toBeGreaterThan(0);
-
     });
 
     it('should cache local graph results', async () => {
@@ -425,7 +412,6 @@ describe('GraphService Integration Tests', () => {
 
       expect(localGraph1.nodes.length).toBe(localGraph2.nodes.length);
       expect(localGraph1.edges.length).toBe(localGraph2.edges.length);
-
     });
 
     it('should cache graph statistics and queries', async () => {
@@ -442,13 +428,11 @@ describe('GraphService Integration Tests', () => {
       const node2 = await cachedGraphService.findNode('Welcome');
 
       expect(node1).toEqual(node2);
-
     });
   });
 
   describe('Graph Operations Integration', () => {
     it('should perform complex graph analysis workflow', async () => {
-
       // 1. 获取全局统计
       await graphService.getGraphStats();
 
@@ -469,7 +453,6 @@ describe('GraphService Integration Tests', () => {
         const tagName = allTags[0].label.replace('#', '');
         await graphService.filterByTag(tagName);
       }
-
     });
 
     it('should handle mixed graph operations efficiently', async () => {
@@ -478,15 +461,14 @@ describe('GraphService Integration Tests', () => {
         graphService.getGlobalGraph(),
         graphService.getAllTagNodes(),
         graphService.getAllFileNodes(),
-        graphService.getGraphStats()
+        graphService.getGraphStats(),
       ]);
 
       // 验证并行操作结果一致性
-      expect(globalGraph.nodes.filter(n => n.type === 'tag').length).toBe(tagNodes.length);
-      expect(globalGraph.nodes.filter(n => n.type === 'file').length).toBe(fileNodes.length);
+      expect(globalGraph.nodes.filter((n) => n.type === 'tag').length).toBe(tagNodes.length);
+      expect(globalGraph.nodes.filter((n) => n.type === 'file').length).toBe(fileNodes.length);
       expect(globalGraph.nodes.length).toBe(stats.totalNodes);
       expect(globalGraph.edges.length).toBe(stats.totalEdges);
-
     });
   });
 
