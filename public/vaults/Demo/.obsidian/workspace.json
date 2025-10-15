@@ -20,8 +20,21 @@
               "icon": "lucide-file",
               "title": "Embedded"
             }
+          },
+          {
+            "id": "a9b92b569618b22a",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.9.14"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.9.14"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -170,7 +183,7 @@
       "obsidian-leaflet-plugin:Open Leaflet Map": false
     }
   },
-  "active": "278919dfa40220f8",
+  "active": "a9b92b569618b22a",
   "lastOpenFiles": [
     "Usages.md",
     "FolderA/SubFolder/Abilities.md",
