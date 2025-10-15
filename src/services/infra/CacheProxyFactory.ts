@@ -4,7 +4,7 @@
  * 提供零侵入式的服务缓存增强，支持灵活的缓存配置
  */
 
-import type { ICacheService } from '../interfaces/ICacheService.js';
+import type { ICacheService, CacheMetadata } from '../interfaces/ICacheService.js';
 
 export interface CacheMethodConfig {
   /** 生存时间(毫秒) */
@@ -13,6 +13,8 @@ export interface CacheMethodConfig {
   condition?: (...args: unknown[]) => boolean;
   /** 自定义缓存键生成函数 */
   keyGenerator?: (...args: unknown[]) => string;
+  /** 缓存元数据生成函数 */
+  metadataGenerator?: (...args: unknown[]) => CacheMetadata | undefined;
 }
 
 export type CacheConfig<T> = {
@@ -76,10 +78,16 @@ function createCachedMethod(
       ? config.keyGenerator(...args)
       : generateDefaultCacheKey(methodName, args);
 
+    // 生成缓存元数据
+    const metadata = config.metadataGenerator
+      ? config.metadataGenerator(...args)
+      : undefined;
+
     // 使用getOrSet获取或计算值
     return cache.getOrSet(cacheKey, () =>
       originalMethod.apply(context, args),
-      config.ttl
+      config.ttl,
+      metadata
     );
   };
 }
@@ -138,6 +146,11 @@ export class MethodConfigBuilder<T, K extends keyof T> {
 
   keyGenerator(generator: (...args: unknown[]) => string): this {
     this.ensureConfig().keyGenerator = generator;
+    return this;
+  }
+
+  metadataGenerator(generator: (...args: unknown[]) => CacheMetadata | undefined): this {
+    this.ensureConfig().metadataGenerator = generator;
     return this;
   }
 

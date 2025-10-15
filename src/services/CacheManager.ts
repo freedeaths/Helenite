@@ -17,6 +17,7 @@ import { FootprintsService } from './FootprintsService.js';
 import { IndexedDBCache } from './infra/IndexedDBCache.js';
 import { createCachedService, cacheConfig } from './infra/CacheProxyFactory.js';
 import type { CacheConfig } from './infra/CacheProxyFactory.js';
+import type { CacheMetadata } from './interfaces/ICacheService.js';
 
 // Utility functions to handle type casting for cache config
 const condition = <T extends (...args: never[]) => boolean>(fn: T): ((...args: unknown[]) => boolean) => {
@@ -24,6 +25,9 @@ const condition = <T extends (...args: never[]) => boolean>(fn: T): ((...args: u
 };
 const keyGen = <T extends (...args: never[]) => string>(fn: T): ((...args: unknown[]) => string) => {
   return (...args: unknown[]) => ((fn as unknown) as (...args: unknown[]) => string)(...args);
+};
+const metaGen = <T extends (...args: never[]) => CacheMetadata | undefined>(fn: T): ((...args: unknown[]) => CacheMetadata | undefined) => {
+  return (...args: unknown[]) => ((fn as unknown) as (...args: unknown[]) => CacheMetadata | undefined)(...args);
 };
 
 // 扩展接口定义，用于类型安全的方法调用
@@ -331,6 +335,12 @@ export class CacheManager {
         .keyGenerator(keyGen((path: string, options?: Record<string, unknown>) =>
           `file:${path}:${JSON.stringify(options || {})}`
         ))
+        .metadataGenerator(metaGen((path: string) => {
+          // 为所有缓存的文件添加 sourceUrl 以启用内容哈希轮询（SHA-256）
+          return {
+            sourceUrl: path // 存储相对路径，实际使用时通过 resolvePath 转换
+          };
+        }))
       .and()
       .method('getFileInfo')
         .ttl(600000) // 10分钟
@@ -346,6 +356,12 @@ export class CacheManager {
         .keyGenerator(keyGen((path: string, options?: Record<string, unknown>) =>
           `file-with-info:${path}:${JSON.stringify(options || {})}`
         ))
+        .metadataGenerator(metaGen((path: string) => {
+          // 为所有缓存的文件添加 sourceUrl 以启用内容哈希轮询（SHA-256）
+          return {
+            sourceUrl: path
+          };
+        }))
       .build();
   }
 

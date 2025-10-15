@@ -6,7 +6,7 @@
 
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
-import type { ICacheService, CacheEntry, CacheStatistics } from '../interfaces/ICacheService.js';
+import type { ICacheService, CacheEntry, CacheStatistics, CacheMetadata } from '../interfaces/ICacheService.js';
 
 /** 缓存层级定义 */
 type CacheTier = 'persistent' | 'lru';
@@ -148,12 +148,13 @@ export class IndexedDBCache implements ICacheService {
   }
 
   /**
-   * 计算字符串的MD5哈希
+   * 计算字符串的内容哈希（使用 SHA-256）
+   * 注：Web Crypto API 不支持 MD5，使用 SHA-256 代替
    */
-  private async calculateMD5(content: string): Promise<string> {
+  private async calculateContentHash(content: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(content);
-    const hashBuffer = await crypto.subtle.digest('MD5', data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
@@ -176,7 +177,7 @@ export class IndexedDBCache implements ICacheService {
   }
 
   /**
-   * MD5轮询检查文件变更
+   * 内容哈希轮询检查文件变更（使用 SHA-256）
    */
   private async pollForChanges(): Promise<void> {
     if (!this.options.polling?.enabled || !this.options.polling?.baseUrl) {
@@ -191,7 +192,7 @@ export class IndexedDBCache implements ICacheService {
         const entry: StoredCacheEntry = cursor.value;
 
         // 只检查有sourceUrl的条目
-        if (entry.sourceUrl && entry.contentHash) {
+        if (entry.sourceUrl) {
           await this.checkAndUpdateEntry(entry);
         }
       }
@@ -205,15 +206,20 @@ export class IndexedDBCache implements ICacheService {
    */
   private async checkAndUpdateEntry(entry: StoredCacheEntry): Promise<void> {
     try {
-      const response = await fetch(entry.sourceUrl!);
+      // 构造完整 URL：sourceUrl 存储的是相对路径
+      const baseUrl = this.options.polling?.baseUrl || '';
+      const fullUrl = baseUrl ? `${baseUrl.replace(/\/+$/, '')}/${entry.sourceUrl}` : entry.sourceUrl!;
+
+      const response = await fetch(fullUrl, {
+        cache: 'no-cache' // 绕过浏览器缓存
+      });
       if (!response.ok) return;
 
       const content = await response.text();
-      const currentHash = await this.calculateMD5(content);
+      const currentHash = await this.calculateContentHash(content);
 
-      // MD5不匹配，需要更新
+      // 哈希不匹配，需要更新
       if (currentHash !== entry.contentHash) {
-
         // 更新缓存条目
         await this.set(entry.key, content, entry.ttl, {
           tier: entry.tier,
@@ -303,21 +309,17 @@ export class IndexedDBCache implements ICacheService {
   }
 
   /**
-   * 增强的set方法，支持分层存储和MD5检测
+   * 增强的set方法，支持分层存储和内容哈希检测（SHA-256）
    */
   async set<T = unknown>(
     key: string,
     value: T,
     ttl?: number,
-    options?: {
-      tier?: CacheTier;
-      sourceUrl?: string;
-      contentHash?: string;
-    }
+    metadata?: CacheMetadata
   ): Promise<void> {
     await this.ensureInitialized();
 
-    const tier = options?.tier || this.determineTier(key);
+    const tier = metadata?.tier || this.determineTier(key);
     const tierConfig = this.options.tiers![tier]!;
 
     // 计算TTL：持久层可能没有TTL
@@ -325,9 +327,9 @@ export class IndexedDBCache implements ICacheService {
     const now = Date.now();
 
     // 计算内容哈希（如果是字符串内容）
-    let contentHash = options?.contentHash;
-    if (!contentHash && typeof value === 'string' && options?.sourceUrl) {
-      contentHash = await this.calculateMD5(value);
+    let contentHash = metadata?.contentHash;
+    if (!contentHash && typeof value === 'string' && metadata?.sourceUrl) {
+      contentHash = await this.calculateContentHash(value);
     }
 
     const entry: StoredCacheEntry = {
@@ -339,7 +341,7 @@ export class IndexedDBCache implements ICacheService {
       lastAccessed: now,
       tier,
       contentHash,
-      sourceUrl: options?.sourceUrl
+      sourceUrl: metadata?.sourceUrl
     };
 
     // 只对LRU层执行容量检查和清理
@@ -351,14 +353,14 @@ export class IndexedDBCache implements ICacheService {
 
   }
 
-  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
+  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
     }
 
     const value = await factory();
-    await this.set(key, value, ttl);
+    await this.set(key, value, ttl, metadata);
     return value;
   }
 
@@ -399,9 +401,9 @@ export class IndexedDBCache implements ICacheService {
     return result;
   }
 
-  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void> {
+  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void> {
     for (const [key, value] of entries) {
-      await this.set(key, value, ttl);
+      await this.set(key, value, ttl, metadata);
     }
   }
 
@@ -905,12 +907,12 @@ class NamespacedCache implements ICacheService {
     return this.cache.get<T>(this.getNamespacedKey(key));
   }
 
-  async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
-    return this.cache.set(this.getNamespacedKey(key), value, ttl);
+  async set<T = unknown>(key: string, value: T, ttl?: number, metadata?: CacheMetadata): Promise<void> {
+    return this.cache.set(this.getNamespacedKey(key), value, ttl, metadata);
   }
 
-  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T> {
-    return this.cache.getOrSet(this.getNamespacedKey(key), factory, ttl);
+  async getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T> {
+    return this.cache.getOrSet(this.getNamespacedKey(key), factory, ttl, metadata);
   }
 
   async delete(key: string): Promise<void> {
@@ -934,12 +936,12 @@ class NamespacedCache implements ICacheService {
     return converted;
   }
 
-  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void> {
+  async setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void> {
     const namespacedEntries = new Map<string, T>();
     for (const [key, value] of entries) {
       namespacedEntries.set(this.getNamespacedKey(key), value);
     }
-    return this.cache.setMultiple(namespacedEntries, ttl);
+    return this.cache.setMultiple(namespacedEntries, ttl, metadata);
   }
 
   async deleteMultiple(keys: string[]): Promise<void> {

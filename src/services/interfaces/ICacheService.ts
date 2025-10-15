@@ -11,6 +11,15 @@ export interface CacheEntry<T = unknown> {
   size?: number; // Entry size in bytes
 }
 
+export interface CacheMetadata {
+  /** 源文件 URL，用于内容哈希轮询 */
+  sourceUrl?: string;
+  /** 内容哈希（SHA-256） */
+  contentHash?: string;
+  /** 缓存层级 */
+  tier?: 'persistent' | 'lru';
+}
+
 export interface CacheStatistics {
   totalEntries: number;
   totalSize: number;
@@ -29,16 +38,17 @@ export interface ICacheService {
   /**
    * 设置缓存值
    */
-  set<T = unknown>(key: string, value: T, ttl?: number): Promise<void>;
+  set<T = unknown>(key: string, value: T, ttl?: number, metadata?: CacheMetadata): Promise<void>;
 
   /**
    * 获取或设置缓存值（核心方法）
    * @param key 缓存键
    * @param factory 值工厂函数
    * @param ttl 生存时间(毫秒)
+   * @param metadata 缓存元数据（sourceUrl、contentHash 等）
    * @returns 缓存值或新计算的值
    */
-  getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T>;
+  getOrSet<T = unknown>(key: string, factory: () => Promise<T>, ttl?: number, metadata?: CacheMetadata): Promise<T>;
 
   /**
    * 删除缓存项
@@ -59,7 +69,7 @@ export interface ICacheService {
   /**
    * 批量设置
    */
-  setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void>;
+  setMultiple<T = unknown>(entries: Map<string, T>, ttl?: number, metadata?: CacheMetadata): Promise<void>;
 
   /**
    * 批量删除
