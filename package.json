@@ -12,6 +12,8 @@
     "format:check": "prettier --check .",
     "preview": "vite preview",
     "test": "vitest",
+    "test:unit": "vitest run --exclude=**/*.integration.test.ts",
+    "test:integration": "vitest run src/services/**/*.integration.test.ts",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
