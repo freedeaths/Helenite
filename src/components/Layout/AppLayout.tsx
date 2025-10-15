@@ -78,7 +78,6 @@ export function AppLayout() {
         {/* Left Sidebar - show on desktop and tablet when open */}
         <div
           ref={leftSidebarRef}
-          data-testid="left-sidebar"
           className={`
             relative overflow-hidden sidebar-transition gpu-accelerated
             ${leftSidebarOpen && !isMobile ? 'flex-shrink-0' : 'w-0'}
@@ -106,7 +105,7 @@ export function AppLayout() {
         )}
 
         {/* Main Content */}
-        <div data-testid="main-content" className={`relative overflow-hidden ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}>
+        <div className={`relative overflow-hidden ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}>
           <MainContent />
         </div>
 
@@ -124,7 +123,6 @@ export function AppLayout() {
         {/* Right Sidebar - only show on desktop (not tablet or mobile) */}
         <div
           ref={rightSidebarRef}
-          data-testid="right-sidebar"
           className={`
             relative overflow-hidden sidebar-transition gpu-accelerated hide-tablet hide-mobile
             ${rightSidebarOpen && !isMobile && !isTablet ? 'flex-shrink-0' : 'w-0'}

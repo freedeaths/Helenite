@@ -27,7 +27,7 @@ export function MainContent() {
   // });
 
   return (
-    <div className="h-full flex flex-col bg-[var(--background-primary)]">
+    <div data-testid="main-content" className="h-full flex flex-col bg-[var(--background-primary)]">
       {/* Header - sticky positioning within the main content area */}
       <div className="sticky top-0 z-[100] bg-[var(--background-secondary)]">
         <ViewHeader />

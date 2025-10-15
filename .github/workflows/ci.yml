@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -81,7 +81,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -89,8 +89,8 @@ jobs:
 
       - name: Get baseline lint count
         run: |
-          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > baseline-lint-count.txt || echo "0" > baseline-lint-count.txt
-          echo "Baseline lint issues: $(cat baseline-lint-count.txt)"
+          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > /tmp/baseline-lint-count.txt || echo "0" > /tmp/baseline-lint-count.txt
+          echo "Baseline lint issues: $(cat /tmp/baseline-lint-count.txt)"
 
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -100,13 +100,13 @@ jobs:
 
       - name: Get PR lint count
         run: |
-          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > pr-lint-count.txt || echo "0" > pr-lint-count.txt
-          echo "PR lint issues: $(cat pr-lint-count.txt)"
+          npm run lint 2>&1 | grep -o '[0-9]\+ problems' | head -1 | grep -o '[0-9]\+' > /tmp/pr-lint-count.txt || echo "0" > /tmp/pr-lint-count.txt
+          echo "PR lint issues: $(cat /tmp/pr-lint-count.txt)"
 
       - name: Compare lint counts
         run: |
-          baseline=$(cat baseline-lint-count.txt)
-          pr_count=$(cat pr-lint-count.txt)
+          baseline=$(cat /tmp/baseline-lint-count.txt)
+          pr_count=$(cat /tmp/pr-lint-count.txt)
           echo "Baseline: $baseline, PR: $pr_count"
           
           if [ "$pr_count" -gt "$baseline" ]; then

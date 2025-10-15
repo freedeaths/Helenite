@@ -372,7 +372,7 @@ export function FileExplorer() {
           )
         ) : (
           /* File tree mode */
-          <div className="p-2">
+          <div data-testid="file-tree" className="p-2">
             <div className="text-xs text-[var(--text-muted)] mb-2 px-2">FILES</div>
             {fileTree.length === 0 ? (
               <div className="text-sm text-[var(--text-muted)] p-2">
