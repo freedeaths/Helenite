@@ -4,9 +4,28 @@
  * 整合了原 vaultConfig.ts 的所有功能
  */
 
-// 环境变量和路径配置
-export const VAULTS_ROOT = import.meta.env.VITE_VAULTS_ROOT || '/vaults';
-export const VAULT_SUBDIR = import.meta.env.VITE_VAULT_SUBDIR || 'Demo';
+// 运行时配置优先，构建时配置作为后备
+declare global {
+  interface Window {
+    RUNTIME_CONFIG?: {
+      VAULT_SUBDIR?: string;
+      VAULTS_ROOT?: string;
+    };
+  }
+}
+
+// 环境变量和路径配置 - 支持运行时覆盖
+// 优先级：环境变量（开发） > 运行时配置（生产） > 默认值
+export const VAULTS_ROOT =
+  import.meta.env.VITE_VAULTS_ROOT ||
+  (typeof window !== 'undefined' && window.RUNTIME_CONFIG?.VAULTS_ROOT) ||
+  '/vaults';
+
+export const VAULT_SUBDIR =
+  import.meta.env.VITE_VAULT_SUBDIR ||
+  (typeof window !== 'undefined' && window.RUNTIME_CONFIG?.VAULT_SUBDIR) ||
+  'Demo';
+
 export const VAULT_PATH = `${VAULTS_ROOT}/${VAULT_SUBDIR}`;
 
 // 内部使用的 Obsidian 插件路径

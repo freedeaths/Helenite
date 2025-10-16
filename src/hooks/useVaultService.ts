@@ -5,7 +5,7 @@
  */
 import { useMemo, useCallback, useEffect } from 'react';
 import { useVaultStore } from '../stores/vaultStore.js';
-import { VAULT_CONFIG } from '../config/vaultConfig.js';
+import { VAULT_CONFIG, VAULT_SUBDIR } from '../config/vaultConfig.js';
 
 // 导入所有必需的服务
 import { StorageService } from '../services/infra/StorageService.js';
@@ -164,7 +164,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const cachedStorage = cacheManager.createCachedStorageService(storageService);
     // console.log('✅ StorageService 创建并缓存完成');
 
-    const metadataService = new MetadataService('Demo');
+    const metadataService = new MetadataService(VAULT_SUBDIR);
     const cachedMetadata = cacheManager.createCachedMetadataService(metadataService);
     // console.log('✅ MetadataService 创建并缓存完成');
 
@@ -175,13 +175,13 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const graphService = new GraphService(cachedMetadata);
     const cachedGraph = cacheManager.createCachedGraphService(graphService);
 
-    const tagService = new TagService(cachedMetadata, cachedStorage, 'Demo');
+    const tagService = new TagService(cachedMetadata, cachedStorage, VAULT_SUBDIR);
     const cachedTag = cacheManager.createCachedTagService(tagService);
 
     const searchService = new SearchService(
       cachedStorage,
       cachedMetadata,
-      'Demo' // vaultId
+      VAULT_SUBDIR // vaultId
     );
     const cachedSearch = cacheManager.createCachedSearchService(searchService);
 
@@ -189,10 +189,10 @@ async function createVaultAPI(): Promise<VaultAPI> {
     // 暂时不使用缓存包装，直接使用原始服务以调试问题
     const cachedFootprints = footprintsService; // cacheManager.createCachedFootprintsService(footprintsService);
 
-    const frontMatterService = new FrontMatterService(cachedMetadata, 'Demo');
+    const frontMatterService = new FrontMatterService(cachedMetadata, VAULT_SUBDIR);
     const cachedFrontMatter = cacheManager.createCachedFrontMatterService(frontMatterService);
 
-    const exifService = new ExifService(cachedStorage, 'Demo');
+    const exifService = new ExifService(cachedStorage, VAULT_SUBDIR);
     const cachedExif = cacheManager.createCachedExifService(exifService);
 
     // console.log('✅ 所有服务创建并缓存完成');
@@ -207,7 +207,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
           const hasMetadata = !!metadata && metadata.length > 0;
 
           return {
-            name: 'Demo Vault',
+            name: `${VAULT_SUBDIR} Vault`,
             path: VAULT_CONFIG.VAULT_PATH,
             hasMetadata,
             supportedFeatures: {
@@ -221,7 +221,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
         } catch {
           // console.warn('getVaultInfo 失败，返回默认值:', error);
           return {
-            name: 'Demo Vault',
+            name: `${VAULT_SUBDIR} Vault`,
             path: VAULT_CONFIG.VAULT_PATH,
             hasMetadata: false,
             supportedFeatures: {
@@ -544,7 +544,7 @@ async function createVaultAPI(): Promise<VaultAPI> {
     const fallbackAPI: VaultAPI = {
       async getVaultInfo() {
         return {
-          name: 'Demo Vault (降级)',
+          name: `${VAULT_SUBDIR} Vault (降级)`,
           path: VAULT_CONFIG.VAULT_PATH,
           hasMetadata: false,
           supportedFeatures: {
